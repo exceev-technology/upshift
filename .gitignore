@@ -70,3 +70,6 @@ screenshots/
 /.diag*.mjs
 /.compare*.mjs
 /.narrow*.mjs
+
+# oh-my-claudecode local session state (never commit)
+.omc/
