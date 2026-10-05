@@ -1,28 +1,52 @@
 #!/usr/bin/env node
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
 
 const JSON_PARSE_PREFIX = 'JSON.parse(';
 const JSON_PARSE_SUFFIX = ')as Messages;';
 const TWENTY_BRAND_WORD = /(?<![\w@./-])Twenty(?!\w|\.[a-z])/g;
+const CONFIGURATION_FILE_NAME = 'upshift-brand-catalogs.json';
 
-const [generatedDirectory, brandName] = process.argv.slice(2);
+const [generatedDirectory] = process.argv.slice(2);
 
-if (!generatedDirectory || !brandName) {
-  console.error('Usage: brand-catalogs.mjs <generated-catalog-directory> <brand-name>');
+if (!generatedDirectory) {
+  console.error('Usage: brand-catalogs.mjs <generated-catalog-directory>');
   process.exit(1);
 }
 
+const { brandName, textReplacements } = JSON.parse(
+  readFileSync(
+    path.join(path.dirname(fileURLToPath(import.meta.url)), CONFIGURATION_FILE_NAME),
+    'utf8',
+  ),
+);
+
 let replacementCount = 0;
+
+const rebrandText = (text) => {
+  let rebrandedText = text.replace(TWENTY_BRAND_WORD, () => {
+    replacementCount += 1;
+
+    return brandName;
+  });
+
+  for (const [from, to] of textReplacements) {
+    const occurrenceCount = rebrandedText.split(from).length - 1;
+
+    if (occurrenceCount > 0) {
+      replacementCount += occurrenceCount;
+      rebrandedText = rebrandedText.split(from).join(to);
+    }
+  }
+
+  return rebrandedText;
+};
 
 const rebrand = (value) => {
   if (typeof value === 'string') {
-    return value.replace(TWENTY_BRAND_WORD, () => {
-      replacementCount += 1;
-
-      return brandName;
-    });
+    return rebrandText(value);
   }
 
   if (Array.isArray(value)) {

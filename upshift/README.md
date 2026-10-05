@@ -26,7 +26,9 @@ upshift/
    - applies exact-match source patches (each patch expects a precise number of matches, so a moved string fails loudly instead of being skipped),
    - installs a translation hook that runs right after `lingui compile` and replaces "Twenty" with the brand name in every language,
    - turns off Yarn telemetry,
-   - runs an outbound census: any shipped file that references a Twenty-owned host outside the known, neutralized places fails the build.
+   - runs a reference census: any shipped file that references a Twenty-owned host or link outside the reviewed list (`REFERENCE_CENSUS`, each entry says why it is allowed) fails the build.
+
+   Every change is prepared in memory first. If any patch point is missing, nothing is written.
 3. Build Twenty's own Dockerfile (`--target twenty`) and push `ghcr.io/exceev-technology/upshift:vX.Y.Z`.
 
 The [Upshift Release](../.github/workflows/upshift-release.yaml) workflow does this every morning for the newest Twenty release, for amd64 and arm64, and skips versions that are already published. To build a specific version, run the workflow manually with `twenty-tag` set (for example `twenty/v2.43.0`). Tick `force` to rebuild an existing version.
@@ -69,7 +71,7 @@ The script refuses to run on this repository's own working tree outside CI.
 
 ## Changing the brand
 
-- Name, website, legal links, email sender: edit `branding/brand.json`.
+- Name, website, docs URL, legal links, contact email, email sender: edit `branding/brand.json`.
 - Logo: replace `branding/logo.svg` (and `logo-square.svg`, `mark.svg`), then regenerate the icons and commit the result:
 
 ```bash
@@ -88,7 +90,7 @@ Every failure names the file and what was expected.
 | `no longer exists in Twenty` | Twenty moved or deleted a patched file | Point the patch or overlay at the new path, or drop it |
 | `changed in Twenty (sha256 ...)` | Twenty edited a file Upshift replaces whole (the email footer) | Compare with the overlay, port anything relevant, add the new hash to `CODE_OVERLAY_UPSTREAM_SHA256` |
 | `has no Upshift version` | Twenty added a new app icon | `node upshift/scripts/generate-icons.mjs --root <checkout>` and commit |
-| `references <host>` | New code calls a Twenty-owned host | Neutralize it with a patch, then add the file to `OUTBOUND_CENSUS` |
+| `references <host or link>` | New code calls or links to a Twenty-owned host | Patch it. If it is unreachable or intentional, add the file to `REFERENCE_CENSUS` with the reason |
 | `lingui compile command not found` / `catalogs changed shape` | Twenty changed its translation build | Update `installCatalogHooks` or `brand-catalogs.mjs` |
 
 ## What the layer disables
@@ -110,4 +112,14 @@ Left in place on purpose:
 - Sentry, support chat, captcha and Cal.com stay off unless configured.
 - Third-party services used by features: npm/unpkg for the app marketplace, models.dev for the AI model list, the TradingView widget on the sample dashboard.
 
-Twenty's documentation links (docs.twenty.com) are kept because the product documentation still applies.
+## What users see
+
+- Name, logo, icons, page titles, emails, translations (all languages), AI assistant prompts, MCP and OpenAPI metadata say Upshift.
+- Documentation links point to `docsUrl` (`https://upshiftcloud.com/docs`) with Twenty's paths kept, for example `/user-guide/workflows/...` and `/developers/extend/apps/getting-started`. The Upshift docs site should serve or redirect those paths.
+- Hidden: the Community settings page (Twenty's Discord, X, partners, changelog), the Legal / DPA pages (Twenty's own legal agreement) and the ChatGPT card that installs Twenty's ChatGPT app.
+
+Still named Twenty on purpose, because they are real identifiers:
+
+- The app developer commands `npx create-twenty-app` and `yarn twenty ...` (published npm packages; the example folder is renamed `my-upshift-app`).
+- Webhook signature headers `X-Twenty-Webhook-Signature`, `-Timestamp`, `-Nonce` (API contract).
+- Internal package paths, logs and environment variable names inside the container.

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
 import {
-  copyFileSync,
   existsSync,
   readFileSync,
   readdirSync,
@@ -25,6 +24,13 @@ const CATALOG_HOOK_SOURCE = path.join(
   'brand-catalogs.mjs',
 );
 const CATALOG_HOOK_FILE_NAME = 'upshift-brand-catalogs.mjs';
+const CATALOG_HOOK_CONFIGURATION_FILE_NAME = 'upshift-brand-catalogs.json';
+const CATALOG_TEXT_REPLACEMENTS = [
+  ['https://twenty.com/developers/', '{{docsUrl}}/developers/'],
+  ['https://docs.twenty.com', '{{docsUrl}}'],
+  ['my-twenty-app', 'my-{{slug}}-app'],
+  ['twenty.com', '{{domain}}'],
+];
 const LAYER_MARKER_FILE_NAME = '.upshift-layer-applied';
 const ICONS_RELATIVE_DIRECTORY = 'packages/twenty-front/public/images/icons';
 const TEMPLATE_EXTENSIONS = new Set(['.ts', '.tsx', '.json', '.html', '.md']);
@@ -101,7 +107,97 @@ const PATCHES = [
     file: `${FRONT}/src/modules/settings/mcp-and-apis/constants/McpSetup.ts`,
     replacements: [
       { from: "displayName: 'Twenty',", to: "displayName: '{{name}}'," },
+      { from: "name: 'twenty',", to: "name: '{{slug}}'," },
+      {
+        from: "'https://chatgpt.com/apps/twenty/asdk_app_6a0ac8d7e28c8191a58ea65bb0ca3d5c'",
+        to: "''",
+      },
     ],
+  },
+  {
+    file: `${FRONT}/src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx`,
+    replacements: [
+      {
+        from: [
+          '      {',
+          '        title: t`ChatGPT`,',
+          '        badge: t`Official app`,',
+          "        description: t`Open Twenty's official ChatGPT integration for your workspace.`,",
+          '        ctaLabel: t`Open`,',
+          '        href: MCP_SETUP.chatGptTwentyAppUrl,',
+          '        logo: <McpClientLogo src={OpenAiLogo} invertInDarkMode />,',
+          '      },',
+          '',
+        ].join('\n'),
+        to: '',
+      },
+    ],
+  },
+  {
+    file: `${FRONT}/src/modules/settings/hooks/useSettingsNavigationItems.tsx`,
+    replacements: [
+      {
+        pattern:
+          /(label: t`Community`,\n\s+path: SettingsPath\.Community,\n\s+Icon: IconUsers,\n\s+isHidden: )[^\n]+,/g,
+        to: '$1true,',
+      },
+    ],
+  },
+  {
+    file: `${FRONT}/src/modules/app/components/SettingsRoutes.tsx`,
+    replacements: [
+      {
+        from: [
+          '      <Route path={SettingsPath.LegalDpa} element={<SettingsLegalDpa />} />',
+          '      <Route',
+          '        path={SettingsPath.LegalDpaNew}',
+          '        element={<SettingsLegalDpaNew />}',
+          '      />',
+          '',
+        ].join('\n'),
+        to: '',
+      },
+      {
+        from: '      <Route path={SettingsPath.Community} element={<SettingsCommunity />} />\n',
+        to: '',
+      },
+    ],
+  },
+  {
+    file: 'packages/twenty-shared/src/constants/DocumentationBaseUrl.ts',
+    replacements: [{ from: "'https://docs.twenty.com'", to: "'{{docsUrl}}'" }],
+  },
+  {
+    file: `${FRONT}/src/modules/workflow/workflow-steps/workflow-actions/form-action/components/WorkflowEditActionFormBuilder.tsx`,
+    replacements: [{ from: "'https://docs.twenty.com/", to: "'{{docsUrl}}/" }],
+  },
+  {
+    file: `${FRONT}/src/modules/settings/data-model/constants/SettingsCompositeFieldTypeConfigs.ts`,
+    replacements: [
+      { pattern: /@twenty\.com/g, to: '@{{domain}}' },
+      { from: "'twenty.com'", to: "'{{domain}}'", count: 3 },
+      { from: "'github.com/twentyhq/twenty'", to: "'{{repositoryUrl}}'" },
+      { brandWord: true, minimum: 2 },
+    ],
+  },
+  {
+    file: `${FRONT}/src/pages/settings/applications/tabs/SettingsApplicationsDeveloperTab.tsx`,
+    replacements: [
+      {
+        from: "'npx create-twenty-app@latest my-twenty-app'",
+        to: "'npx create-twenty-app@latest my-{{slug}}-app'",
+      },
+    ],
+  },
+  {
+    file: `${FRONT}/src/modules/onboarding/constants/CalLink.ts`,
+    replacements: [
+      { from: "'https://cal.com/team/twenty/talk-to-us'", to: "'{{websiteUrl}}'" },
+    ],
+  },
+  {
+    file: `${FRONT}/src/modules/apollo/services/apollo.factory.ts`,
+    replacements: [{ brandWord: true }],
   },
   {
     file: `${FRONT}/src/modules/settings/mcp-and-apis/utils/mcpSetup.ts`,
@@ -135,6 +231,7 @@ const PATCHES = [
         ].join('\n'),
         to: "  return page === 'terms' ? '{{termsUrl}}' : '{{privacyPolicyUrl}}';",
       },
+      { from: "'https://twenty.com'", to: "'{{websiteUrl}}'" },
     ],
   },
   {
@@ -170,6 +267,10 @@ const PATCHES = [
         to: "EMAIL_FROM_NAME = '{{emailFromName}}';",
       },
       { from: 'TELEMETRY_ENABLED = true;', to: 'TELEMETRY_ENABLED = false;' },
+      {
+        from: "description: 'Twenty server version',",
+        to: "description: '{{name}} server version',",
+      },
     ],
   },
   {
@@ -280,10 +381,55 @@ const PATCHES = [
         from: "websiteUrl: 'https://twenty.com',",
         to: "websiteUrl: '{{websiteUrl}}',",
       },
+      { from: "name: 'com.twenty/twenty',", to: "name: '{{mcpServerId}}'," },
+      {
+        from: "url: 'https://github.com/twentyhq/twenty',",
+        to: "url: '{{repositoryUrl}}',",
+      },
+    ],
+  },
+  {
+    file: `${SERVER}/engine/core-modules/open-api/utils/base-schema.utils.ts`,
+    replacements: [
+      {
+        from: "'https://github.com/twentyhq/twenty?tab=coc-ov-file#readme'",
+        to: "'{{termsUrl}}'",
+      },
+      { from: "email: 'felix@twenty.com',", to: "email: '{{contactEmail}}'," },
+      {
+        from: "'https://github.com/twentyhq/twenty?tab=License-1-ov-file#readme'",
+        to: "'{{repositoryUrl}}/blob/upshift-main/LICENSE'",
+      },
+      { from: "url: 'https://twenty.com',", to: "url: '{{websiteUrl}}'," },
+      { from: '> twenty-${schemaName}.json', to: '> {{slug}}-${schemaName}.json' },
+      { brandWord: true, minimum: 3 },
+    ],
+  },
+  {
+    file: `${SERVER}/engine/workspace-manager/standard-objects-prefill-data/utils/prefill-workflows.util.ts`,
+    replacements: [
+      { from: "value: 'https://twenty.com',", to: "value: '{{websiteUrl}}'," },
+      { from: "value: 'twenty.com',", to: "value: '{{domain}}'," },
+    ],
+  },
+  {
+    file: `${SERVER}/engine/workspace-manager/twenty-standard-application/utils/page-layout-widget/compute-my-first-dashboard-widgets.util.ts`,
+    replacements: [
+      {
+        from: "'https://docs.twenty.com/getting-started/introduction'",
+        to: "'{{docsUrl}}/getting-started/introduction'",
+      },
     ],
   },
   ...[
-    'engine/core-modules/open-api/utils/base-schema.utils.ts',
+    'engine/core-modules/tool/tools/code-interpreter-tool/twenty-mcp-helper.const.ts',
+    'engine/workspace-manager/twenty-standard-application/utils/skill-metadata/create-standard-flat-skill-metadata.util.ts',
+    'engine/core-modules/tool/tools/search-help-center-tool/search-help-center-tool.schema.ts',
+    'engine/core-modules/application/application-package/application-version-validation.service.ts',
+    'engine/core-modules/auth/controllers/oauth-propagator.controller.ts',
+    'engine/core-modules/application/application-registration/application-registration.service.ts',
+    'engine/workspace-manager/twenty-standard-application/constants/twenty-cli-application-registration.constant.ts',
+    'engine/workspace-manager/workspace-migration/services/workspace-migration-flat-entity-maps.service.ts',
     'engine/metadata-modules/ai/ai-chat/constants/chat-system-prompts.const.ts',
     'engine/metadata-modules/ai/ai-chat/constants/workspace-setup-system-prompt.constant.ts',
     'engine/metadata-modules/ai/ai-agent/constants/agent-run-base-system-prompt.const.ts',
@@ -330,6 +476,22 @@ const PATCHES = [
     file: `${EMAILS}/emails/send-email-verification-link.email.tsx`,
     replacements: [{ brandWord: true, minimum: 2 }],
   },
+  ...[
+    'password-reset-link',
+    'password-update-notify',
+    'send-email-verification-link',
+    'send-invite-link',
+    'validate-approved-access-domain',
+    'billing-subscription-renewing',
+    'billing-trial-converting',
+    'billing-trial-ending',
+    'warn-suspended-workspace',
+  ].map((emailName) => ({
+    file: `${EMAILS}/emails/${emailName}.email.tsx`,
+    replacements: [
+      { pattern: /https:\/\/(app|acme)\.twenty\.com/g, to: '{{websiteUrl}}' },
+    ],
+  })),
 ];
 
 const CATALOG_HOOKS = [
@@ -364,41 +526,82 @@ const CENSUS_TEXT_EXTENSIONS = new Set([
   '.html',
 ]);
 const CENSUS_EXCLUDED_PATH =
-  /\.(spec|test|stories)\.|__tests__|__mocks__|\/mocks?\/|mock-data|\/testing\/|dev-seeder|\/generated\//;
+  /\.(spec|test|stories)\.|__tests__|__mocks__|__stories__|\/mocks?\/|mock-data|\/testing\/|dev-seeder|\/generated\//;
 
-// Every place that can reach a Twenty-owned host; anything new fails the build until reviewed
-const OUTBOUND_CENSUS = [
+const TRANSLATED_IN_CATALOGS = 'translated message, rewritten in the compiled catalogs';
+const UNREACHABLE_DPA = 'Twenty legal DPA, its routes are removed';
+const NEUTRALIZED = 'neutralized by a patch above';
+const BARREL_EXPORT = 'constant re-export only';
+
+// Every remaining reference to Twenty-owned hosts or links; anything new fails the build until reviewed
+const REFERENCE_CENSUS = [
+  {
+    needle: 'twenty.com',
+    allowed: {
+      [`${FRONT}/src/pages/settings/applications/utils/getCustomApplicationDescription.ts`]:
+        TRANSLATED_IN_CATALOGS,
+      [`${FRONT}/src/pages/settings/applications/utils/getStandardApplicationDescription.ts`]:
+        TRANSLATED_IN_CATALOGS,
+      [`${FRONT}/src/modules/settings/billing/constants/SettingsBillingPlanComparisonRows.ts`]:
+        TRANSLATED_IN_CATALOGS,
+      [`${SERVER}/engine/api/common/common-args-processors/data-arg-processor/validator-utils/validate-links-field-or-throw.util.ts`]:
+        TRANSLATED_IN_CATALOGS,
+      [`${FRONT}/src/pages/settings/community/SettingsCommunity.tsx`]:
+        'Community page, its route and menu item are removed',
+      [`${SERVER}/engine/core-modules/dpa/config/dpa-region-config.constant.ts`]: UNREACHABLE_DPA,
+      [`${SERVER}/engine/core-modules/dpa/constants/dpa-template.constant.ts`]: UNREACHABLE_DPA,
+      [`${SERVER}/engine/core-modules/twenty-config/config-variables.ts`]:
+        'ENTERPRISE_API_URL, only used with a Twenty enterprise key',
+    },
+  },
+  {
+    needle: 'github.com/twentyhq',
+    allowed: {
+      [`${SERVER}/engine/api/common/common-query-runners/common-group-by-query-runner.service.ts`]:
+        'issue link in a trailing code comment',
+      [`${SERVER}/engine/api/rest/rest-api-exception.filter.ts`]:
+        'issue link in a trailing code comment',
+    },
+  },
+  { needle: 'chatgpt.com/apps/twenty', allowed: {} },
+  { needle: 'cal.com/team/twenty', allowed: {} },
   {
     needle: 'twenty-telemetry.com',
-    allowedFiles: [`${SERVER}/engine/core-modules/telemetry/telemetry.service.ts`],
+    allowed: {
+      [`${SERVER}/engine/core-modules/telemetry/telemetry.service.ts`]: NEUTRALIZED,
+    },
   },
   {
     needle: 'twenty-companies.com',
-    allowedFiles: ['packages/twenty-shared/src/constants/TwentyCompaniesBaseUrl.ts'],
+    allowed: {
+      'packages/twenty-shared/src/constants/TwentyCompaniesBaseUrl.ts': NEUTRALIZED,
+    },
   },
   {
     needle: 'TWENTY_COMPANIES_BASE_URL',
-    allowedFiles: [
-      'packages/twenty-shared/src/constants/TwentyCompaniesBaseUrl.ts',
-      'packages/twenty-shared/src/constants/index.ts',
-      `${SERVER}/modules/contact-creation-manager/services/create-company.service.ts`,
-    ],
+    allowed: {
+      'packages/twenty-shared/src/constants/TwentyCompaniesBaseUrl.ts': NEUTRALIZED,
+      'packages/twenty-shared/src/constants/index.ts': BARREL_EXPORT,
+      [`${SERVER}/modules/contact-creation-manager/services/create-company.service.ts`]:
+        NEUTRALIZED,
+    },
   },
-  { needle: 'twenty-help-search.com', allowedFiles: [] },
+  { needle: 'twenty-help-search.com', allowed: {} },
   {
     needle: 'twenty-icons.com',
-    allowedFiles: ['packages/twenty-shared/src/constants/TwentyIconsBaseUrl.ts'],
+    allowed: {
+      'packages/twenty-shared/src/constants/TwentyIconsBaseUrl.ts': NEUTRALIZED,
+    },
   },
   {
     needle: 'TWENTY_ICONS_BASE_URL',
-    allowedFiles: [
-      'packages/twenty-shared/src/constants/TwentyIconsBaseUrl.ts',
-      'packages/twenty-shared/src/constants/index.ts',
-      `${SERVER}/engine/core-modules/auth/services/sign-in-up.service.ts`,
-    ],
+    allowed: {
+      'packages/twenty-shared/src/constants/TwentyIconsBaseUrl.ts': NEUTRALIZED,
+      'packages/twenty-shared/src/constants/index.ts': BARREL_EXPORT,
+      [`${SERVER}/engine/core-modules/auth/services/sign-in-up.service.ts`]: NEUTRALIZED,
+    },
   },
-  { needle: 'twentyhq.github.io', allowedFiles: [] },
-  { needle: 'app.twenty.com/images', allowedFiles: [] },
+  { needle: 'twentyhq.github.io', allowed: {} },
 ];
 
 const { values: options } = parseArgs({
@@ -416,7 +619,29 @@ const brand = JSON.parse(
 );
 const failures = [];
 
+const plannedWrites = new Map();
+
 const fail = (message) => failures.push(message);
+
+const planWrite = (filePath, content) => plannedWrites.set(filePath, content);
+
+const readPlanned = (filePath) => {
+  const plannedContent = plannedWrites.get(filePath);
+
+  if (plannedContent === undefined) {
+    return readFileSync(filePath, 'utf8');
+  }
+
+  return Buffer.isBuffer(plannedContent)
+    ? plannedContent.toString('utf8')
+    : plannedContent;
+};
+
+const commitPlannedWrites = () => {
+  for (const [filePath, content] of plannedWrites) {
+    writeFileSync(filePath, content);
+  }
+};
 
 const exitOnFailures = (stage) => {
   if (failures.length === 0) {
@@ -502,11 +727,12 @@ const applyOverlays = () => {
       continue;
     }
 
-    if (TEMPLATE_EXTENSIONS.has(path.extname(overlayFile))) {
-      writeFileSync(targetPath, fillTemplate(readFileSync(overlayFile, 'utf8')));
-    } else {
-      copyFileSync(overlayFile, targetPath);
-    }
+    planWrite(
+      targetPath,
+      TEMPLATE_EXTENSIONS.has(path.extname(overlayFile))
+        ? fillTemplate(readFileSync(overlayFile, 'utf8'))
+        : readFileSync(overlayFile),
+    );
   }
 
   const upstreamIcons = listFiles(path.join(twentyRoot, ICONS_RELATIVE_DIRECTORY));
@@ -535,7 +761,7 @@ const applyPatches = () => {
       continue;
     }
 
-    let content = readFileSync(filePath, 'utf8');
+    let content = readPlanned(filePath);
 
     for (const replacement of patch.replacements) {
       if (replacement.brandWord) {
@@ -581,7 +807,7 @@ const applyPatches = () => {
       replacementCount += actualCount;
     }
 
-    writeFileSync(filePath, content);
+    planWrite(filePath, content);
   }
 
   return replacementCount;
@@ -591,23 +817,37 @@ const installCatalogHooks = () => {
   for (const { project, generatedDirectory } of CATALOG_HOOKS) {
     const projectJsonPath = path.join(twentyRoot, project, 'project.json');
     const compileCommand = '"command": "lingui compile --typescript"';
-    const projectJson = readFileSync(projectJsonPath, 'utf8');
+    const projectJson = readPlanned(projectJsonPath);
 
     if (countOccurrences(projectJson, compileCommand) !== 1) {
       fail(`${project}/project.json: lingui compile command not found exactly once`);
       continue;
     }
 
-    copyFileSync(
-      CATALOG_HOOK_SOURCE,
+    planWrite(
       path.join(twentyRoot, project, CATALOG_HOOK_FILE_NAME),
+      readFileSync(CATALOG_HOOK_SOURCE),
     );
-    writeFileSync(
+    planWrite(
+      path.join(twentyRoot, project, CATALOG_HOOK_CONFIGURATION_FILE_NAME),
+      `${JSON.stringify(
+        {
+          brandName: brand.name,
+          textReplacements: CATALOG_TEXT_REPLACEMENTS.map(([from, to]) => [
+            from,
+            fillTemplate(to),
+          ]),
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    planWrite(
       projectJsonPath,
       projectJson.replace(
         compileCommand,
         `"command": ${JSON.stringify(
-          `lingui compile --typescript && node ${CATALOG_HOOK_FILE_NAME} ${generatedDirectory} '${brand.name}'`,
+          `lingui compile --typescript && node ${CATALOG_HOOK_FILE_NAME} ${generatedDirectory}`,
         )}`,
       ),
     );
@@ -623,10 +863,10 @@ const disableYarnTelemetry = () => {
       continue;
     }
 
-    const content = readFileSync(filePath, 'utf8');
+    const content = readPlanned(filePath);
 
     if (!/^enableTelemetry:/m.test(content)) {
-      writeFileSync(
+      planWrite(
         filePath,
         `${content.endsWith('\n') ? content : `${content}\n`}\nenableTelemetry: false\n`,
       );
@@ -634,7 +874,15 @@ const disableYarnTelemetry = () => {
   }
 };
 
-const runOutboundCensus = () => {
+const COMMENT_LINE = /^\s*(\/\/|\/\*|\*|\{\/\*)/;
+
+const stripCommentLines = (content) =>
+  content
+    .split('\n')
+    .filter((line) => !COMMENT_LINE.test(line))
+    .join('\n');
+
+const runReferenceCensus = () => {
   const scannedFiles = CENSUS_ROOTS.flatMap((relativeRoot) =>
     listFiles(path.join(twentyRoot, relativeRoot)),
   )
@@ -646,12 +894,14 @@ const runOutboundCensus = () => {
     );
 
   for (const relativePath of scannedFiles) {
-    const content = readFileSync(path.join(twentyRoot, relativePath), 'utf8');
+    const content = stripCommentLines(
+      readFileSync(path.join(twentyRoot, relativePath), 'utf8'),
+    );
 
-    for (const { needle, allowedFiles } of OUTBOUND_CENSUS) {
-      if (content.includes(needle) && !allowedFiles.includes(relativePath)) {
+    for (const { needle, allowed } of REFERENCE_CENSUS) {
+      if (content.includes(needle) && !(relativePath in allowed)) {
         fail(
-          `${relativePath} references ${needle}; neutralize it with a patch, then list it in OUTBOUND_CENSUS`,
+          `${relativePath} references ${needle}; patch it, or list it in REFERENCE_CENSUS if it is unreachable or intentional`,
         );
       }
     }
@@ -662,19 +912,19 @@ const runOutboundCensus = () => {
 
 assertFreshCheckout();
 const overlayCount = applyOverlays();
-exitOnFailures('overlays');
 const replacementCount = applyPatches();
-exitOnFailures('patches');
 installCatalogHooks();
 disableYarnTelemetry();
-exitOnFailures('build hooks');
-const scannedFileCount = runOutboundCensus();
-exitOnFailures('the outbound census');
+exitOnFailures('preparation (nothing was written)');
 
+commitPlannedWrites();
 writeFileSync(
   path.join(twentyRoot, LAYER_MARKER_FILE_NAME),
   `${new Date().toISOString()}\n`,
 );
+
+const scannedFileCount = runReferenceCensus();
+exitOnFailures('the reference census');
 
 console.log(
   [
@@ -682,6 +932,6 @@ console.log(
     `  ${overlayCount} overlay files`,
     `  ${replacementCount} source replacements in ${PATCHES.length} files`,
     `  translation hook installed in ${CATALOG_HOOKS.length} packages`,
-    `  outbound census passed on ${scannedFileCount} shipped files`,
+    `  reference census passed on ${scannedFileCount} shipped files`,
   ].join('\n'),
 );

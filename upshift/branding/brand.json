@@ -1,12 +1,17 @@
 {
   "name": "Upshift",
+  "slug": "upshift",
   "description": "Upshift CRM by Exceev Technology",
   "companyName": "Exceev Technology",
+  "domain": "upshiftcloud.com",
   "websiteUrl": "https://upshiftcloud.com",
+  "docsUrl": "https://upshiftcloud.com/docs",
+  "contactEmail": "contact@exceev.com",
   "termsUrl": "https://exceev.com/privacy#terms",
   "privacyPolicyUrl": "https://exceev.com/privacy#policy",
   "dpaUrl": "https://exceev.com/privacy#policy",
   "emailFromName": "Upshift",
+  "mcpServerId": "com.upshiftcloud/upshift",
   "repositoryUrl": "https://github.com/exceev-technology/upshift",
   "imageRegistryUrl": "https://github.com/exceev-technology/upshift/pkgs/container/upshift",
   "publicAssetsBaseUrl": "https://raw.githubusercontent.com/exceev-technology/upshift/upshift-main/upshift/branding/assets"
