@@ -1,0 +1,58 @@
+name: Upshift Branding Check
+
+on:
+  pull_request:
+    branches: [upshift-main]
+  push:
+    branches: [upshift-main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apply-layer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out this branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+
+      - name: Resolve the latest Twenty release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=$(gh api 'repos/twentyhq/twenty/releases?per_page=100' --jq '
+            [.[]
+              | select(.draft == false and .prerelease == false)
+              | select(.tag_name | test("^twenty/v[0-9]+\\.[0-9]+\\.[0-9]+$"))]
+            | sort_by(.tag_name | ltrimstr("twenty/v") | split(".") | map(tonumber))
+            | last
+            | .tag_name')
+          echo "twenty-tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Check out Twenty ${{ steps.release.outputs.twenty-tag }}
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          repository: twentyhq/twenty
+          ref: refs/tags/${{ steps.release.outputs.twenty-tag }}
+          path: .upshift-check/twenty-release
+          persist-credentials: false
+
+      - name: Apply the layer to the latest Twenty release
+        run: node upshift/scripts/apply-branding.mjs --root .upshift-check/twenty-release
+
+      - name: Apply the layer to this branch
+        run: node upshift/scripts/apply-branding.mjs --root .

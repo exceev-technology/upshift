@@ -1,0 +1,113 @@
+# Upshift layer
+
+Everything that turns Twenty into Upshift lives in this folder. No Twenty file is edited in git: the layer is applied to a fresh Twenty checkout at build time. That is what keeps `upshift-main` conflict-free when Twenty ships new versions.
+
+```
+upshift/
+  branding/
+    brand.json        name, URLs and legal links used everywhere
+    logo.svg          source logo (rounded), logo-square.svg, mark.svg
+    assets/           logo-email.png, logo-512.png, social-card.png (served from GitHub)
+    overlay/          files copied over Twenty's: app icons, onboarding logo, email footer
+  scripts/
+    apply-branding.mjs   applies the layer to a checkout, then audits it
+    brand-catalogs.mjs   rebrands compiled translations during the Docker build
+    generate-icons.mjs   renders every app icon from logo.svg
+    build-image.sh       builds the image locally, same steps as CI
+  docker/
+    docker-compose.yml, .env.example
+```
+
+## How a release is built
+
+1. Check out Twenty at a release tag, for example `twenty/v2.44.0`.
+2. Run `node upshift/scripts/apply-branding.mjs --root <checkout>`. It:
+   - copies `branding/overlay/` over the checkout,
+   - applies exact-match source patches (each patch expects a precise number of matches, so a moved string fails loudly instead of being skipped),
+   - installs a translation hook that runs right after `lingui compile` and replaces "Twenty" with the brand name in every language,
+   - turns off Yarn telemetry,
+   - runs an outbound census: any shipped file that references a Twenty-owned host outside the known, neutralized places fails the build.
+3. Build Twenty's own Dockerfile (`--target twenty`) and push `ghcr.io/exceev-technology/upshift:vX.Y.Z`.
+
+The [Upshift Release](../.github/workflows/upshift-release.yaml) workflow does this every morning for the newest Twenty release, for amd64 and arm64, and skips versions that are already published. To build a specific version, run the workflow manually with `twenty-tag` set (for example `twenty/v2.43.0`). Tick `force` to rebuild an existing version.
+
+## Syncing Twenty into upshift-main
+
+`main` mirrors Twenty and only receives Twenty's commits.
+
+```bash
+gh repo sync exceev-technology/upshift --branch main
+```
+
+```bash
+git switch main && git pull --ff-only
+```
+
+```bash
+git switch -c sync/twenty-$(date +%Y-%m-%d) upshift-main && git merge main
+```
+
+Open a PR into `upshift-main`. The merge has no conflicts because Upshift only adds files. The [Upshift Branding Check](../.github/workflows/upshift-branding-check.yaml) workflow applies the layer to the PR and to the latest Twenty release, so you learn about broken patch points before the next release.
+
+The one exception is the four `runs-on` lines changed in `.github/workflows/ci-front.yaml`, `ci-e2e-main.yaml` and `ci-create-app-e2e-minimal.yaml` (larger runners are not available on the free plan). If Twenty edits those exact lines, keep `ubuntu-latest`.
+
+## Building locally
+
+```bash
+upshift/scripts/build-image.sh twenty/v2.44.0
+```
+
+Without an argument it builds the latest Twenty release. It clones Twenty into a temporary folder, applies the layer and builds `upshift:<version>`. Plan for about 25 GB of free disk and 16 GB of memory for Docker.
+
+To look at the patched source without building, apply the layer to any separate copy:
+
+```bash
+mkdir -p /tmp/twenty-copy && git archive main | tar -x -C /tmp/twenty-copy && node upshift/scripts/apply-branding.mjs --root /tmp/twenty-copy
+```
+
+The script refuses to run on this repository's own working tree outside CI.
+
+## Changing the brand
+
+- Name, website, legal links, email sender: edit `branding/brand.json`.
+- Logo: replace `branding/logo.svg` (and `logo-square.svg`, `mark.svg`), then regenerate the icons and commit the result:
+
+```bash
+node upshift/scripts/generate-icons.mjs
+```
+
+Email images and the social card are loaded from `publicAssetsBaseUrl` (raw GitHub files of this public repository). If the repository becomes private, host `branding/assets/` elsewhere and update that URL.
+
+## When the layer check fails
+
+Every failure names the file and what was expected.
+
+| Message | What happened | Fix |
+| --- | --- | --- |
+| `expected N occurrence(s) of "..."` | Twenty changed or moved a patched string | Find the new code, update `from`/`to` in `PATCHES` |
+| `no longer exists in Twenty` | Twenty moved or deleted a patched file | Point the patch or overlay at the new path, or drop it |
+| `changed in Twenty (sha256 ...)` | Twenty edited a file Upshift replaces whole (the email footer) | Compare with the overlay, port anything relevant, add the new hash to `CODE_OVERLAY_UPSTREAM_SHA256` |
+| `has no Upshift version` | Twenty added a new app icon | `node upshift/scripts/generate-icons.mjs --root <checkout>` and commit |
+| `references <host>` | New code calls a Twenty-owned host | Neutralize it with a patch, then add the file to `OUTBOUND_CENSUS` |
+| `lingui compile command not found` / `catalogs changed shape` | Twenty changed its translation build | Update `installCatalogHooks` or `brand-catalogs.mjs` |
+
+## What the layer disables
+
+| Call | Default in Twenty | In Upshift |
+| --- | --- | --- |
+| Sign-up telemetry to twenty-telemetry.com (user email, name, workspace, server URL) | On | Removed in code, cannot be re-enabled from env or admin panel |
+| Company logos from twenty-icons.com (browser and server) | On | URL builder returns nothing, workspace logo inference removed |
+| Company enrichment from twenty-companies.com during email and calendar sync | On | Removed, falls back to the name derived from the domain |
+| AI help-center search through twenty-help-search.com | On | Disabled unless you configure your own Mintlify key |
+| Email logo and default workspace logo hosted by Twenty | On | Served from this repository |
+| Founder avatars from twentyhq.github.io in prefilled data | On | Removed |
+| Yarn telemetry during builds | On | Off |
+
+Left in place on purpose:
+
+- Enterprise licence calls to twenty.com. They only happen after an explicit admin action: setting `ENTERPRISE_KEY`, or clicking through the enterprise checkout in the admin panel.
+- The admin panel reads Twenty's public Docker Hub tags to show the latest version (Upshift versions match them).
+- Sentry, support chat, captcha and Cal.com stay off unless configured.
+- Third-party services used by features: npm/unpkg for the app marketplace, models.dev for the AI model list, the TradingView widget on the sample dashboard.
+
+Twenty's documentation links (docs.twenty.com) are kept because the product documentation still applies.
