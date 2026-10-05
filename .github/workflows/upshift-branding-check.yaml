@@ -56,3 +56,32 @@ jobs:
 
       - name: Apply the layer to this branch
         run: node upshift/scripts/apply-branding.mjs --root .
+
+  disable-twenty-workflows:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: Disable workflows that are not part of Upshift
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          workflow_paths=$(gh api "repos/$REPOSITORY/actions/workflows" --paginate --jq '
+            .workflows[]
+            | select(.state == "active")
+            | select(.path | startswith(".github/workflows/"))
+            | select(.path | startswith(".github/workflows/upshift-") | not)
+            | .path')
+
+          if [ -z "$workflow_paths" ]; then
+            echo "Only Upshift workflows are active."
+            exit 0
+          fi
+
+          for workflow_path in $workflow_paths; do
+            echo "Disabling $workflow_path"
+            gh workflow disable "$(basename "$workflow_path")" --repo "$REPOSITORY"
+          done

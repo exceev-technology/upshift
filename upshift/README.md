@@ -51,7 +51,19 @@ git switch -c sync/twenty-$(date +%Y-%m-%d) upshift-main && git merge main
 
 Open a PR into `upshift-main`. The merge has no conflicts because Upshift only adds files. The [Upshift Branding Check](../.github/workflows/upshift-branding-check.yaml) workflow applies the layer to the PR and to the latest Twenty release, so you learn about broken patch points before the next release.
 
-The one exception is the four `runs-on` lines changed in `.github/workflows/ci-front.yaml`, `ci-e2e-main.yaml` and `ci-create-app-e2e-minimal.yaml` (larger runners are not available on the free plan). If Twenty edits those exact lines, keep `ubuntu-latest`.
+`upshift-main` modifies none of Twenty's files, so syncing never conflicts. The only path both sides could create is `.github/README.md`; if Twenty ever adds one, keep ours.
+
+## GitHub Actions
+
+Only `upshift-release.yaml` and `upshift-branding-check.yaml` run. Twenty's own workflows test, deploy and translate Twenty itself (several need Twenty's private secrets), so they are disabled in the repository settings. When a sync brings a new Twenty workflow, the `disable-twenty-workflows` job of the branding check disables it on the next push to `upshift-main`. It can run once on that same push before being disabled.
+
+To turn one of Twenty's workflows back on:
+
+```bash
+gh workflow enable <file>.yaml --repo exceev-technology/upshift
+```
+
+The auto-disable job would switch it off again on the next push to `upshift-main`, so also exclude it in that job's filter.
 
 ## Building locally
 
