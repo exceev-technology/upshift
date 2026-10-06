@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
   existsSync,
@@ -610,7 +611,10 @@ const REFERENCE_CENSUS = [
 ];
 
 const { values: options } = parseArgs({
-  options: { root: { type: 'string' } },
+  options: {
+    root: { type: 'string' },
+    'check-catalogs': { type: 'boolean', default: false },
+  },
 });
 
 if (!options.root) {
@@ -879,6 +883,21 @@ const disableYarnTelemetry = () => {
   }
 };
 
+// The Docker build compiles catalogs from source; the committed compiled ones exercise the same hook early
+const checkCompiledCatalogs = () => {
+  for (const { project, generatedDirectory } of CATALOG_HOOKS) {
+    const result = spawnSync(
+      process.execPath,
+      [CATALOG_HOOK_FILE_NAME, generatedDirectory],
+      { cwd: path.join(twentyRoot, project), stdio: 'inherit' },
+    );
+
+    if (result.status !== 0) {
+      fail(`${project}: the translation hook rejected the compiled catalogs`);
+    }
+  }
+};
+
 const COMMENT_LINE = /^\s*(\/\/|\/\*|\*|\{\/\*)/;
 
 const stripCommentLines = (content) =>
@@ -930,6 +949,11 @@ writeFileSync(
 
 const scannedFileCount = runReferenceCensus();
 exitOnFailures('the reference census');
+
+if (options['check-catalogs']) {
+  checkCompiledCatalogs();
+  exitOnFailures('the catalog check');
+}
 
 console.log(
   [

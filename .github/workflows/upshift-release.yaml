@@ -187,6 +187,79 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
           outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=${{ needs.resolve.outputs.publish }}
 
+      - name: Load the image for the smoke test
+        if: matrix.arch == 'amd64'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: twenty
+          file: twenty/packages/twenty-docker/twenty/Dockerfile
+          target: twenty
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            APP_VERSION=${{ needs.resolve.outputs.app-version }}
+          load: true
+          tags: ${{ env.IMAGE }}:smoke
+
+      - name: Smoke test the image
+        if: matrix.arch == 'amd64'
+        working-directory: upshift-layer/upshift/docker
+        env:
+          SINK_LOG: ${{ runner.temp }}/twenty-hosts.log
+          COMPOSE_PROJECT_NAME: upshift-smoke
+        run: |
+          sudo "$(command -v node)" ../scripts/smoke-host-sink.mjs "$SINK_LOG" > "$RUNNER_TEMP/sink.out" 2>&1 &
+
+          printf 'TAG=smoke\nSERVER_URL=http://localhost:3000\nENCRYPTION_KEY=%s\n' "$(openssl rand -base64 32)" > smoke.env
+
+          # Telemetry and icons are switched on here on purpose: the code-level removal must hold anyway.
+          # Twenty hosts resolve to the sink on the runner, and the outbound guard is opened so attempts reach it.
+          cat > smoke.override.yml <<'EOF'
+          x-smoke-environment: &smoke-environment
+            TELEMETRY_ENABLED: "true"
+            ALLOW_REQUESTS_TO_TWENTY_ICONS: "true"
+            OUTBOUND_HTTP_ALLOWED_INTERNAL_HOSTS: "*"
+          x-twenty-hosts: &twenty-hosts
+            - twenty-telemetry.com:host-gateway
+            - twenty-icons.com:host-gateway
+            - twenty-companies.com:host-gateway
+            - twenty-help-search.com:host-gateway
+            - twenty.com:host-gateway
+            - www.twenty.com:host-gateway
+            - app.twenty.com:host-gateway
+            - api.twenty.com:host-gateway
+            - docs.twenty.com:host-gateway
+            - twentyhq.github.io:host-gateway
+          services:
+            server:
+              environment: *smoke-environment
+              extra_hosts: *twenty-hosts
+            worker:
+              environment: *smoke-environment
+              extra_hosts: *twenty-hosts
+          EOF
+
+          docker compose -f docker-compose.yml -f smoke.override.yml --env-file smoke.env up -d
+
+          docker compose -f docker-compose.yml -f smoke.override.yml --env-file smoke.env \
+            exec -T server node -e "fetch('https://twenty-telemetry.com/smoke-control').catch(() => {})"
+          sleep 6
+          if ! grep -q "twenty-telemetry.com" "$SINK_LOG"; then
+            echo "::error::The sink did not see the control request, so the privacy check would prove nothing"
+            exit 1
+          fi
+
+          node ../scripts/smoke-test.mjs --base-url http://localhost:3000 --sink-log "$SINK_LOG"
+
+      - name: Show smoke test logs
+        if: failure() && matrix.arch == 'amd64'
+        working-directory: upshift-layer/upshift/docker
+        env:
+          COMPOSE_PROJECT_NAME: upshift-smoke
+        run: |
+          echo "--- connections to Twenty hosts:"
+          cat "$RUNNER_TEMP/twenty-hosts.log" || true
+          docker compose -f docker-compose.yml -f smoke.override.yml --env-file smoke.env logs --tail 200 || true
+
       - name: Export digest
         if: needs.resolve.outputs.publish == 'true'
         env:

@@ -8,6 +8,7 @@ const JSON_PARSE_PREFIX = 'JSON.parse(';
 const JSON_PARSE_SUFFIX = ')as Messages;';
 const TWENTY_BRAND_WORD = /(?<![\w@./-])Twenty(?!\w|\.[a-z])/g;
 const CONFIGURATION_FILE_NAME = 'upshift-brand-catalogs.json';
+const PRESERVED_TOKENS = ['create-twenty-app', 'twenty-sdk', 'yarn twenty ', 'X-Twenty-'];
 
 const [generatedDirectory] = process.argv.slice(2);
 
@@ -24,6 +25,7 @@ const { brandName, textReplacements } = JSON.parse(
 );
 
 let replacementCount = 0;
+const failures = [];
 
 const rebrandText = (text) => {
   let rebrandedText = text.replace(TWENTY_BRAND_WORD, () => {
@@ -44,23 +46,56 @@ const rebrandText = (text) => {
   return rebrandedText;
 };
 
-const rebrand = (value) => {
-  if (typeof value === 'string') {
-    return rebrandText(value);
+// A compiled message is a string or a list of parts; a part is literal text or a
+// placeholder [name, type?, options?] whose option values are messages again
+const mapMessage = (message, mapText) => {
+  if (typeof message === 'string') {
+    return mapText(message);
   }
 
-  if (Array.isArray(value)) {
-    return value.map(rebrand);
+  if (!Array.isArray(message)) {
+    return message;
   }
 
-  if (value !== null && typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, nestedValue]) => [key, rebrand(nestedValue)]),
-    );
-  }
+  return message.map((part) => {
+    if (typeof part === 'string') {
+      return mapText(part);
+    }
 
-  return value;
+    if (!Array.isArray(part)) {
+      return part;
+    }
+
+    const [name, type, options, ...rest] = part;
+    const mappedOptions =
+      options !== null && typeof options === 'object' && !Array.isArray(options)
+        ? Object.fromEntries(
+            Object.entries(options).map(([key, value]) => [
+              key,
+              mapMessage(value, mapText),
+            ]),
+          )
+        : options;
+
+    return part.length > 2 ? [name, type, mappedOptions, ...rest] : part;
+  });
 };
+
+const toSkeleton = (message) => JSON.stringify(mapMessage(message, () => ''));
+
+const collectText = (message) => {
+  const texts = [];
+
+  mapMessage(message, (text) => {
+    texts.push(text);
+
+    return text;
+  });
+
+  return texts.join('\n');
+};
+
+const countToken = (text, token) => text.split(token).length - 1;
 
 const catalogFiles = readdirSync(generatedDirectory).filter((fileName) =>
   fileName.endsWith('.ts'),
@@ -92,8 +127,34 @@ for (const fileName of catalogFiles) {
   // Lingui emits JavaScript escapes such as \xA0 that JSON.parse rejects
   const messages = JSON.parse(runInNewContext(literal));
   const rebrandedMessages = Object.fromEntries(
-    Object.entries(messages).map(([messageId, message]) => [messageId, rebrand(message)]),
+    Object.entries(messages).map(([messageId, message]) => [
+      messageId,
+      mapMessage(message, rebrandText),
+    ]),
   );
+
+  for (const [messageId, message] of Object.entries(messages)) {
+    const rebrandedMessage = rebrandedMessages[messageId];
+
+    if (toSkeleton(message) !== toSkeleton(rebrandedMessage)) {
+      failures.push(`${fileName} ${messageId}: placeholder or plural structure changed`);
+    }
+
+    const originalText = collectText(message);
+    const rebrandedText = collectText(rebrandedMessage);
+
+    for (const token of PRESERVED_TOKENS) {
+      if (countToken(originalText, token) !== countToken(rebrandedText, token)) {
+        failures.push(`${fileName} ${messageId}: "${token}" must not be rewritten`);
+      }
+    }
+
+    if (TWENTY_BRAND_WORD.test(rebrandedText)) {
+      failures.push(`${fileName} ${messageId}: still mentions Twenty`);
+    }
+
+    TWENTY_BRAND_WORD.lastIndex = 0;
+  }
 
   writeFileSync(
     filePath,
@@ -101,6 +162,12 @@ for (const fileName of catalogFiles) {
       JSON.stringify(JSON.stringify(rebrandedMessages)) +
       content.slice(literalEnd),
   );
+}
+
+if (failures.length > 0) {
+  console.error(`Catalog rebranding broke ${failures.length} message(s):`);
+  failures.slice(0, 20).forEach((failure) => console.error(`  - ${failure}`));
+  process.exit(1);
 }
 
 if (replacementCount === 0) {
@@ -111,5 +178,5 @@ if (replacementCount === 0) {
 }
 
 console.log(
-  `Rebranded ${replacementCount} catalog strings across ${catalogFiles.length} locales in ${generatedDirectory}`,
+  `Rebranded ${replacementCount} catalog strings across ${catalogFiles.length} locales in ${generatedDirectory}; ids, placeholders and SDK commands verified`,
 );

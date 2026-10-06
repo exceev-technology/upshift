@@ -51,8 +51,8 @@ jobs:
           path: .upshift-check/twenty-release
           persist-credentials: false
 
-      - name: Apply the layer to the latest Twenty release
-        run: node upshift/scripts/apply-branding.mjs --root .upshift-check/twenty-release
+      - name: Apply the layer to the latest Twenty release and check its translations
+        run: node upshift/scripts/apply-branding.mjs --root .upshift-check/twenty-release --check-catalogs
 
       - name: Apply the layer to this branch
         run: node upshift/scripts/apply-branding.mjs --root .

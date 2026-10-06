@@ -31,7 +31,9 @@ upshift/
    Every change is prepared in memory first. If any patch point is missing, nothing is written.
 3. Build Twenty's own Dockerfile (`--target twenty`) and push `ghcr.io/exceev-technology/upshift:vX.Y.Z`.
 
-The [Upshift Release](../.github/workflows/upshift-release.yaml) workflow does this every morning for the newest Twenty release, for amd64 and arm64, and skips versions that are already published. To build a specific version, run the workflow manually with `twenty-tag` set (for example `twenty/v2.43.0`). Tick `force` to rebuild an existing version.
+The [Upshift Release](../.github/workflows/upshift-release.yaml) workflow does this every morning for the newest Twenty release, for amd64 and arm64, and skips versions that are already published. Before anything is published, the amd64 image goes through a smoke test (`scripts/smoke-test.mjs`): it starts with the compose file, checks the branding on the page, manifest and MCP server card, then signs up, creates a workspace and signs in through the API. Telemetry and Twenty icons are switched on in that environment on purpose, every Twenty-owned host resolves to a listener on the runner (`scripts/smoke-host-sink.mjs`), and the test fails if anything connects to it. On pull requests the same build and smoke test run without publishing.
+
+The translation hook also verifies its own output on every build: message ids, placeholders and plural structure are unchanged, SDK commands such as `create-twenty-app` are untouched, and no message still says Twenty. The branding check runs it on the latest Twenty release with `--check-catalogs`. To build a specific version, run the workflow manually with `twenty-tag` set (for example `twenty/v2.43.0`). Tick `force` to rebuild an existing version.
 
 ## Syncing Twenty into upshift-main
 
