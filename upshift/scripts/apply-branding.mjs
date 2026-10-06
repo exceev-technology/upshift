@@ -92,7 +92,7 @@ const PATCHES = [
     replacements: [
       {
         from: "'https://twentyhq.github.io/placeholder-images/workspaces/twenty-logo.png'",
-        to: "'/images/icons/android/android-launchericon-192-192.png'",
+        to: '`${window.location.origin}/images/icons/android/android-launchericon-192-192.png`',
       },
     ],
   },
@@ -198,6 +198,10 @@ const PATCHES = [
   {
     file: `${FRONT}/src/modules/apollo/services/apollo.factory.ts`,
     replacements: [{ brandWord: true }],
+  },
+  {
+    file: 'packages/twenty-front-component-renderer/src/remote/worker/fetch-proxy/utils/getTextBodyFromFetchRequestArguments.ts',
+    replacements: [{ brandWord: true, minimum: 2 }],
   },
   {
     file: `${FRONT}/src/modules/settings/mcp-and-apis/utils/mcpSetup.ts`,
@@ -516,6 +520,7 @@ const CENSUS_ROOTS = [
   'packages/twenty-shared/src',
   EMAILS,
   'packages/twenty-ui/src',
+  'packages/twenty-front-component-renderer/src',
 ];
 const CENSUS_TEXT_EXTENSIONS = new Set([
   '.ts',
