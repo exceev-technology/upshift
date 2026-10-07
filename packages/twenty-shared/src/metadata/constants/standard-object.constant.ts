@@ -1414,6 +1414,9 @@ export const STANDARD_OBJECTS = {
       workspaceMemberIndex: {
         universalIdentifier: '079f2dd7-6c11-4eae-be8a-cce2d1bee0fb',
       },
+      assigneeIndex: {
+        universalIdentifier: 'a65524f8-c999-448b-b9f4-c9ecce15fd13',
+      },
     },
   },
   agentChatThreadParticipant: {
@@ -1500,16 +1503,6 @@ export const STANDARD_OBJECTS = {
     indexes: {
       messageOrderIndex: {
         universalIdentifier: 'f5a08f6f-cf91-4996-9c21-2af64a17ca83',
-      },
-    },
-  },
-  agentTurnEvaluation: {
-    universalIdentifier:
-      STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.agentTurnEvaluation,
-    fields: STANDARD_OBJECT_FIELDS.agentTurnEvaluation,
-    indexes: {
-      turnIndex: {
-        universalIdentifier: 'f85d8283-84ae-4343-8328-8c4e21c5b984',
       },
     },
   },

@@ -1,4 +1,4 @@
-import { WorkspaceRouteUnavailable } from '@/app/routing/components/WorkspaceRouteUnavailable';
+import { WorkspaceRouteUnavailable } from '@/ui/layout/page/components/WorkspaceRouteUnavailable';
 import { isDDLLockedState } from '@/client-config/states/isDDLLockedState';
 import { useCreateOneIndexMetadataItem } from '@/object-metadata/hooks/useCreateOneIndexMetadataItem';
 import { useFilteredObjectMetadataItems } from '@/object-metadata/hooks/useFilteredObjectMetadataItems';
@@ -19,7 +19,8 @@ import { useParams } from 'react-router-dom';
 import { MAX_CUSTOM_INDEXES_PER_OBJECT } from 'twenty-shared/constants';
 import { AppPath, RelationType, SettingsPath } from 'twenty-shared/types';
 import { getSettingsPath, isDefined } from 'twenty-shared/utils';
-import { Callout, Section, useToast } from 'twenty-ui/components';
+import { Callout, useToast } from 'twenty-ui/components/feedback';
+import { Section } from 'twenty-ui/components/layout';
 import { IconAlertTriangle } from 'twenty-ui/icon';
 import { IndexType } from '~/generated-metadata/graphql';
 import { useNavigateApp } from '~/hooks/useNavigateApp';
@@ -27,7 +28,7 @@ import { useNavigateSettings } from '~/hooks/useNavigateSettings';
 import {
   settingsObjectNewIndexFormSchema,
   type SettingsObjectNewIndexFormValues,
-} from '~/pages/settings/data-model/new-index/SettingsObjectNewIndexFormValues';
+} from '@/settings/data-model/indexes/forms/validation-schemas/settingsObjectNewIndexFormSchema';
 
 const isFieldIndexable = (field: FieldMetadataItem): boolean => {
   if (field.name === SEARCH_VECTOR_FIELD_NAME) return false;

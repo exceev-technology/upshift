@@ -21,6 +21,7 @@ import { throwAgentChatThreadNotFound } from 'src/engine/metadata-modules/ai/ai-
 import { AgentChatThreadWorkspaceEntity } from 'src/engine/metadata-modules/ai/ai-history/standard-objects/agent-chat-thread.workspace-entity';
 import { InjectAgentHistoryRepository } from 'src/engine/metadata-modules/ai/ai-history/repositories/inject-agent-history-repository.decorator';
 import { AgentHistoryRepository } from 'src/engine/metadata-modules/ai/ai-history/repositories/agent-history-repository';
+import { AgentHistoryUpgradeFenceService } from 'src/engine/metadata-modules/ai/ai-history/services/agent-history-upgrade-fence.service';
 import {
   AiException,
   AiExceptionCode,
@@ -48,12 +49,10 @@ export class AgentChatSharingService {
     private readonly workspaceCacheService: WorkspaceCacheService,
     private readonly permissionsService: PermissionsService,
     private readonly workspaceOrmManager: WorkspaceOrmManager,
+    private readonly upgradeFenceService: AgentHistoryUpgradeFenceService,
   ) {}
 
-  // Fence for the 2.46 cross-upgrade window: until
-  // upgrade:2-46:add-agent-chat-thread-participant-object has reached a
-  // workspace, it has neither the participant table nor the thread's
-  // lastActivityAt column. Remove once 2.46 leaves the window.
+  // Remove with AgentHistoryUpgradeFenceService once 2.46 leaves the window
   async hasInboxState(workspaceId: string): Promise<boolean> {
     return isDefined(await this.findParticipantObjectMetadataId(workspaceId));
   }
@@ -61,6 +60,12 @@ export class AgentChatSharingService {
   async findParticipantObjectMetadataId(
     workspaceId: string,
   ): Promise<string | undefined> {
+    if (
+      !(await this.upgradeFenceService.hasUpgradedAgentHistory(workspaceId))
+    ) {
+      return undefined;
+    }
+
     const { flatObjectMetadataMaps } =
       await this.workspaceCacheService.getOrRecompute(workspaceId, [
         'flatObjectMetadataMaps',

@@ -2,9 +2,9 @@ import { styled } from '@linaria/react';
 import { t } from '@lingui/core/macro';
 import { useState } from 'react';
 import { isDefined } from 'twenty-shared/utils';
-import { Section } from 'twenty-ui/components';
+import { Section } from 'twenty-ui/components/layout';
 import {
-  IconListCheck,
+  IconBolt,
   IconLock,
   IconSettings,
   IconTerminal,
@@ -24,11 +24,15 @@ import { activeTabIdComponentState } from '@/ui/layout/tab-list/states/activeTab
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
 import { useAtomFamilyStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomFamilyStateValue';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
-import { type FindOneAgentQuery } from '~/generated-metadata/graphql';
-import { CoreAgentEvalsTab } from '@/object-core/agents/components/CoreAgentEvalsTab';
-import { CoreAgentLogsTab } from '@/object-core/agents/components/CoreAgentLogsTab';
+import { useIsFeatureEnabled } from '@/workspace/hooks/useIsFeatureEnabled';
+import {
+  FeatureFlagKey,
+  type FindOneAgentQuery,
+} from '~/generated-metadata/graphql';
 import { CoreAgentRoleTab } from '@/object-core/agents/components/CoreAgentRoleTab';
+import { CoreAgentRunsTab } from '@/object-core/agents/components/CoreAgentRunsTab';
 import { CoreAgentSettingsTab } from '@/object-core/agents/components/CoreAgentSettingsTab';
+import { CoreAgentTriggersTab } from '@/object-core/agents/components/CoreAgentTriggersTab';
 import { CORE_AGENT_DETAIL_TABS } from '@/object-core/agents/constants/CoreAgentDetailTabs';
 import { useCoreAgentFormState } from '@/object-core/agents/hooks/useCoreAgentFormState';
 import { useCoreAgentSave } from '@/object-core/agents/hooks/useCoreAgentSave';
@@ -53,6 +57,9 @@ export const CoreAgentFormContent = ({ agent }: CoreAgentFormContentProps) => {
   const theme = useTheme();
   const { getIcon } = useIcons();
   const currentWorkspace = useAtomStateValue(currentWorkspaceState);
+  const isAiChatInboxEnabled = useIsFeatureEnabled(
+    FeatureFlagKey.IS_AI_CHAT_INBOX_ENABLED,
+  );
 
   const isReadonlyMode = isOwnedByInstalledApplication({
     applicationId: agent.applicationId,
@@ -115,16 +122,20 @@ export const CoreAgentFormContent = ({ agent }: CoreAgentFormContentProps) => {
       title: t`Role`,
       Icon: IconLock,
     },
-    {
-      id: CORE_AGENT_DETAIL_TABS.TABS_IDS.EVALS,
-      title: t`Evals`,
-      Icon: IconListCheck,
-    },
-    {
-      id: CORE_AGENT_DETAIL_TABS.TABS_IDS.LOGS,
-      title: t`Logs`,
-      Icon: IconTerminal,
-    },
+    ...(isAiChatInboxEnabled
+      ? [
+          {
+            id: CORE_AGENT_DETAIL_TABS.TABS_IDS.TRIGGERS,
+            title: t`Triggers`,
+            Icon: IconBolt,
+          },
+          {
+            id: CORE_AGENT_DETAIL_TABS.TABS_IDS.RUNS,
+            title: t`Runs`,
+            Icon: IconTerminal,
+          },
+        ]
+      : []),
   ];
 
   const title = agent.label;
@@ -133,12 +144,14 @@ export const CoreAgentFormContent = ({ agent }: CoreAgentFormContentProps) => {
   const isRoleTab = activeTabId === CORE_AGENT_DETAIL_TABS.TABS_IDS.ROLE;
   const isSettingsTab =
     activeTabId === CORE_AGENT_DETAIL_TABS.TABS_IDS.SETTINGS;
-  const isEvalsTab = activeTabId === CORE_AGENT_DETAIL_TABS.TABS_IDS.EVALS;
-  const isLogsTab = activeTabId === CORE_AGENT_DETAIL_TABS.TABS_IDS.LOGS;
+  const isTriggersTab =
+    isAiChatInboxEnabled &&
+    activeTabId === CORE_AGENT_DETAIL_TABS.TABS_IDS.TRIGGERS;
+  const isRunsTab =
+    isAiChatInboxEnabled &&
+    activeTabId === CORE_AGENT_DETAIL_TABS.TABS_IDS.RUNS;
 
   const isFormDisabled = isReadonlyMode || !agent.isCustom;
-  const isEvalsDisabled =
-    process.env.NODE_ENV === 'development' ? isReadonlyMode : isFormDisabled;
 
   return (
     <>
@@ -177,17 +190,16 @@ export const CoreAgentFormContent = ({ agent }: CoreAgentFormContentProps) => {
                   agent={agent}
                 />
               )}
-              {isEvalsTab && (
-                <CoreAgentEvalsTab
-                  agentId={agentId}
-                  evaluationInputs={formValues.evaluationInputs}
-                  onEvaluationInputsChange={(inputs) =>
-                    handleFieldChange('evaluationInputs', inputs)
+              {isTriggersTab && (
+                <CoreAgentTriggersTab
+                  triggers={formValues.triggers}
+                  onTriggersChange={(triggers) =>
+                    handleFieldChange('triggers', triggers)
                   }
-                  disabled={isEvalsDisabled}
+                  disabled={isFormDisabled}
                 />
               )}
-              {isLogsTab && <CoreAgentLogsTab agentId={agentId} />}
+              {isRunsTab && <CoreAgentRunsTab agentId={agentId} />}
             </StyledContentContainer>
           </Section.Root>
         </SettingsPageContainer>

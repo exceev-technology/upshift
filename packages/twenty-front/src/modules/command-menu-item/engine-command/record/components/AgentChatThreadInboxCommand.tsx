@@ -1,10 +1,19 @@
 import { useAgentChatThreadParticipants } from '@/ai/hooks/useAgentChatThreadParticipants';
 import { HeadlessEngineCommandWrapperEffect } from '@/command-menu-item/engine-command/components/HeadlessEngineCommandWrapperEffect';
 import { useHeadlessCommandContextApi } from '@/command-menu-item/engine-command/hooks/useHeadlessCommandContextApi';
+import { useOpenAssignAiChatInSidePanel } from '@/side-panel/hooks/useOpenAssignAiChatInSidePanel';
 import { useOpenSnoozeAiChatInSidePanel } from '@/side-panel/hooks/useOpenSnoozeAiChatInSidePanel';
 
 type AgentChatThreadInboxCommandProps = {
-  action: 'read' | 'unread' | 'done' | 'reopen' | 'snooze';
+  action:
+    | 'read'
+    | 'unread'
+    | 'done'
+    | 'reopen'
+    | 'snooze'
+    | 'assign'
+    | 'subscribe'
+    | 'unsubscribe';
 };
 
 export const AgentChatThreadInboxCommand = ({
@@ -16,8 +25,11 @@ export const AgentChatThreadInboxCommand = ({
     markAgentChatThreadAsUnread,
     archiveAgentChatThread,
     moveAgentChatThreadToInbox,
+    subscribeToAgentChatThread,
+    unsubscribeFromAgentChatThread,
   } = useAgentChatThreadParticipants();
   const { openSnoozeAiChatInSidePanel } = useOpenSnoozeAiChatInSidePanel();
+  const { openAssignAiChatInSidePanel } = useOpenAssignAiChatInSidePanel();
 
   const handleExecute = async () => {
     const threadIds = selectedRecords.map(({ id }) => id);
@@ -30,11 +42,17 @@ export const AgentChatThreadInboxCommand = ({
       return openSnoozeAiChatInSidePanel(threadIds);
     }
 
+    if (action === 'assign') {
+      return openAssignAiChatInSidePanel(threadIds);
+    }
+
     const updateThread = {
       read: markAgentChatThreadAsRead,
       unread: markAgentChatThreadAsUnread,
       done: archiveAgentChatThread,
       reopen: moveAgentChatThreadToInbox,
+      subscribe: subscribeToAgentChatThread,
+      unsubscribe: unsubscribeFromAgentChatThread,
     }[action];
 
     // One at a time: a failed update reloads every chat's state, which would

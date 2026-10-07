@@ -12,7 +12,7 @@ import { type ToolContext } from 'src/engine/core-modules/tool-provider/types/to
 import { type WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { AgentMessageRole } from 'src/engine/metadata-modules/ai/ai-history/enums/agent-message-role.enum';
 import { type PausingToolCompletionContext } from 'src/engine/metadata-modules/ai/ai-agent-execution/pausing-tools/types/pausing-tool-completion-context.type';
-import { isAwaitingPausingToolOutput } from 'src/engine/metadata-modules/ai/ai-agent-execution/pausing-tools/utils/is-awaiting-pausing-tool-output.util';
+import { isAwaitingPausingToolOutput } from 'src/engine/metadata-modules/ai/ai-history/utils/is-awaiting-pausing-tool-output.util';
 import { parsePausingToolCall } from 'src/engine/metadata-modules/ai/ai-agent-execution/pausing-tools/utils/parse-pausing-tool-call.util';
 import { AgentActorContextService } from 'src/engine/metadata-modules/ai/ai-agent-execution/services/agent-actor-context.service';
 import { AgentChatActorService } from 'src/engine/metadata-modules/ai/ai-chat/services/agent-chat-actor.service';
@@ -23,8 +23,8 @@ import { AgentChatThreadService } from 'src/engine/metadata-modules/ai/ai-chat/s
 import { AgentChatTurnPreflightService } from 'src/engine/metadata-modules/ai/ai-chat/services/agent-chat-turn-preflight.service';
 import { AgentChatService } from 'src/engine/metadata-modules/ai/ai-chat/services/agent-chat.service';
 import { formatErrorWithCause } from 'src/engine/metadata-modules/ai/ai-chat/utils/format-error-with-cause.util';
-import { readToolCallWorkflowStep } from 'src/engine/metadata-modules/ai/ai-chat/utils/read-tool-call-workflow-step.util';
 import { AgentHistoryRepository } from 'src/engine/metadata-modules/ai/ai-history/repositories/agent-history-repository';
+import { AgentConversationReaderService } from 'src/engine/metadata-modules/ai/ai-history/services/agent-conversation-reader.service';
 import { InjectAgentHistoryRepository } from 'src/engine/metadata-modules/ai/ai-history/repositories/inject-agent-history-repository.decorator';
 import { type AgentChatThreadWorkspaceEntity } from 'src/engine/metadata-modules/ai/ai-history/standard-objects/agent-chat-thread.workspace-entity';
 import {
@@ -32,10 +32,10 @@ import {
   AiExceptionCode,
 } from 'src/engine/metadata-modules/ai/ai.exception';
 import { PermissionsService } from 'src/engine/metadata-modules/permissions/permissions.service';
-import { WorkflowRunStatus } from 'src/modules/workflow/common/standard-objects/workflow-run.workspace-entity';
-import { type WorkflowAction } from 'src/modules/workflow/workflow-executor/workflow-actions/types/workflow-action.type';
-import { WorkflowRunWorkspaceService } from 'src/modules/workflow/workflow-runner/workflow-run/workflow-run.workspace-service';
-import { WorkflowRunnerWorkspaceService } from 'src/modules/workflow/workflow-runner/workspace-services/workflow-runner.workspace-service';
+import { type AgentRunSuspensionEntity } from 'src/engine/metadata-modules/ai/ai-agent-execution/entities/agent-run-suspension.entity';
+import { AgentRunSuspensionService } from 'src/engine/metadata-modules/ai/ai-agent-execution/services/agent-run-suspension.service';
+import { isToolOutputAwaitedByCaller } from 'src/engine/metadata-modules/ai/ai-agent-execution/utils/is-tool-output-awaited-by-caller.util';
+import { AgentTurnStatus } from 'src/engine/metadata-modules/ai/ai-history/enums/agent-turn-status.enum';
 
 type AnswerToolCallArgs = {
   threadId: string;
@@ -66,12 +66,12 @@ export class ToolCallAnswerService {
     private readonly threadService: AgentChatThreadService,
     private readonly actorService: AgentChatActorService,
     private readonly eventPublisherService: AgentChatEventPublisherService,
-    private readonly workflowRunnerWorkspaceService: WorkflowRunnerWorkspaceService,
-    private readonly workflowRunWorkspaceService: WorkflowRunWorkspaceService,
+    private readonly agentRunSuspensionService: AgentRunSuspensionService,
     private readonly permissionsService: PermissionsService,
     private readonly turnPreflightService: AgentChatTurnPreflightService,
     private readonly agentActorContextService: AgentActorContextService,
     private readonly toolRegistryService: ToolRegistryService,
+    private readonly conversationReaderService: AgentConversationReaderService,
   ) {}
 
   async answer(args: AnswerToolCallArgs): Promise<AnswerToolCallOutcome> {
@@ -83,7 +83,11 @@ export class ToolCallAnswerService {
         where: { id: threadId },
         select: ['id', 'activeStreamId', 'pendingQuestionMessageId'],
       }),
-      this.agentChatService.findToolPart({ threadId, toolCallId, workspaceId }),
+      this.conversationReaderService.findToolPart({
+        threadId,
+        toolCallId,
+        workspaceId,
+      }),
     ]);
     const pausingToolCall = parsePausingToolCall(toolPart);
 
@@ -98,10 +102,9 @@ export class ToolCallAnswerService {
       );
     }
 
-    // a workflow step that posted the call waits on it, and the answer resumes that step. An answer
-    // replaces that output, so a call no longer pending starts nothing and is refused below
-    const workflowStep = readToolCallWorkflowStep(toolPart.toolOutput);
-    const workflowRunId = workflowStep?.workflowRunId ?? null;
+    // a caller such as a workflow step that waits on the call takes the answer instead of a chat turn.
+    // An answer replaces that output, so a call no longer pending starts nothing and is refused below
+    const isAwaitedByCaller = isToolOutputAwaitedByCaller(toolPart.toolOutput);
     const isToolCallPending =
       thread.pendingQuestionMessageId === toolPart.messageId &&
       isAwaitingPausingToolOutput(toolPart.toolOutput);
@@ -109,7 +112,7 @@ export class ToolCallAnswerService {
     await this.assertCanAnswerInChat({
       ...args,
       messageId: toolPart.messageId,
-      isStartingChatTurn: !isDefined(workflowStep) && isToolCallPending,
+      isStartingChatTurn: !isAwaitedByCaller && isToolCallPending,
     });
 
     if (!isToolCallPending) {
@@ -148,7 +151,7 @@ export class ToolCallAnswerService {
       );
     }
 
-    let step: WorkflowAction | null = null;
+    let awaitingSuspension: AgentRunSuspensionEntity | null = null;
     let isClaimedAsRunning = false;
     let isLastAnswer: boolean;
     let answerText: string;
@@ -165,41 +168,39 @@ export class ToolCallAnswerService {
         throw this.notPending();
       }
 
-      if (isDefined(workflowRunId)) {
-        step = await this.workflowRunWorkspaceService.findStepAwaitingAnswer({
-          threadId,
-          workflowRunId,
-          workspaceId,
-          expectedStepId: workflowStep?.stepId,
-        });
-
-        if (
-          !isDefined(step) &&
-          (await this.workflowRunWorkspaceService.isStepStillRunning({
-            stepId: workflowStep?.stepId,
-            threadId,
-            workflowRunId,
+      if (isAwaitedByCaller) {
+        const waitingState =
+          await this.agentRunSuspensionService.findWaitingSuspension({
             workspaceId,
-          }))
-        ) {
+            threadId,
+          });
+
+        if (waitingState.status === 'NOT_READY') {
           throw new AiException(
-            'The workflow step is not ready for an answer yet',
+            'The run waiting on this call is not ready for an answer yet',
             AiExceptionCode.TOOL_CALL_NOT_PENDING,
             {
-              userFriendlyMessage: msg`This workflow is still getting ready. Try again in a moment.`,
+              userFriendlyMessage: msg`This request is still getting ready. Try again in a moment.`,
             },
           );
         }
 
-        if (!isDefined(step)) {
+        if (waitingState.status === 'GONE') {
           await this.agentChatService.closePendingToolCalls({
             threadId,
             messageId: toolPart.messageId,
             workspaceId,
           });
 
+          await this.agentRunSuspensionService.release({
+            workspaceId,
+            suspension: waitingState.suspension,
+          });
+
           throw this.notPending();
         }
+
+        awaitingSuspension = waitingState.suspension;
       }
 
       const runningToolResult = pausingToolCall.toRunningToolResult?.(
@@ -243,29 +244,27 @@ export class ToolCallAnswerService {
       answerText = completion.answerText;
       toolResult = completion.toolResult;
     } catch (error) {
-      // a call claimed as running cannot be answered again, so the run or turn fails, which
-      // closes the call as interrupted instead of leaving it waiting on an outcome
+      // a call claimed as running cannot be answered again, so it closes as interrupted and the
+      // run or turn fails, instead of leaving the call waiting on an outcome
       if (isClaimedAsRunning) {
-        if (!isDefined(workflowRunId)) {
-          await this.agentChatService
-            .closePendingToolCalls({
-              threadId,
-              messageId: toolPart.messageId,
-              workspaceId,
-              where: { activeStreamId: streamId },
-            })
-            .catch((closeError: unknown) =>
-              this.logger.warn(
-                `Could not close the interrupted call on thread ${threadId}: ${closeError instanceof Error ? closeError.message : String(closeError)}`,
-              ),
-            );
-        }
+        await this.agentChatService
+          .closePendingToolCalls({
+            threadId,
+            messageId: toolPart.messageId,
+            workspaceId,
+            where: { activeStreamId: streamId },
+          })
+          .catch((closeError: unknown) =>
+            this.logger.warn(
+              `Could not close the interrupted call on thread ${threadId}: ${closeError instanceof Error ? closeError.message : String(closeError)}`,
+            ),
+          );
 
         await this.failAfterAnswer({
           threadId,
           workspaceId,
           streamId,
-          workflowRunId,
+          awaitingSuspension,
           error,
         });
       } else {
@@ -284,6 +283,10 @@ export class ToolCallAnswerService {
       const answerMessage = await this.agentChatService.addMessage({
         threadId,
         userWorkspaceId,
+        turnStatus:
+          isAwaitedByCaller || !isLastAnswer
+            ? AgentTurnStatus.COMPLETED
+            : AgentTurnStatus.RUNNING,
         uiMessage: {
           role: AgentMessageRole.USER,
           parts: [{ type: 'text', text: answerText }],
@@ -309,20 +312,18 @@ export class ToolCallAnswerService {
           ),
         );
 
-      // runs resume in their own executor, and only the last answer resumes a chat
-      if (isDefined(step) || !isLastAnswer) {
+      // a suspended run continues in its own job, and only the last answer resumes a chat
+      if (isAwaitedByCaller || !isLastAnswer) {
         await this.streamRecoveryService.releaseStreamClaim({
           threadId,
           workspaceId,
           streamId,
         });
 
-        if (isLastAnswer && isDefined(workflowRunId) && isDefined(step)) {
-          await this.workflowRunnerWorkspaceService.resumeAnsweredStep({
+        if (isLastAnswer && isDefined(awaitingSuspension)) {
+          await this.agentRunSuspensionService.deliverAnswer({
             workspaceId,
-            workflowRunId,
-            step,
-            threadId,
+            suspension: awaitingSuspension,
             toolResult,
           });
         }
@@ -347,7 +348,7 @@ export class ToolCallAnswerService {
         threadId,
         workspaceId,
         streamId,
-        workflowRunId,
+        awaitingSuspension,
         error,
       });
 
@@ -359,16 +360,16 @@ export class ToolCallAnswerService {
     threadId,
     workspaceId,
     streamId,
-    workflowRunId,
+    awaitingSuspension,
     error,
   }: {
     threadId: string;
     workspaceId: string;
     streamId: string;
-    workflowRunId: string | null;
+    awaitingSuspension: AgentRunSuspensionEntity | null;
     error: unknown;
   }): Promise<void> {
-    if (!isDefined(workflowRunId)) {
+    if (!isDefined(awaitingSuspension)) {
       await this.streamRecoveryService.failStream({
         threadId,
         workspaceId,
@@ -384,16 +385,18 @@ export class ToolCallAnswerService {
       workspaceId,
       streamId,
     });
-    await this.workflowRunWorkspaceService.endWorkflowRun({
-      workflowRunId,
+    await this.agentRunSuspensionService.settle({
       workspaceId,
-      status: WorkflowRunStatus.FAILED,
-      error: 'The run could not resume after its question was answered',
+      suspension: awaitingSuspension,
+      outcome: {
+        status: 'FAILED',
+        error: 'The run could not resume after its question was answered',
+      },
     });
   }
 
-  // an answer that resumes a workflow step starts no chat turn, so it skips the model and
-  // billing checks but still needs a thread the member can write to
+  // an answer a caller such as a workflow step waits on starts no chat turn, so it skips the
+  // model and billing checks but still needs a thread the member can write to
   private async assertCanAnswerInChat({
     threadId,
     messageId,

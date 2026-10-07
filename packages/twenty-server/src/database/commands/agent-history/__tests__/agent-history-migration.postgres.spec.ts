@@ -42,7 +42,7 @@ import { isDefined } from 'twenty-shared/utils';
 
 import { AgentHistoryMigrationStateService } from 'src/database/commands/agent-history/agent-history-migration-state.service';
 import { AgentHistoryMigrationService } from 'src/database/commands/agent-history/agent-history-migration.service';
-import { AGENT_HISTORY_TABLES } from 'src/database/commands/agent-history/agent-history-tables.constant';
+import { ACTIVE_AGENT_HISTORY_TABLES } from 'src/database/commands/agent-history/agent-history-tables.constant';
 import { AGENT_HISTORY_TEST_SCHEMA } from 'src/database/commands/agent-history/__tests__/agent-history-test-schema.constant';
 import { AgentHistoryUpgradeStorageService } from 'src/database/commands/agent-history/agent-history-upgrade-storage.service';
 import { AGENT_HISTORY_MIGRATION_STORAGE_KEY } from 'src/database/commands/agent-history/agent-history-migration-storage-key.constant';
@@ -214,6 +214,9 @@ const SCHEMA = getWorkspaceSchemaName(WORKSPACE_ID);
         }),
       } as never,
     );
+    const upgradeFence = {
+      hasUpgradedAgentHistory: jest.fn().mockResolvedValue(true),
+    };
     const createChatService = (messageRepository: typeof messages) =>
       new AgentChatService(
         threads,
@@ -227,8 +230,11 @@ const SCHEMA = getWorkspaceSchemaName(WORKSPACE_ID);
         new AgentConversationWriterService(
           turns as never,
           new AgentHistoryTransactionService(workspaceStorage, orm as never),
+          upgradeFence as never,
         ),
         chatThreadService,
+        {} as never,
+        upgradeFence as never,
       );
 
     const createActorService = (messageRepository: typeof messages) =>
@@ -310,7 +316,7 @@ const SCHEMA = getWorkspaceSchemaName(WORKSPACE_ID);
       const runner = dataSource.createQueryRunner();
       await runner.connect();
       try {
-        for (const table of AGENT_HISTORY_TABLES) {
+        for (const table of ACTIVE_AGENT_HISTORY_TABLES) {
           const object = Object.values(
             metadata.flatObjectMetadataMaps.byUniversalIdentifier,
           )
@@ -343,7 +349,7 @@ const SCHEMA = getWorkspaceSchemaName(WORKSPACE_ID);
             .filter(isDefined)
             .find((object) => object.id === index.objectMetadataId)!;
           if (
-            !AGENT_HISTORY_TABLES.some(
+            !ACTIVE_AGENT_HISTORY_TABLES.some(
               (table) => table.name === object.nameSingular,
             )
           )
@@ -368,7 +374,6 @@ const SCHEMA = getWorkspaceSchemaName(WORKSPACE_ID);
           ['agentMessage', 'threadId', 'agentChatThread'],
           ['agentMessage', 'turnId', 'agentTurn'],
           ['agentMessagePart', 'messageId', 'agentMessage'],
-          ['agentTurnEvaluation', 'turnId', 'agentTurn'],
         ]) {
           await runner.query(
             `ALTER TABLE "${SCHEMA}"."${child}" ADD FOREIGN KEY ("${column}") REFERENCES "${SCHEMA}"."${parent}" (id) ON DELETE CASCADE`,
@@ -499,7 +504,7 @@ const SCHEMA = getWorkspaceSchemaName(WORKSPACE_ID);
       }
     });
 
-    it('copies all five tables, exact credits and archive state before changing the route', async () => {
+    it('copies every history table, exact credits and archive state before changing the route', async () => {
       await migration.migrate({
         workspaceId: WORKSPACE_ID,
         target: 'workspace',
@@ -511,7 +516,7 @@ const SCHEMA = getWorkspaceSchemaName(WORKSPACE_ID);
       expect(rows[0].totalInputCredits).toBe('9007199254740993');
       expect(rows[0].archivedAt).toEqual(new Date('2026-01-01T00:00:00.000Z'));
       expect(await readRoute()).toBe('workspace');
-      for (const table of AGENT_HISTORY_TABLES) {
+      for (const table of ACTIVE_AGENT_HISTORY_TABLES) {
         expect(
           (
             await dataSource.query(
@@ -583,7 +588,6 @@ const SCHEMA = getWorkspaceSchemaName(WORKSPACE_ID);
       await dataSource.query(
         `UPDATE "${SCHEMA}"."agentChatThread" SET title = 'Updated after cutover'`,
       );
-      await dataSource.query(`DELETE FROM "${SCHEMA}"."agentTurnEvaluation"`);
       await migration.migrate({
         workspaceId: WORKSPACE_ID,
         target: 'core',
