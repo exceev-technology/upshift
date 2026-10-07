@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   echo "Usage: $0 [twenty-tag]"
-  echo "  Builds the Upshift image from a Twenty release (default: latest twenty/vX.Y.Z)."
+  echo "  Builds the Upshift image from a Twenty tag (default: the latest twenty/vX.Y.Z)."
   echo "  IMAGE=name:tag overrides the image name, PLATFORM=linux/amd64 sets the target platform."
 }
 
@@ -15,15 +15,7 @@ fi
 TWENTY_REPOSITORY="https://github.com/twentyhq/twenty.git"
 UPSHIFT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-latest_twenty_tag() {
-  git ls-remote --tags --refs "$TWENTY_REPOSITORY" 'twenty/v*' \
-    | sed 's#.*refs/tags/##' \
-    | grep -E '^twenty/v[0-9]+\.[0-9]+\.[0-9]+$' \
-    | sort -V \
-    | tail -1
-}
-
-TWENTY_TAG="${1:-$(latest_twenty_tag)}"
+TWENTY_TAG="${1:-$(bash "$UPSHIFT_ROOT/upshift/scripts/latest-twenty-tag.sh")}"
 case "$TWENTY_TAG" in
   twenty/*) ;;
   v*) TWENTY_TAG="twenty/$TWENTY_TAG" ;;

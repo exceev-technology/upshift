@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       twenty-tag:
-        description: Twenty release to build, for example twenty/v2.44.0. Leave empty for the latest release.
+        description: Twenty tag to build, for example twenty/v2.45.6. Leave empty for the latest tag.
         required: false
         default: ''
       force:
@@ -41,22 +41,23 @@ jobs:
       version: ${{ steps.release.outputs.version }}
       app-version: ${{ steps.release.outputs.app-version }}
       is-latest: ${{ steps.release.outputs.is-latest }}
+      is-latest-in-minor: ${{ steps.release.outputs.is-latest-in-minor }}
       should-build: ${{ steps.published.outputs.should-build }}
       publish: ${{ steps.published.outputs.publish }}
     steps:
-      - name: Resolve Twenty release
+      - name: Check out the Upshift scripts
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          sparse-checkout: upshift/scripts
+          filter: blob:none
+          persist-credentials: false
+
+      - name: Resolve the Twenty version
         id: release
         env:
-          GH_TOKEN: ${{ github.token }}
           REQUESTED_TAG: ${{ inputs.twenty-tag }}
         run: |
-          latest_tag=$(gh api 'repos/twentyhq/twenty/releases?per_page=100' --jq '
-            [.[]
-              | select(.draft == false and .prerelease == false)
-              | select(.tag_name | test("^twenty/v[0-9]+\\.[0-9]+\\.[0-9]+$"))]
-            | sort_by(.tag_name | ltrimstr("twenty/v") | split(".") | map(tonumber))
-            | last
-            | .tag_name')
+          latest_tag=$(bash upshift/scripts/latest-twenty-tag.sh)
 
           tag="${REQUESTED_TAG:-$latest_tag}"
           case "$tag" in
@@ -69,18 +70,31 @@ jobs:
             exit 1
           fi
 
+          if ! git ls-remote --exit-code --tags https://github.com/twentyhq/twenty.git "refs/tags/$tag" > /dev/null; then
+            echo "::error::Twenty has no tag '$tag'"
+            exit 1
+          fi
+
           version="${tag#twenty/}"
+          latest_in_minor=$(bash upshift/scripts/latest-twenty-tag.sh "${version%.*}")
+
           is_latest=false
           if [ "$tag" = "$latest_tag" ]; then
             is_latest=true
           fi
 
-          echo "Twenty release: $tag (latest: $latest_tag)"
+          is_latest_in_minor=false
+          if [ "$tag" = "$latest_in_minor" ]; then
+            is_latest_in_minor=true
+          fi
+
+          echo "Twenty version: $tag (latest: $latest_tag, latest in ${version%.*}: $latest_in_minor)"
           {
             echo "twenty-tag=$tag"
             echo "version=$version"
             echo "app-version=${version#v}"
             echo "is-latest=$is_latest"
+            echo "is-latest-in-minor=$is_latest_in_minor"
           } >> "$GITHUB_OUTPUT"
 
       - name: Log in to GHCR
@@ -308,12 +322,17 @@ jobs:
         env:
           VERSION: ${{ needs.resolve.outputs.version }}
           IS_LATEST: ${{ needs.resolve.outputs.is-latest }}
+          IS_LATEST_IN_MINOR: ${{ needs.resolve.outputs.is-latest-in-minor }}
           TWENTY_TAG: ${{ needs.resolve.outputs.twenty-tag }}
         run: |
           tags=(--tag "$IMAGE:$VERSION")
-          if [ "$IS_LATEST" = "true" ]; then
-            tags+=(--tag "$IMAGE:latest")
+          if [ "$IS_LATEST_IN_MINOR" = "true" ]; then
+            tags+=(--tag "$IMAGE:${VERSION%.*}")
           fi
+          if [ "$IS_LATEST" = "true" ]; then
+            tags+=(--tag "$IMAGE:${VERSION%%.*}" --tag "$IMAGE:latest")
+          fi
+          echo "Publishing: ${tags[*]}"
 
           docker buildx imagetools create "${tags[@]}" \
             --annotation "index:org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
@@ -326,10 +345,12 @@ jobs:
         env:
           VERSION: ${{ needs.resolve.outputs.version }}
           IS_LATEST: ${{ needs.resolve.outputs.is-latest }}
+          IS_LATEST_IN_MINOR: ${{ needs.resolve.outputs.is-latest-in-minor }}
           TWENTY_TAG: ${{ needs.resolve.outputs.twenty-tag }}
         run: |
           {
             echo "### Published $IMAGE:$VERSION"
             echo "- Built from Twenty \`$TWENTY_TAG\` with the Upshift layer from \`$GITHUB_SHA\`"
-            echo "- Also tagged \`latest\`: $IS_LATEST"
+            echo "- Also tagged \`${VERSION%.*}\`: $IS_LATEST_IN_MINOR"
+            echo "- Also tagged \`${VERSION%%.*}\` and \`latest\`: $IS_LATEST"
           } >> "$GITHUB_STEP_SUMMARY"
