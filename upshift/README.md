@@ -101,7 +101,7 @@ Every failure names the file and what was expected.
 | Message | What happened | Fix |
 | --- | --- | --- |
 | `expected N occurrence(s) of "..."` | Twenty changed or moved a patched string | Find the new code, update `from`/`to` in `PATCHES` |
-| `no longer exists in Twenty` | Twenty moved or deleted a patched file | Point the patch or overlay at the new path, or drop it |
+| `no longer exists in Twenty` | Twenty moved or deleted a patched file | Add the new path first in the patch's `file` list and keep the old one while releases still use it. A file that only exists in newer Twenty code can be marked `optional: true` |
 | `changed in Twenty (sha256 ...)` | Twenty edited a file Upshift replaces whole (the email footer) | Compare with the overlay, port anything relevant, add the new hash to `CODE_OVERLAY_UPSTREAM_SHA256` |
 | `has no Upshift version` | Twenty added a new app icon | `node upshift/scripts/generate-icons.mjs --root <checkout>` and commit |
 | `references <host or link>` | New code calls or links to a Twenty-owned host | Patch it. If it is unreachable or intentional, add the file to `REFERENCE_CENSUS` with the reason |

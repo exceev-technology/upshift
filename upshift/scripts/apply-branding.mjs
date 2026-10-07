@@ -197,7 +197,10 @@ const PATCHES = [
     ],
   },
   {
-    file: `${FRONT}/src/modules/apollo/services/apollo.factory.ts`,
+    file: [
+      `${FRONT}/src/modules/apollo/services/ApolloFactory.ts`,
+      `${FRONT}/src/modules/apollo/services/apollo.factory.ts`,
+    ],
     replacements: [{ brandWord: true }],
   },
   {
@@ -438,12 +441,28 @@ const PATCHES = [
     'engine/metadata-modules/ai/ai-chat/constants/chat-system-prompts.const.ts',
     'engine/metadata-modules/ai/ai-chat/constants/workspace-setup-system-prompt.constant.ts',
     'engine/metadata-modules/ai/ai-agent/constants/agent-run-base-system-prompt.const.ts',
-    'engine/metadata-modules/ai/ai-agent/constants/workflow-base-system-prompt.const.ts',
     'engine/api/mcp/utils/build-mcp-server-instructions.util.ts',
     'engine/workspace-manager/twenty-standard-application/utils/agent-metadata/create-standard-flat-agent-metadata.util.ts',
     'engine/metadata-modules/navigation-menu-item/tools/schemas/navigation-menu-item-scope.schema.ts',
   ].map((relativePath) => ({
     file: `${SERVER}/${relativePath}`,
+    replacements: [{ brandWord: true }],
+  })),
+  {
+    file: [
+      `${SERVER}/modules/workflow/workflow-executor/workflow-actions/ai-agent/constants/workflow-base-system-prompt.constant.ts`,
+      `${SERVER}/engine/metadata-modules/ai/ai-agent/constants/workflow-base-system-prompt.const.ts`,
+    ],
+    replacements: [{ brandWord: true }],
+  },
+  // Not in the latest Twenty release yet: patched once a release ships them
+  ...[
+    'engine/metadata-modules/ai/ai-agent-trigger/constants/agent-trigger-base-system-prompt.const.ts',
+    'engine/metadata-modules/ai/ai-chat/constants/workspace-setup-alternative-system-prompt.constant.ts',
+    'database/commands/upgrade-version-command/2-46/suspend-paused-agent-steps-run-spec.util.ts',
+  ].map((relativePath) => ({
+    file: `${SERVER}/${relativePath}`,
+    optional: true,
     replacements: [{ brandWord: true }],
   })),
   {
@@ -547,6 +566,10 @@ const REFERENCE_CENSUS = [
       [`${FRONT}/src/pages/settings/applications/utils/getCustomApplicationDescription.ts`]:
         TRANSLATED_IN_CATALOGS,
       [`${FRONT}/src/pages/settings/applications/utils/getStandardApplicationDescription.ts`]:
+        TRANSLATED_IN_CATALOGS,
+      [`${FRONT}/src/modules/applications/utils/getCustomApplicationDescription.ts`]:
+        TRANSLATED_IN_CATALOGS,
+      [`${FRONT}/src/modules/applications/utils/getStandardApplicationDescription.ts`]:
         TRANSLATED_IN_CATALOGS,
       [`${FRONT}/src/modules/settings/billing/constants/SettingsBillingPlanComparisonRows.ts`]:
         TRANSLATED_IN_CATALOGS,
@@ -763,13 +786,20 @@ const applyPatches = () => {
   let replacementCount = 0;
 
   for (const patch of PATCHES) {
-    const filePath = path.join(twentyRoot, patch.file);
+    const candidateFiles = Array.isArray(patch.file) ? patch.file : [patch.file];
+    const patchedFile = candidateFiles.find((candidateFile) =>
+      existsSync(path.join(twentyRoot, candidateFile)),
+    );
 
-    if (!existsSync(filePath)) {
-      fail(`${patch.file} no longer exists in Twenty`);
+    if (!patchedFile) {
+      if (!patch.optional) {
+        fail(`${candidateFiles.join(' or ')} no longer exists in Twenty`);
+      }
+
       continue;
     }
 
+    const filePath = path.join(twentyRoot, patchedFile);
     let content = readPlanned(filePath);
 
     for (const replacement of patch.replacements) {
@@ -779,7 +809,7 @@ const applyPatches = () => {
 
         if (matches.length < minimum) {
           fail(
-            `${patch.file}: expected at least ${minimum} "Twenty" mentions, found ${matches.length}`,
+            `${patchedFile}: expected at least ${minimum} "Twenty" mentions, found ${matches.length}`,
           );
           continue;
         }
@@ -793,7 +823,7 @@ const applyPatches = () => {
         const matches = content.match(replacement.pattern) ?? [];
 
         if (matches.length === 0) {
-          fail(`${patch.file}: pattern ${replacement.pattern} not found`);
+          fail(`${patchedFile}: pattern ${replacement.pattern} not found`);
           continue;
         }
 
@@ -807,7 +837,7 @@ const applyPatches = () => {
 
       if (actualCount !== expectedCount) {
         fail(
-          `${patch.file}: expected ${expectedCount} occurrence(s) of ${JSON.stringify(replacement.from.split('\n')[0])}, found ${actualCount}`,
+          `${patchedFile}: expected ${expectedCount} occurrence(s) of ${JSON.stringify(replacement.from.split('\n')[0])}, found ${actualCount}`,
         );
         continue;
       }
