@@ -2,7 +2,13 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { LANGUAGES } from '../rules.mjs';
-import { filterNavigation, filterRedirects, renamePage } from '../transform.mjs';
+import {
+  filterNavigation,
+  filterRedirects,
+  findUnmatchedExclusions,
+  listLinkedPages,
+  renamePage,
+} from '../transform.mjs';
 
 const [FRENCH, ENGLISH] = LANGUAGES;
 
@@ -106,6 +112,12 @@ describe('filterNavigation', () => {
     ]);
   });
 
+  it('reports the navigation pages it excludes', () => {
+    const { excludedPages } = filterNavigation(twentyDocsConfig, ENGLISH);
+
+    assert.deepEqual(excludedPages, ['user-guide/billing/overview']);
+  });
+
   it('fails when Twenty no longer has a tab for a kept section', () => {
     const withoutUserGuide = structuredClone(twentyDocsConfig);
 
@@ -175,6 +187,35 @@ describe('filterRedirects', () => {
         .filter(({ source }) => source.endsWith('/flows'))
         .map(({ source }) => source),
       ['/flows', '/en/flows'],
+    );
+  });
+});
+
+describe('listLinkedPages', () => {
+  it('lists the Getting Started and User Guide pages a page links to, by language', () => {
+    const source = [
+      '[Vues](/fr/user-guide/views-pipelines/overview#filtres)',
+      '<Card href="/user-guide/layout/overview" />',
+      '[API](/developers/extend/api) ![x](/images/a.png) [site](https://example.com)',
+    ].join('\n');
+
+    assert.deepEqual(listLinkedPages(source), [
+      { language: FRENCH, page: 'user-guide/views-pipelines/overview' },
+      { language: ENGLISH, page: 'user-guide/layout/overview' },
+    ]);
+  });
+});
+
+describe('findUnmatchedExclusions', () => {
+  it('reports excluded prefixes that no Twenty page matches any more', () => {
+    assert.deepEqual(
+      findUnmatchedExclusions(
+        ['user-guide/billing/overview', 'user-guide/billing/overview'],
+        ['user-guide/billing/', 'user-guide/legal/'],
+      ),
+      [
+        'rules.mjs excludes user-guide/legal/, but no Twenty page matches it any more; check where those pages moved',
+      ],
     );
   });
 });

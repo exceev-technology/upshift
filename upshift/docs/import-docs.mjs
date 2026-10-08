@@ -19,6 +19,9 @@ import {
   collectAssets,
   filterNavigation,
   filterRedirects,
+  findUnmatchedExclusions,
+  isExcluded,
+  listLinkedPages,
   rebrandPage,
   sitePath,
 } from './transform.mjs';
@@ -44,17 +47,54 @@ export const buildSite = (twentyDocsRoot) => {
   const publishedPages = new Map(
     navigation.map(({ language, pages }) => [language.language, new Set(pages)]),
   );
-  const files = new Map();
-  const problems = [];
+  const excludedPages = navigation.flatMap(
+    ({ excludedPages: excluded }) => excluded,
+  );
+  const sources = new Map(LANGUAGES.map(({ language }) => [language, new Map()]));
+  const queue = navigation.flatMap(({ language, pages }) =>
+    pages.map((page) => ({ language, page })),
+  );
 
-  for (const { language, pages } of navigation) {
+  // Twenty links to some pages it keeps out of its navigation. They are
+  // published too, without a navigation entry, so those links keep working.
+  while (queue.length > 0) {
+    const { language, page } = queue.shift();
+    const source = readTwenty(`${language.twentyPrefix}${page}.mdx`).toString();
+
+    sources.get(language.language).set(page, source);
+
+    for (const linked of listLinkedPages(source)) {
+      const known = publishedPages.get(linked.language.language);
+
+      if (known.has(linked.page)) {
+        continue;
+      }
+
+      if (isExcluded(linked.page)) {
+        excludedPages.push(linked.page);
+        continue;
+      }
+
+      if (
+        existsSync(
+          path.join(
+            twentyDocsRoot,
+            `${linked.language.twentyPrefix}${linked.page}.mdx`,
+          ),
+        )
+      ) {
+        known.add(linked.page);
+        queue.push(linked);
+      }
+    }
+  }
+
+  const files = new Map();
+  const problems = findUnmatchedExclusions(excludedPages);
+
+  for (const { language } of navigation) {
     const { outputs, problems: phraseProblems } = applyPhraseReplacements(
-      new Map(
-        pages.map((page) => [
-          page,
-          readTwenty(`${language.twentyPrefix}${page}.mdx`).toString(),
-        ]),
-      ),
+      sources.get(language.language),
       PHRASE_REPLACEMENTS[language.language],
     );
 
@@ -100,8 +140,10 @@ export const buildSite = (twentyDocsRoot) => {
   problems.push(
     ...auditSite(
       files,
-      navigation.flatMap(({ language, pages }) =>
-        pages.map((page) => sitePath(language, page)),
+      LANGUAGES.flatMap((language) =>
+        [...publishedPages.get(language.language)].map((page) =>
+          sitePath(language, page),
+        ),
       ),
     ),
   );
@@ -110,9 +152,9 @@ export const buildSite = (twentyDocsRoot) => {
     files,
     problems,
     summary: {
-      pages: navigation
-        .map(({ language, pages }) => `${pages.length} ${language.language}`)
-        .join(' + '),
+      pages: LANGUAGES.map(
+        ({ language }) => `${publishedPages.get(language).size} ${language}`,
+      ).join(' + '),
       images: images.length,
       snippets: snippets.length,
       redirects: redirects.length,

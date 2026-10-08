@@ -29,7 +29,7 @@ export const renamePage = (page) => page.replaceAll('twenty', 'upshift');
 export const sitePath = (language, page) =>
   `${language.sitePrefix}${renamePage(page)}`;
 
-const isExcluded = (page) =>
+export const isExcluded = (page) =>
   EXCLUDED_PAGE_PREFIXES.some((prefix) => page.startsWith(prefix));
 
 const isAsset = (relativePath) =>
@@ -90,12 +90,15 @@ export const filterNavigation = (twentyDocsConfig, language) => {
       ({ language: code }) => code === language.language,
     )?.tabs ?? [];
   const pages = [];
+  const excludedPages = [];
 
   const filterEntry = (entry) => {
     if (typeof entry === 'string') {
       const page = entry.slice(language.twentyPrefix.length);
 
       if (isExcluded(page)) {
+        excludedPages.push(page);
+
         return null;
       }
 
@@ -128,8 +131,40 @@ export const filterNavigation = (twentyDocsConfig, language) => {
     };
   });
 
-  return { tabs, pages };
+  return { tabs, pages, excludedPages };
 };
+
+const linkTargets = (source) => [
+  ...[...source.matchAll(MARKDOWN_LINK)].map((match) => match[2]),
+  ...[...source.matchAll(HREF_ATTRIBUTE)].map((match) => match[1]),
+];
+
+const isInKeptSection = (page) =>
+  KEPT_SECTIONS.some((section) => page.startsWith(`${section}/`));
+
+export const listLinkedPages = (source) =>
+  linkTargets(source).flatMap((target) => {
+    const [twentyPath] = splitTarget(target);
+
+    if (isAsset(twentyPath)) {
+      return [];
+    }
+
+    const { language, page } = parseTwentyPath(twentyPath);
+
+    return isInKeptSection(page) ? [{ language, page }] : [];
+  });
+
+export const findUnmatchedExclusions = (
+  excludedPages,
+  prefixes = EXCLUDED_PAGE_PREFIXES,
+) =>
+  prefixes
+    .filter((prefix) => !excludedPages.some((page) => page.startsWith(prefix)))
+    .map(
+      (prefix) =>
+        `rules.mjs excludes ${prefix}, but no Twenty page matches it any more; check where those pages moved`,
+    );
 
 const uniqueBySource = (redirects) => [
   ...new Map(redirects.map((redirect) => [redirect.source, redirect])).values(),
@@ -337,12 +372,7 @@ export const auditSite = (files, sitePages) => {
       }
     }
 
-    const targets = [
-      ...[...text.matchAll(MARKDOWN_LINK)].map((match) => match[2]),
-      ...[...text.matchAll(HREF_ATTRIBUTE)].map((match) => match[1]),
-    ];
-
-    for (const target of targets) {
+    for (const target of linkTargets(text)) {
       const [page] = splitTarget(target);
       const isMissing = isAsset(page) ? !files.has(page) : !published.has(page);
 

@@ -54,6 +54,15 @@ describe('buildSite on packages/twenty-docs', () => {
     assert.deepEqual(englishLinksWithFrenchPages, []);
   });
 
+  it('publishes pages Twenty links to but keeps out of its navigation', () => {
+    assert.ok(files.has('user-guide/views-pipelines/overview.mdx'));
+    assert.ok(files.has('en/user-guide/views-pipelines/overview.mdx'));
+    assert.match(
+      files.get('getting-started/key-features.mdx'),
+      /href="\/user-guide\/views-pipelines\/overview"/,
+    );
+  });
+
   it('ships the files Mintlify needs at the site root', () => {
     for (const filePath of ['docs.json', 'custom.css', 'logo.svg', 'favicon.svg']) {
       assert.ok(files.has(filePath), filePath);

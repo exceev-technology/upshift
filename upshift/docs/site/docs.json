@@ -1401,6 +1401,22 @@
       "destination": "/en/user-guide/workflows/overview"
     },
     {
+      "source": "/user-guide/views-pipelines/how-tos/create-custom-views",
+      "destination": "/user-guide/views-pipelines/overview"
+    },
+    {
+      "source": "/en/user-guide/views-pipelines/how-tos/create-custom-views",
+      "destination": "/en/user-guide/views-pipelines/overview"
+    },
+    {
+      "source": "/user-guide/views-pipelines/getting-started/view-management",
+      "destination": "/user-guide/views-pipelines/overview"
+    },
+    {
+      "source": "/en/user-guide/views-pipelines/getting-started/view-management",
+      "destination": "/en/user-guide/views-pipelines/overview"
+    },
+    {
       "source": "/user-guide/calendar-emails/how-tos/can-i-send-emails-from-twenty",
       "destination": "/user-guide/calendar-emails/how-tos/can-i-send-emails-from-upshift"
     },
