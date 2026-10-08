@@ -175,3 +175,67 @@ export const filterRedirects = (redirects, publishedPages) => {
 
   return uniqueBySource([...twentyRedirects, ...renameRedirects]);
 };
+
+export const replaceOutsideCode = (source, pattern, replacement) =>
+  source
+    .split(CODE_SEGMENT)
+    .map((segment, index) =>
+      index % 2 === 1 ? segment : segment.replace(pattern, replacement),
+    )
+    .join('');
+
+export const applyPhraseReplacements = (sources, rules) => {
+  const outputs = new Map(sources);
+  const problems = [];
+
+  for (const { from, to, count } of rules) {
+    let found = 0;
+
+    for (const [page, source] of outputs) {
+      const parts = source.split(from);
+
+      found += parts.length - 1;
+      outputs.set(page, parts.join(to));
+    }
+
+    if (found !== count) {
+      problems.push(
+        `rules.mjs expects ${count} matches of "${from.slice(0, 60)}" in the published pages, found ${found}`,
+      );
+    }
+  }
+
+  return { outputs, problems };
+};
+
+export const rebrandPage = (source, publishedPages, brandWord) => {
+  let output = source;
+
+  for (const [pattern, replacement] of URL_REPLACEMENTS) {
+    output = output.replace(pattern, replacement);
+  }
+
+  output = output.replace(CARD_WITH_HREF, (card, target) => {
+    const resolved = resolveLink(target, publishedPages);
+
+    return resolved === null
+      ? ''
+      : card.replace(`href="${target}"`, `href="${resolved}"`);
+  });
+
+  output = output.replace(MARKDOWN_LINK, (link, text, target) => {
+    const resolved = resolveLink(target, publishedPages);
+
+    return resolved === null ? text : `[${text}](${resolved})`;
+  });
+
+  output = output.replace(HREF_ATTRIBUTE, (attribute, target) => {
+    const resolved = resolveLink(target, publishedPages);
+
+    return resolved === null ? attribute : `href="${resolved}"`;
+  });
+
+  output = output.replace(EMPTY_CARD_GROUP, '');
+
+  return replaceOutsideCode(output, brandWord, BRAND_NAME);
+};
