@@ -1,0 +1,179 @@
+import { readFileSync } from 'node:fs';
+
+const brand = JSON.parse(
+  readFileSync(new URL('../branding/brand.json', import.meta.url), 'utf8'),
+);
+
+export const BRAND_NAME = brand.name;
+export const CONTACT_EMAIL = brand.contactEmail;
+export const CONTACT_LINK = `mailto:${brand.contactEmail}`;
+export const WEBSITE_URL = brand.websiteUrl;
+export const PRIVACY_POLICY_URL = brand.privacyPolicyUrl;
+export const TERMS_URL = brand.termsUrl;
+export const DOCS_URL = 'https://docs.upshiftcloud.com';
+export const TWENTY_SOURCE_URL = 'https://github.com/twentyhq/twenty';
+
+export const BRAND_COLORS = {
+  primary: '#18181B',
+  light: '#FAFAFA',
+  dark: '#18181B',
+};
+
+export const KEPT_SECTIONS = ['getting-started', 'user-guide'];
+
+// French is the default language, so it is served at the site root and English
+// under /en/. Twenty's French translation sometimes translates the brand name
+// literally as "Vingt".
+export const LANGUAGES = [
+  {
+    language: 'fr',
+    isDefault: true,
+    twentyPrefix: 'fr/',
+    sitePrefix: '',
+    brandWord: /\b(?:Twenty|Vingt)\b/g,
+    labels: {
+      contactUs: 'Nous contacter',
+      website: 'Site web',
+      contact: 'Contact',
+      privacyPolicy: 'Politique de confidentialité',
+      terms: "Conditions d'utilisation",
+      credits: 'Crédits',
+      basedOnTwenty: 'Basé sur la documentation de Twenty (AGPL-3.0)',
+    },
+  },
+  {
+    language: 'en',
+    isDefault: false,
+    twentyPrefix: '',
+    sitePrefix: 'en/',
+    brandWord: /\bTwenty\b/g,
+    labels: {
+      contactUs: 'Contact us',
+      website: 'Website',
+      contact: 'Contact',
+      privacyPolicy: 'Privacy policy',
+      terms: 'Terms',
+      credits: 'Credits',
+      basedOnTwenty: 'Based on the Twenty documentation (AGPL-3.0)',
+    },
+  },
+];
+
+// These pages describe Twenty's cloud plans, partner network and legal
+// commitments, which Upshift does not offer.
+export const EXCLUDED_PAGE_PREFIXES = [
+  'user-guide/billing/',
+  'user-guide/legal/',
+  'user-guide/data-migration/how-tos/migrating-from-self-hosted-to-cloud',
+  'user-guide/getting-started/capabilities/implementation-services',
+  'user-guide/workflows/how-tos/need-more-help/professional-services',
+];
+
+const EXAMPLE_SERVER_HOST = 'crm.yourcompany.com';
+const CONTACT_TEAM = `Contact the ${BRAND_NAME} team`;
+const FRENCH_CONTACT_TEAM = `Contactez l'équipe ${BRAND_NAME}`;
+
+// Each phrase must appear exactly `count` times across a language's published
+// pages, so a sentence Twenty rewords fails the import instead of going out
+// unchanged.
+export const PHRASE_REPLACEMENTS = {
+  fr: [
+    {
+      from: 'Vous avez besoin de configurer le SSO pour votre organisation ? [Trouvez un partenaire Twenty certifié](https://twenty.com/partners/list?categories=SOLUTIONING\\&ref=docs-sso) spécialisé en SSO et en gestion des identités. *(Vous préférez impliquer directement Twenty ? [contact@twenty.com](mailto:contact@twenty.com))*',
+      to: `Vous avez besoin de configurer le SSO pour votre organisation ? [${FRENCH_CONTACT_TEAM}](${CONTACT_LINK}).`,
+      count: 1,
+    },
+    {
+      from: '[Trouver un partenaire certifié Vingt partenaires] (',
+      to: `[${FRENCH_CONTACT_TEAM}](`,
+      count: 3,
+    },
+    {
+      from: "Partagez votre cas d'utilisation sur nos [discussions GitHub](https://github.com/twentyhq/twenty/discussions) pour aider à prioriser cette fonctionnalité.",
+      to: `Partagez votre cas d'utilisation avec [l'équipe ${BRAND_NAME}](${CONTACT_LINK}) pour aider à prioriser cette fonctionnalité.`,
+      count: 1,
+    },
+    {
+      from: "Rejoignez nos [discussions GitHub](https://github.com/twentyhq/twenty/discussions) pour partager votre cas d'utilisation et aider à prioriser cette fonctionnalité.",
+      to: `[${FRENCH_CONTACT_TEAM}](${CONTACT_LINK}) pour partager votre cas d'utilisation et aider à prioriser cette fonctionnalité.`,
+      count: 1,
+    },
+    {
+      from: '* Suivez notre [GitHub](https://github.com/twentyhq/twenty) pour les mises à jour de développement\n',
+      to: '',
+      count: 1,
+    },
+    {
+      from: "Consultez nos [services de mise en œuvre](/fr/user-guide/getting-started/capabilities/implementation-services) pour obtenir de l'aide pour la conception de modèles de données complexes.",
+      to: `[${FRENCH_CONTACT_TEAM}](${CONTACT_LINK}) pour obtenir de l'aide pour la conception de modèles de données complexes.`,
+      count: 1,
+    },
+    {
+      from: 'Nos [partenaires d’implémentation](/fr/user-guide/getting-started/capabilities/implementation-services) peuvent vous aider à exécuter ces scripts si nécessaire.',
+      to: `[L'équipe ${BRAND_NAME}](${CONTACT_LINK}) peut vous aider à exécuter ces scripts si nécessaire.`,
+      count: 1,
+    },
+    {
+      from: 'Contactez-nous à [contact@twenty.com](mailto:contact@twenty.com) ou découvrez nos [services de mise en œuvre](/fr/user-guide/getting-started/capabilities/implementation-services).',
+      to: `Contactez-nous à [${CONTACT_EMAIL}](${CONTACT_LINK}).`,
+      count: 1,
+    },
+  ],
+  en: [
+    {
+      from: 'Need SSO configured for your organization? [Find a certified Twenty partner](https://twenty.com/partners/list?categories=SOLUTIONING&ref=docs-sso) who specializes in SSO and identity setup. *(Prefer to loop in Twenty directly? [contact@twenty.com](mailto:contact@twenty.com))*',
+      to: `Need SSO configured for your organization? [${CONTACT_TEAM}](${CONTACT_LINK}).`,
+      count: 1,
+    },
+    { from: 'Find a certified Twenty partner', to: CONTACT_TEAM, count: 3 },
+    {
+      from: 'Share your use case on our [GitHub discussions](https://github.com/twentyhq/twenty/discussions) to help prioritize this feature.',
+      to: `Share your use case with the [${BRAND_NAME} team](${CONTACT_LINK}) to help prioritize this feature.`,
+      count: 1,
+    },
+    {
+      from: 'Join our [GitHub discussions](https://github.com/twentyhq/twenty/discussions) to share your use case and help prioritize this feature.',
+      to: `[${CONTACT_TEAM}](${CONTACT_LINK}) to share your use case and help prioritize this feature.`,
+      count: 1,
+    },
+    {
+      from: '- Follow our [GitHub](https://github.com/twentyhq/twenty) for development updates\n',
+      to: '',
+      count: 1,
+    },
+    {
+      from: '- **Email credits** if you use Twenty Cloud. Each sent email uses credits. See [Credits](/user-guide/billing/capabilities/credits).\n',
+      to: '',
+      count: 1,
+    },
+    {
+      from: 'Check our [Implementation Services](/user-guide/getting-started/capabilities/implementation-services) for help with complex data model design.',
+      to: `[${CONTACT_TEAM}](${CONTACT_LINK}) for help with complex data model design.`,
+      count: 1,
+    },
+    {
+      from: 'Our [implementation partners](/user-guide/getting-started/capabilities/implementation-services) can help run these scripts if needed.',
+      to: `The [${BRAND_NAME} team](${CONTACT_LINK}) can help run these scripts if needed.`,
+      count: 1,
+    },
+    {
+      from: 'Contact us at [contact@twenty.com](mailto:contact@twenty.com) or explore our [Implementation Services](/user-guide/getting-started/capabilities/implementation-services).',
+      to: `Contact us at [${CONTACT_EMAIL}](${CONTACT_LINK}).`,
+      count: 1,
+    },
+  ],
+};
+
+// Applied in order to whole pages, code samples included, because readers
+// copy those URLs.
+export const URL_REPLACEMENTS = [
+  [/https:\/\/twenty\.com\/partners[^\s)"']*/g, CONTACT_LINK],
+  [/contact@twenty\.com/g, CONTACT_EMAIL],
+  [/https:\/\/app\.twenty\.com[^\s)"']*/g, WEBSITE_URL],
+  [/app\.twenty\.com/g, new URL(WEBSITE_URL).host],
+  [/inbound\.twenty\.com/g, 'inbound.yourcompany.com'],
+  [/twenty\.yourcompany\.com/g, EXAMPLE_SERVER_HOST],
+  [/\b[\w-]+\.twenty\.com/g, EXAMPLE_SERVER_HOST],
+  [/@twenty\.com/g, '@example.com'],
+  [/https:\/\/twenty\.com/g, 'https://example.com'],
+];
