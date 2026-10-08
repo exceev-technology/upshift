@@ -356,3 +356,66 @@ jobs:
             echo "- Also tagged \`${VERSION%.*}\`: $IS_LATEST_IN_MINOR"
             echo "- Also tagged \`${VERSION%%.*}\` and \`latest\`: $IS_LATEST"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  github-release:
+    needs: [resolve, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Create or update the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+          IS_LATEST: ${{ needs.resolve.outputs.is-latest }}
+          IS_LATEST_IN_MINOR: ${{ needs.resolve.outputs.is-latest-in-minor }}
+          TWENTY_TAG: ${{ needs.resolve.outputs.twenty-tag }}
+        run: |
+          release_tag="upshift/$VERSION"
+
+          image_tags="\`$VERSION\`"
+          if [ "$IS_LATEST_IN_MINOR" = "true" ]; then
+            image_tags="$image_tags, \`${VERSION%.*}\`"
+          fi
+          if [ "$IS_LATEST" = "true" ]; then
+            image_tags="$image_tags, \`${VERSION%%.*}\`, \`latest\`"
+          fi
+
+          {
+            echo "Upshift **$VERSION**, built on Twenty [\`$TWENTY_TAG\`](https://github.com/twentyhq/twenty/tree/$TWENTY_TAG) with the Upshift layer from $GITHUB_SHA."
+            echo
+            echo "### Docker image"
+            echo
+            echo '```bash'
+            echo "docker pull $IMAGE:$VERSION"
+            echo '```'
+            echo
+            echo "Image tags: $image_tags (amd64 and arm64)."
+            echo
+            echo "### Upgrade a deployment"
+            echo
+            echo "Set \`TAG=$VERSION\` in \`upshift/docker/.env\`, then run \`docker compose pull && docker compose up -d\`. Database migrations run automatically when the server starts."
+            echo
+            echo "### What changed"
+            echo
+            if [ "${VERSION##*.}" = "0" ]; then
+              echo "See Twenty's [${VERSION%.*} release notes](https://github.com/twentyhq/twenty/releases/tag/twenty/${VERSION%.*}.0)."
+            else
+              echo "This patch version ships fixes on top of Twenty ${VERSION%.*}.0; see its [release notes](https://github.com/twentyhq/twenty/releases/tag/twenty/${VERSION%.*}.0)."
+            fi
+          } > release-notes.md
+
+          if gh release view "$release_tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$release_tag" -f sha="$GITHUB_SHA" -F force=true > /dev/null
+            gh release edit "$release_tag" --repo "$GITHUB_REPOSITORY" \
+              --notes-file release-notes.md --latest="$IS_LATEST"
+            action=Updated
+          else
+            gh release create "$release_tag" --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" --title "Upshift $VERSION" \
+              --notes-file release-notes.md --latest="$IS_LATEST"
+            action=Created
+          fi
+
+          echo "### $action release [$release_tag]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$release_tag)" >> "$GITHUB_STEP_SUMMARY"
