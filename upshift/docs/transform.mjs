@@ -1,11 +1,15 @@
 import {
   BRAND_COLORS,
   BRAND_NAME,
+  COMPANY_NAME,
+  COMPANY_URL,
   CONTACT_LINK,
+  DEMO_URL,
   DOCS_URL,
   EXCLUDED_PAGE_PREFIXES,
   KEPT_SECTIONS,
   LANGUAGES,
+  LINKEDIN_URL,
   PRIVACY_POLICY_URL,
   TERMS_URL,
   TWENTY_SOURCE_URL,
@@ -292,36 +296,53 @@ const buildNavbar = (labels) => ({
   primary: { type: 'button', label: labels.contactUs, href: CONTACT_LINK },
 });
 
-const buildFooter = (labels) => ({
+const buildFooter = (labels, tabs) => ({
+  socials: { website: WEBSITE_URL, linkedin: LINKEDIN_URL },
   links: [
     {
-      header: BRAND_NAME,
+      header: labels.product,
       items: [
         { label: labels.website, href: WEBSITE_URL },
-        { label: labels.contact, href: CONTACT_LINK },
-        { label: labels.privacyPolicy, href: PRIVACY_POLICY_URL },
-        { label: labels.terms, href: TERMS_URL },
+        { label: labels.bookDemo, href: DEMO_URL },
       ],
     },
     {
-      header: labels.credits,
-      items: [{ label: labels.basedOnTwenty, href: TWENTY_SOURCE_URL }],
+      header: labels.documentation,
+      items: tabs.map((tab, index) => ({
+        label: labels.sections[index],
+        href: `/${firstPage(tab)}`,
+      })),
+    },
+    {
+      header: labels.company,
+      items: [
+        { label: COMPANY_NAME, href: COMPANY_URL },
+        { label: labels.contactUs, href: CONTACT_LINK },
+      ],
+    },
+    {
+      header: labels.legal,
+      items: [
+        { label: labels.privacyPolicy, href: PRIVACY_POLICY_URL },
+        { label: labels.terms, href: TERMS_URL },
+        { label: labels.basedOnTwenty, href: TWENTY_SOURCE_URL },
+      ],
     },
   ],
 });
 
 export const buildDocsConfig = (twentyDocsConfig, navigation, redirects) => {
-  const defaultLabels = LANGUAGES.find(({ isDefault }) => isDefault).labels;
+  const defaultNavigation = navigation.find(({ language }) => language.isDefault);
 
   return {
     $schema: twentyDocsConfig.$schema,
     name: `${BRAND_NAME} Documentation`,
     theme: twentyDocsConfig.theme,
-    logo: { light: '/logo.svg', dark: '/logo.svg' },
+    logo: { light: '/logo-light.svg', dark: '/logo-dark.svg' },
     favicon: '/favicon.svg',
     colors: BRAND_COLORS,
     interaction: twentyDocsConfig.interaction,
-    navbar: buildNavbar(defaultLabels),
+    navbar: buildNavbar(defaultNavigation.language.labels),
     styling: twentyDocsConfig.styling,
     seo: { metatags: { canonical: DOCS_URL } },
     navigation: {
@@ -329,11 +350,14 @@ export const buildDocsConfig = (twentyDocsConfig, navigation, redirects) => {
         language: language.language,
         ...(language.isDefault ? { default: true } : {}),
         navbar: buildNavbar(language.labels),
-        footer: buildFooter(language.labels),
+        footer: buildFooter(language.labels, tabs),
         tabs,
       })),
     },
-    footer: buildFooter(defaultLabels),
+    footer: buildFooter(
+      defaultNavigation.language.labels,
+      defaultNavigation.tabs,
+    ),
     redirects,
   };
 };

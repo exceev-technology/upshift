@@ -7,6 +7,7 @@ upshift/
   branding/
     brand.json        name, URLs and legal links used everywhere
     logo.svg          source logo (rounded), logo-square.svg, mark.svg
+    wordmark.svg      logo with the name for light backgrounds, wordmark-dark.svg for dark (docs)
     assets/           logo-email.png, logo-512.png, social-card.png (served from GitHub)
     overlay/          files copied over Twenty's: app icons, onboarding logo, email footer
   scripts/

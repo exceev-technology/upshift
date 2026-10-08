@@ -35,8 +35,26 @@ describe('collectAssets', () => {
 });
 
 describe('buildDocsConfig', () => {
-  const frenchTabs = [{ tab: 'Prise en main', groups: [] }];
-  const englishTabs = [{ tab: 'Getting Started', groups: [] }];
+  const frenchTabs = [
+    {
+      tab: 'Prise en main',
+      groups: [{ group: 'Bienvenue', pages: ['getting-started/introduction'] }],
+    },
+    {
+      tab: "Guide de l'utilisateur",
+      groups: [{ group: "Vue d'ensemble", pages: ['user-guide/introduction'] }],
+    },
+  ];
+  const englishTabs = [
+    {
+      tab: 'Getting Started',
+      groups: [{ group: 'Welcome', pages: ['en/getting-started/introduction'] }],
+    },
+    {
+      tab: 'User Guide',
+      groups: [{ group: 'Overview', pages: ['en/user-guide/introduction'] }],
+    },
+  ];
   const redirects = [{ source: '/a', destination: '/b' }];
 
   const config = buildDocsConfig(
@@ -76,21 +94,71 @@ describe('buildDocsConfig', () => {
     assert.equal(english.navbar.primary.label, 'Contact us');
   });
 
-  it('keeps Twenty only in the credits, in each language', () => {
+  it('uses the upshiftcloud.com accent and the Upshift wordmark', () => {
+    assert.deepEqual(config.colors, {
+      primary: '#1A1BB5',
+      light: '#9192F0',
+      dark: '#1A1BB5',
+    });
+    assert.deepEqual(config.logo, {
+      light: '/logo-light.svg',
+      dark: '/logo-dark.svg',
+    });
+  });
+
+  it('organizes the footer in product, documentation, company and legal columns', () => {
     const [french, english] = config.navigation.languages;
 
-    assert.deepEqual(french.footer.links.at(-1).items, [
-      {
-        label: 'Basé sur la documentation de Twenty (AGPL-3.0)',
-        href: 'https://github.com/twentyhq/twenty',
-      },
+    assert.deepEqual(
+      french.footer.links.map(({ header }) => header),
+      ['Produit', 'Documentation', 'Entreprise', 'Légal'],
+    );
+    assert.deepEqual(
+      english.footer.links.map(({ header }) => header),
+      ['Product', 'Documentation', 'Company', 'Legal'],
+    );
+    assert.deepEqual(french.footer.socials, {
+      website: 'https://upshiftcloud.com',
+      linkedin: 'https://linkedin.com/company/exceev-consulting',
+    });
+    assert.deepEqual(config.footer, french.footer);
+  });
+
+  it('links the footer to each published tab in its own language', () => {
+    const [french, english] = config.navigation.languages;
+
+    assert.deepEqual(french.footer.links[1].items, [
+      { label: 'Prise en main', href: '/getting-started/introduction' },
+      { label: 'Guide utilisateur', href: '/user-guide/introduction' },
     ]);
-    assert.deepEqual(english.footer.links.at(-1).items, [
-      {
-        label: 'Based on the Twenty documentation (AGPL-3.0)',
-        href: 'https://github.com/twentyhq/twenty',
-      },
+    assert.deepEqual(english.footer.links[1].items, [
+      { label: 'Getting started', href: '/en/getting-started/introduction' },
+      { label: 'User guide', href: '/en/user-guide/introduction' },
     ]);
+  });
+
+  it('keeps Twenty only in the legal credit, in each language', () => {
+    const [french, english] = config.navigation.languages;
+
+    assert.deepEqual(french.footer.links.at(-1).items.at(-1), {
+      label: 'Basé sur Twenty',
+      href: 'https://github.com/twentyhq/twenty',
+    });
+    assert.deepEqual(english.footer.links.at(-1).items.at(-1), {
+      label: 'Built on Twenty',
+      href: 'https://github.com/twentyhq/twenty',
+    });
+  });
+
+  it('keeps footer labels short enough for Mintlify not to truncate them', () => {
+    const labels = config.navigation.languages.flatMap(({ footer }) =>
+      footer.links.flatMap(({ items }) => items.map(({ label }) => label)),
+    );
+
+    assert.deepEqual(
+      labels.filter((label) => label.length > 20),
+      [],
+    );
   });
 });
 

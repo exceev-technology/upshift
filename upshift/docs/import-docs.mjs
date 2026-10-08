@@ -126,12 +126,17 @@ export const buildSite = (twentyDocsRoot) => {
     }
   }
 
-  const logo = readFileSync(path.join(BRANDING_ROOT, 'logo-square.svg'));
+  const readBranding = (fileName) =>
+    readFileSync(path.join(BRANDING_ROOT, fileName));
   const redirects = filterRedirects(twentyDocsConfig.redirects, publishedPages);
 
-  files.set('custom.css', adaptCustomCss(readTwenty('custom.css').toString()));
-  files.set('logo.svg', logo);
-  files.set('favicon.svg', logo);
+  files.set(
+    'custom.css',
+    `${adaptCustomCss(readTwenty('custom.css').toString())}\n${readFileSync(path.join(DOCS_ROOT, 'upshift.css'))}`,
+  );
+  files.set('logo-light.svg', readBranding('wordmark.svg'));
+  files.set('logo-dark.svg', readBranding('wordmark-dark.svg'));
+  files.set('favicon.svg', readBranding('logo.svg'));
   files.set(
     'docs.json',
     `${JSON.stringify(buildDocsConfig(twentyDocsConfig, navigation, redirects), null, 2)}\n`,

@@ -12,11 +12,17 @@ export const PRIVACY_POLICY_URL = brand.privacyPolicyUrl;
 export const TERMS_URL = brand.termsUrl;
 export const DOCS_URL = 'https://docs.upshiftcloud.com';
 export const TWENTY_SOURCE_URL = 'https://github.com/twentyhq/twenty';
+export const COMPANY_NAME = brand.companyName;
+export const COMPANY_URL = 'https://exceev.com';
+export const DEMO_URL =
+  'https://calcom.exceev.com/team/exceev-technology/upshift-intro';
+export const LINKEDIN_URL = 'https://linkedin.com/company/exceev-consulting';
 
+// The accent of upshiftcloud.com, in its light and dark themes.
 export const BRAND_COLORS = {
-  primary: '#18181B',
-  light: '#FAFAFA',
-  dark: '#18181B',
+  primary: '#1A1BB5',
+  light: '#9192F0',
+  dark: '#1A1BB5',
 };
 
 export const KEPT_SECTIONS = ['getting-started', 'user-guide'];
@@ -33,12 +39,16 @@ export const LANGUAGES = [
     brandWord: /\b(?:Twenty|Vingt)\b/g,
     labels: {
       contactUs: 'Nous contacter',
+      product: 'Produit',
       website: 'Site web',
-      contact: 'Contact',
-      privacyPolicy: 'Politique de confidentialité',
-      terms: "Conditions d'utilisation",
-      credits: 'Crédits',
-      basedOnTwenty: 'Basé sur la documentation de Twenty (AGPL-3.0)',
+      bookDemo: 'Réserver une démo',
+      documentation: 'Documentation',
+      sections: ['Prise en main', 'Guide utilisateur'],
+      company: 'Entreprise',
+      legal: 'Légal',
+      privacyPolicy: 'Confidentialité',
+      terms: "Conditions d'usage",
+      basedOnTwenty: 'Basé sur Twenty',
     },
   },
   {
@@ -49,12 +59,16 @@ export const LANGUAGES = [
     brandWord: /\bTwenty\b/g,
     labels: {
       contactUs: 'Contact us',
+      product: 'Product',
       website: 'Website',
-      contact: 'Contact',
-      privacyPolicy: 'Privacy policy',
+      bookDemo: 'Book a demo',
+      documentation: 'Documentation',
+      sections: ['Getting started', 'User guide'],
+      company: 'Company',
+      legal: 'Legal',
+      privacyPolicy: 'Privacy',
       terms: 'Terms',
-      credits: 'Credits',
-      basedOnTwenty: 'Based on the Twenty documentation (AGPL-3.0)',
+      basedOnTwenty: 'Built on Twenty',
     },
   },
 ];

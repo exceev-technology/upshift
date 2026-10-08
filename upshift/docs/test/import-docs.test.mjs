@@ -64,9 +64,26 @@ describe('buildSite on packages/twenty-docs', () => {
   });
 
   it('ships the files Mintlify needs at the site root', () => {
-    for (const filePath of ['docs.json', 'custom.css', 'logo.svg', 'favicon.svg']) {
+    for (const filePath of [
+      'docs.json',
+      'custom.css',
+      'logo-light.svg',
+      'logo-dark.svg',
+      'favicon.svg',
+    ]) {
       assert.ok(files.has(filePath), filePath);
     }
+  });
+
+  it('uses the rounded Upshift icon as favicon, like upshiftcloud.com', () => {
+    assert.match(files.get('favicon.svg').toString(), /rx="16"/);
+  });
+
+  it('recolors the halftone illustrations to the Upshift accent in both themes', () => {
+    const css = files.get('custom.css').toString();
+
+    assert.match(css, /img\[src\*='\/images\/user-guide\/halftone\/'\] \{\n {2}filter:/);
+    assert.match(css, /\.dark, \[data-theme='dark'\]\) img\[src\*='\/images\/user-guide\/halftone\/'\]/);
   });
 });
 

@@ -3,14 +3,14 @@
   "name": "Upshift Documentation",
   "theme": "almond",
   "logo": {
-    "light": "/logo.svg",
-    "dark": "/logo.svg"
+    "light": "/logo-light.svg",
+    "dark": "/logo-dark.svg"
   },
   "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#18181B",
-    "light": "#FAFAFA",
-    "dark": "#18181B"
+    "primary": "#1A1BB5",
+    "light": "#9192F0",
+    "dark": "#1A1BB5"
   },
   "interaction": {
     "drilldown": false
@@ -43,33 +43,63 @@
           }
         },
         "footer": {
+          "socials": {
+            "website": "https://upshiftcloud.com",
+            "linkedin": "https://linkedin.com/company/exceev-consulting"
+          },
           "links": [
             {
-              "header": "Upshift",
+              "header": "Produit",
               "items": [
                 {
                   "label": "Site web",
                   "href": "https://upshiftcloud.com"
                 },
                 {
-                  "label": "Contact",
-                  "href": "mailto:contact@exceev.com"
-                },
-                {
-                  "label": "Politique de confidentialité",
-                  "href": "https://exceev.com/privacy#policy"
-                },
-                {
-                  "label": "Conditions d'utilisation",
-                  "href": "https://exceev.com/privacy#terms"
+                  "label": "Réserver une démo",
+                  "href": "https://calcom.exceev.com/team/exceev-technology/upshift-intro"
                 }
               ]
             },
             {
-              "header": "Crédits",
+              "header": "Documentation",
               "items": [
                 {
-                  "label": "Basé sur la documentation de Twenty (AGPL-3.0)",
+                  "label": "Prise en main",
+                  "href": "/getting-started/introduction"
+                },
+                {
+                  "label": "Guide utilisateur",
+                  "href": "/user-guide/introduction"
+                }
+              ]
+            },
+            {
+              "header": "Entreprise",
+              "items": [
+                {
+                  "label": "Exceev Technology",
+                  "href": "https://exceev.com"
+                },
+                {
+                  "label": "Nous contacter",
+                  "href": "mailto:contact@exceev.com"
+                }
+              ]
+            },
+            {
+              "header": "Légal",
+              "items": [
+                {
+                  "label": "Confidentialité",
+                  "href": "https://exceev.com/privacy#policy"
+                },
+                {
+                  "label": "Conditions d'usage",
+                  "href": "https://exceev.com/privacy#terms"
+                },
+                {
+                  "label": "Basé sur Twenty",
                   "href": "https://github.com/twentyhq/twenty"
                 }
               ]
@@ -394,33 +424,63 @@
           }
         },
         "footer": {
+          "socials": {
+            "website": "https://upshiftcloud.com",
+            "linkedin": "https://linkedin.com/company/exceev-consulting"
+          },
           "links": [
             {
-              "header": "Upshift",
+              "header": "Product",
               "items": [
                 {
                   "label": "Website",
                   "href": "https://upshiftcloud.com"
                 },
                 {
-                  "label": "Contact",
-                  "href": "mailto:contact@exceev.com"
+                  "label": "Book a demo",
+                  "href": "https://calcom.exceev.com/team/exceev-technology/upshift-intro"
+                }
+              ]
+            },
+            {
+              "header": "Documentation",
+              "items": [
+                {
+                  "label": "Getting started",
+                  "href": "/en/getting-started/introduction"
                 },
                 {
-                  "label": "Privacy policy",
+                  "label": "User guide",
+                  "href": "/en/user-guide/introduction"
+                }
+              ]
+            },
+            {
+              "header": "Company",
+              "items": [
+                {
+                  "label": "Exceev Technology",
+                  "href": "https://exceev.com"
+                },
+                {
+                  "label": "Contact us",
+                  "href": "mailto:contact@exceev.com"
+                }
+              ]
+            },
+            {
+              "header": "Legal",
+              "items": [
+                {
+                  "label": "Privacy",
                   "href": "https://exceev.com/privacy#policy"
                 },
                 {
                   "label": "Terms",
                   "href": "https://exceev.com/privacy#terms"
-                }
-              ]
-            },
-            {
-              "header": "Credits",
-              "items": [
+                },
                 {
-                  "label": "Based on the Twenty documentation (AGPL-3.0)",
+                  "label": "Built on Twenty",
                   "href": "https://github.com/twentyhq/twenty"
                 }
               ]
@@ -758,33 +818,63 @@
     ]
   },
   "footer": {
+    "socials": {
+      "website": "https://upshiftcloud.com",
+      "linkedin": "https://linkedin.com/company/exceev-consulting"
+    },
     "links": [
       {
-        "header": "Upshift",
+        "header": "Produit",
         "items": [
           {
             "label": "Site web",
             "href": "https://upshiftcloud.com"
           },
           {
-            "label": "Contact",
-            "href": "mailto:contact@exceev.com"
-          },
-          {
-            "label": "Politique de confidentialité",
-            "href": "https://exceev.com/privacy#policy"
-          },
-          {
-            "label": "Conditions d'utilisation",
-            "href": "https://exceev.com/privacy#terms"
+            "label": "Réserver une démo",
+            "href": "https://calcom.exceev.com/team/exceev-technology/upshift-intro"
           }
         ]
       },
       {
-        "header": "Crédits",
+        "header": "Documentation",
         "items": [
           {
-            "label": "Basé sur la documentation de Twenty (AGPL-3.0)",
+            "label": "Prise en main",
+            "href": "/getting-started/introduction"
+          },
+          {
+            "label": "Guide utilisateur",
+            "href": "/user-guide/introduction"
+          }
+        ]
+      },
+      {
+        "header": "Entreprise",
+        "items": [
+          {
+            "label": "Exceev Technology",
+            "href": "https://exceev.com"
+          },
+          {
+            "label": "Nous contacter",
+            "href": "mailto:contact@exceev.com"
+          }
+        ]
+      },
+      {
+        "header": "Légal",
+        "items": [
+          {
+            "label": "Confidentialité",
+            "href": "https://exceev.com/privacy#policy"
+          },
+          {
+            "label": "Conditions d'usage",
+            "href": "https://exceev.com/privacy#terms"
+          },
+          {
+            "label": "Basé sur Twenty",
             "href": "https://github.com/twentyhq/twenty"
           }
         ]
