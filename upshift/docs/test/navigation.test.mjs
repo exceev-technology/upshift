@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 
 import { LANGUAGES } from '../rules.mjs';
 import {
+  buildLocaleRedirects,
   filterNavigation,
   filterRedirects,
   findUnmatchedExclusions,
@@ -217,6 +218,20 @@ describe('findUnmatchedExclusions', () => {
         'rules.mjs excludes user-guide/legal/, but no Twenty page matches it any more; check where those pages moved',
       ],
     );
+  });
+});
+
+describe('buildLocaleRedirects', () => {
+  it('maps the language prefixes the app adds to the pages this site publishes', () => {
+    assert.deepEqual(buildLocaleRedirects(['fr', 'ar', 'de'], 'en'), [
+      { source: '/fr/:slug*', destination: '/:slug*' },
+      { source: '/ar/:slug*', destination: '/en/:slug*' },
+      { source: '/de/:slug*', destination: '/en/:slug*' },
+    ]);
+  });
+
+  it('adds nothing for the language the app serves without a prefix', () => {
+    assert.deepEqual(buildLocaleRedirects(['en'], 'en'), []);
   });
 });
 

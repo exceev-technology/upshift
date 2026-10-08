@@ -8,8 +8,10 @@ import {
   DEMO_URL,
   DOCS_URL,
   EXCLUDED_PAGE_PREFIXES,
+  FORBIDDEN_IN_PAGES,
   KEPT_SECTIONS,
   LANGUAGES,
+  LOCALE_FALLBACK,
   PRIVACY_POLICY_URL,
   SOCIALS,
   TERMS_URL,
@@ -27,7 +29,6 @@ const EMPTY_CARD_GROUP = /<CardGroup\b[^>]*>\s*<\/CardGroup>\n?/g;
 const HREF_ATTRIBUTE = /\bhref="(\/[^"]*)"/g;
 const IMAGE_REFERENCE = /\/images\/[^\s)"'`]+/g;
 const SNIPPET_IMPORT = /from\s+['"]\/(snippets\/[^'"]+)['"]/g;
-const FORBIDDEN_IN_PAGES = ['twenty.com', 'twentyhq'];
 const CRM_WORD = /\bCRMs?\b/;
 
 export const renamePage = (page) => page.replaceAll('twenty', 'upshift');
@@ -171,6 +172,20 @@ export const findUnmatchedExclusions = (
       (prefix) =>
         `rules.mjs excludes ${prefix}, but no Twenty page matches it any more; check where those pages moved`,
     );
+
+export const buildLocaleRedirects = (appLanguages, appDefaultLanguage) =>
+  appLanguages
+    .filter((code) => code !== appDefaultLanguage)
+    .map((code) => {
+      const language =
+        LANGUAGES.find(({ language: published }) => published === code) ??
+        LANGUAGES.find(({ language: published }) => published === LOCALE_FALLBACK);
+
+      return {
+        source: `/${code}/:slug*`,
+        destination: `/${language.sitePrefix}:slug*`,
+      };
+    });
 
 const uniqueBySource = (redirects) => [
   ...new Map(redirects.map((redirect) => [redirect.source, redirect])).values(),

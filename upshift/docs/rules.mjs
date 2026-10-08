@@ -79,14 +79,29 @@ export const LANGUAGES = [
 ];
 
 // These pages describe Twenty's cloud plans, partner network and legal
-// commitments, which Upshift does not offer.
+// commitments, which Upshift does not offer, or the Community settings page
+// that upshift/scripts/apply-branding.mjs removes from the app.
 export const EXCLUDED_PAGE_PREFIXES = [
   'user-guide/billing/',
   'user-guide/legal/',
   'user-guide/data-migration/how-tos/migrating-from-self-hosted-to-cloud',
   'user-guide/getting-started/capabilities/implementation-services',
   'user-guide/workflows/how-tos/need-more-help/professional-services',
+  'user-guide/settings/capabilities/community-settings',
 ];
+
+// Twenty's community channels, and settings the Upshift app no longer has.
+export const FORBIDDEN_IN_PAGES = [
+  'twenty.com',
+  'twentyhq',
+  'discord.gg',
+  'Settings → Community',
+  'Paramètres → Communauté',
+];
+
+// The app adds these language prefixes to its documentation links; languages
+// this site does not publish go to the English pages.
+export const LOCALE_FALLBACK = 'en';
 
 const EXAMPLE_SERVER_HOST = 'crm.yourcompany.com';
 const CONTACT_TEAM = `Contact the ${BRAND_NAME} team`;
@@ -100,6 +115,36 @@ export const PHRASE_REPLACEMENTS = {
     {
       from: 'Twenty est une plateforme CRM complète. Voici ce que vous pouvez créer avec Twenty.',
       to: `${BRAND_NAME} réunit les processus commerciaux et opérationnels de votre entreprise sur une seule plateforme. Voici ce que vous pouvez y construire.`,
+      count: 1,
+    },
+    {
+      from: "\n\n<Accordion title=\"Comment activer les fonctionnalités en Accès anticipé ?\">\n1. Allez dans **Paramètres → Communauté**\n2. Faites défiler vers le bas jusqu'à la section **Fonctionnalités**\n3. Repérez la fonctionnalité souhaitée\n4. Activez-la\n5. La fonctionnalité devient disponible immédiatement\n</Accordion>",
+      to: '',
+      count: 1,
+    },
+    {
+      from: "<Warning>\n**Fonctionnalité bêta**: Les relations de jonction doivent être activées dans **Paramètres → Communauté → Fonctionnalités** avant l'utilisation.\n</Warning>\n\n",
+      to: '',
+      count: 1,
+    },
+    {
+      from: '<Warning>\n**Fonctionnalité bêta** : Les relations de jonction sont actuellement en bêta. Activez-les dans **Paramètres → Communauté → Fonctionnalités** avant de suivre ce guide.\n</Warning>\n\n',
+      to: '',
+      count: 1,
+    },
+    {
+      from: '1. **Activer les relations de jonction dans les fonctionnalités bêta** : Allez dans **Paramètres → Communauté → Fonctionnalités** et activez **Relations de jonction**\n2. **Activer le mode avancé**',
+      to: '1. **Activer le mode avancé**',
+      count: 1,
+    },
+    {
+      from: '* Rejoignez notre [Discord](https://discord.gg/UfGNZJfAG6) pour partager vos retours et vos demandes de fonctionnalités',
+      to: `* [${FRENCH_CONTACT_TEAM}](${CONTACT_LINK}) pour partager vos retours et vos demandes de fonctionnalités`,
+      count: 1,
+    },
+    {
+      from: '  * Le nœud Delay consomme **1 crédit** lors de son exécution',
+      to: '  * Le nœud Delay consomme **0,0001 crédit (0,0001 $)** lors de son exécution, comme une étape de workflow standard',
       count: 1,
     },
     {
@@ -147,6 +192,16 @@ export const PHRASE_REPLACEMENTS = {
     {
       from: "Twenty is a full-featured CRM platform. Here's what you can build with it.",
       to: `${BRAND_NAME} brings your company's sales and operations processes together on one platform. Here's what you can build with it.`,
+      count: 1,
+    },
+    {
+      from: '\n\n<Accordion title="How do I enable Early Access features?">\n1. Go to **Settings → Community**\n2. Scroll down to the **Features** section\n3. Find the feature you want\n4. Toggle it on\n5. The feature becomes available immediately\n</Accordion>',
+      to: '',
+      count: 1,
+    },
+    {
+      from: '- Join our [Discord](https://discord.gg/UfGNZJfAG6) to share feedback and feature requests',
+      to: `- [${CONTACT_TEAM}](${CONTACT_LINK}) to share feedback and feature requests`,
       count: 1,
     },
     {

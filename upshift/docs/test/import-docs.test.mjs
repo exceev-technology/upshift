@@ -77,6 +77,40 @@ describe('buildSite on packages/twenty-docs', () => {
     );
   });
 
+  it('drops the Community settings the Upshift app removes, and the steps that point to it', () => {
+    const unwanted = [...files.keys()].filter((filePath) =>
+      filePath.endsWith('settings/capabilities/community-settings.mdx'),
+    );
+
+    assert.deepEqual(unwanted, []);
+    assert.doesNotMatch(
+      [...files.values()].map(String).join('\n'),
+      /Paramètres → Communauté|Settings → Community|discord\.gg/,
+    );
+  });
+
+  it('sends links built by the app for /fr/ and other languages to published pages', () => {
+    assert.ok(
+      docsConfig.redirects.some(
+        ({ source, destination }) =>
+          source === '/fr/:slug*' && destination === '/:slug*',
+      ),
+    );
+    assert.ok(
+      docsConfig.redirects.some(
+        ({ source, destination }) =>
+          source === '/de/:slug*' && destination === '/en/:slug*',
+      ),
+    );
+  });
+
+  it('gives the Delay action the same credit cost in French and English', () => {
+    const french = files.get('user-guide/workflows/capabilities/workflow-credits.mdx');
+
+    assert.match(french, /Le nœud Delay consomme \*\*0,0001 crédit/);
+    assert.doesNotMatch(french, /\*\*1 crédit\*\*/);
+  });
+
   it('ships the files Mintlify needs at the site root', () => {
     for (const filePath of [
       'docs.json',

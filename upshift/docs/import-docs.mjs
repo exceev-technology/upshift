@@ -21,6 +21,7 @@ import {
   applyPhraseReplacements,
   auditSite,
   buildDocsConfig,
+  buildLocaleRedirects,
   collectAssets,
   filterNavigation,
   filterRedirects,
@@ -37,6 +38,10 @@ const LAYER_REPOSITORY_ROOT = path.resolve(DOCS_ROOT, '..', '..');
 const BRANDING_ROOT = path.join(LAYER_REPOSITORY_ROOT, 'upshift/branding');
 const SITE_ROOT = path.join(DOCS_ROOT, 'site');
 const OVERRIDES_ROOT = path.join(DOCS_ROOT, 'overrides');
+const APP_DOCUMENTATION_LANGUAGES =
+  'packages/twenty-shared/src/constants/DocumentationSupportedLanguages.ts';
+const APP_DOCUMENTATION_DEFAULT_LANGUAGE =
+  'packages/twenty-shared/src/constants/DocumentationDefaultLanguage.ts';
 
 export const TWENTY_DOCS_ROOT = path.join(
   LAYER_REPOSITORY_ROOT,
@@ -152,7 +157,24 @@ export const buildSite = (twentyDocsRoot) => {
 
   const readBranding = (fileName) =>
     readFileSync(path.join(BRANDING_ROOT, fileName));
-  const redirects = filterRedirects(twentyDocsConfig.redirects, publishedPages);
+  const readApp = (relativePath) =>
+    readFileSync(path.join(LAYER_REPOSITORY_ROOT, relativePath), 'utf8');
+  const appLanguages = [
+    ...readApp(APP_DOCUMENTATION_LANGUAGES).matchAll(/'([a-z]{2})'/g),
+  ].map(([, code]) => code);
+  const [, appDefaultLanguage] =
+    readApp(APP_DOCUMENTATION_DEFAULT_LANGUAGE).match(/'([a-z]{2})'/) ?? [];
+
+  if (appLanguages.length === 0 || appDefaultLanguage === undefined) {
+    problems.push(
+      `cannot read the app's documentation languages from ${APP_DOCUMENTATION_LANGUAGES}`,
+    );
+  }
+
+  const redirects = [
+    ...filterRedirects(twentyDocsConfig.redirects, publishedPages),
+    ...buildLocaleRedirects(appLanguages, appDefaultLanguage),
+  ];
 
   files.set(
     'custom.css',

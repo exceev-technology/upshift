@@ -400,8 +400,7 @@
                       "user-guide/settings/capabilities/member-management",
                       "user-guide/settings/capabilities/profile-settings",
                       "user-guide/settings/capabilities/experience-settings",
-                      "user-guide/settings/capabilities/domains-settings",
-                      "user-guide/settings/capabilities/community-settings"
+                      "user-guide/settings/capabilities/domains-settings"
                     ]
                   },
                   {
@@ -803,8 +802,7 @@
                       "en/user-guide/settings/capabilities/member-management",
                       "en/user-guide/settings/capabilities/profile-settings",
                       "en/user-guide/settings/capabilities/experience-settings",
-                      "en/user-guide/settings/capabilities/domains-settings",
-                      "en/user-guide/settings/capabilities/community-settings"
+                      "en/user-guide/settings/capabilities/domains-settings"
                     ]
                   },
                   {
@@ -1441,14 +1439,6 @@
       "destination": "/en/user-guide/settings/capabilities/domains-settings"
     },
     {
-      "source": "/user-guide/settings/releases-settings",
-      "destination": "/user-guide/settings/capabilities/community-settings"
-    },
-    {
-      "source": "/en/user-guide/settings/releases-settings",
-      "destination": "/en/user-guide/settings/capabilities/community-settings"
-    },
-    {
       "source": "/user-guide/settings/settings-faq",
       "destination": "/user-guide/settings/how-tos/settings-faq"
     },
@@ -1559,6 +1549,58 @@
     {
       "source": "/en/user-guide/workflows/how-tos/connect-to-other-tools/generate-pdf-from-twenty",
       "destination": "/en/user-guide/workflows/how-tos/connect-to-other-tools/generate-pdf-from-upshift"
+    },
+    {
+      "source": "/fr/:slug*",
+      "destination": "/:slug*"
+    },
+    {
+      "source": "/ar/:slug*",
+      "destination": "/en/:slug*"
+    },
+    {
+      "source": "/cs/:slug*",
+      "destination": "/en/:slug*"
+    },
+    {
+      "source": "/de/:slug*",
+      "destination": "/en/:slug*"
+    },
+    {
+      "source": "/es/:slug*",
+      "destination": "/en/:slug*"
+    },
+    {
+      "source": "/it/:slug*",
+      "destination": "/en/:slug*"
+    },
+    {
+      "source": "/ja/:slug*",
+      "destination": "/en/:slug*"
+    },
+    {
+      "source": "/ko/:slug*",
+      "destination": "/en/:slug*"
+    },
+    {
+      "source": "/pt/:slug*",
+      "destination": "/en/:slug*"
+    },
+    {
+      "source": "/ro/:slug*",
+      "destination": "/en/:slug*"
+    },
+    {
+      "source": "/ru/:slug*",
+      "destination": "/en/:slug*"
+    },
+    {
+      "source": "/tr/:slug*",
+      "destination": "/en/:slug*"
+    },
+    {
+      "source": "/zh/:slug*",
+      "destination": "/en/:slug*"
     }
   ]
 }
