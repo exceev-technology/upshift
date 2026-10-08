@@ -1,50 +1,49 @@
-name: upshift
-
-x-upshift-environment: &upshift-environment
-  PG_DATABASE_URL: postgres://${PG_DATABASE_USER:-postgres}:${PG_DATABASE_PASSWORD:-postgres}@${PG_DATABASE_HOST:-db}:${PG_DATABASE_PORT:-5432}/${PG_DATABASE_NAME:-default}
-  SERVER_URL: ${SERVER_URL}
-  REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-
-  STORAGE_TYPE: ${STORAGE_TYPE:-local}
-  STORAGE_S3_REGION: ${STORAGE_S3_REGION:-}
-  STORAGE_S3_NAME: ${STORAGE_S3_NAME:-}
-  STORAGE_S3_ENDPOINT: ${STORAGE_S3_ENDPOINT:-}
-
-  ENCRYPTION_KEY: ${ENCRYPTION_KEY}
-  FALLBACK_ENCRYPTION_KEY: ${FALLBACK_ENCRYPTION_KEY:-}
-  APP_SECRET: ${APP_SECRET:-}
-
-  EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-Upshift}
-  # Uncomment once SMTP is configured in .env; empty values fail the server's config validation
-  # EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS}
-  # EMAIL_DRIVER: ${EMAIL_DRIVER:-smtp}
-  # EMAIL_SMTP_HOST: ${EMAIL_SMTP_HOST}
-  # EMAIL_SMTP_PORT: ${EMAIL_SMTP_PORT:-465}
-  # EMAIL_SMTP_USER: ${EMAIL_SMTP_USER}
-  # EMAIL_SMTP_PASSWORD: ${EMAIL_SMTP_PASSWORD}
-
-  TELEMETRY_ENABLED: "false"
-  ALLOW_REQUESTS_TO_TWENTY_ICONS: "false"
-
 services:
-  server:
-    image: ghcr.io/exceev-technology/upshift:${TAG:-latest}
-    volumes:
-      - server-local-data:/app/packages/twenty-server/.local-storage
-    ports:
-      - "${UPSHIFT_PORT:-3000}:3000"
+  upshift:
+    image: 'ghcr.io/exceev-technology/upshift:${TAG:-latest}'
+    labels:
+      # Coolify only fills ${...} in labels once "Escape special characters in labels?" is unticked on the resource
+      - 'traefik.http.middlewares.upshift-cors.headers.accessControlAllowOriginListRegex=${TRAEFIK_CORS_ORIGIN_REGEX:?}'
+      - traefik.http.middlewares.upshift-cors.headers.accessControlAllowCredentials=true
+      - 'traefik.http.middlewares.upshift-cors.headers.accessControlAllowMethods=GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS'
+      - 'traefik.http.middlewares.upshift-cors.headers.accessControlAllowHeaders=content-type,authorization,x-app-version,x-locale,x-schema-version,sentry-trace,baggage,apollographql-client-name,apollographql-client-version,apollo-require-preflight,x-requested-with,accept'
+      - traefik.http.middlewares.upshift-cors.headers.accessControlMaxAge=7200
+      - traefik.http.middlewares.upshift-cors.headers.addVaryHeader=true
+      - coolify.traefik.middlewares=upshift-cors
     environment:
-      <<: *upshift-environment
-      NODE_PORT: 3000
-      DISABLE_DB_MIGRATIONS: ${DISABLE_DB_MIGRATIONS:-false}
-      DISABLE_CRON_JOBS_REGISTRATION: ${DISABLE_CRON_JOBS_REGISTRATION:-false}
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - SERVICE_URL_UPSHIFT_3000
+      - 'SERVER_URL=${SERVER_URL:?}'
+      - 'FRONTEND_URL=${FRONTEND_URL:-${SERVER_URL}}'
+      - 'AUTH_COOKIE_ALLOWED_ORIGINS=${AUTH_COOKIE_ALLOWED_ORIGINS:-}'
+      - 'IS_MULTIWORKSPACE_ENABLED=${IS_MULTIWORKSPACE_ENABLED:-false}'
+      - 'DEFAULT_SUBDOMAIN=${DEFAULT_SUBDOMAIN:-app}'
+      - 'APP_SECRET=${SERVICE_BASE64_32_SECRET}'
+      - 'ENCRYPTION_KEY=${ENCRYPTION_KEY:-}'
+      - 'FALLBACK_ENCRYPTION_KEY=${FALLBACK_ENCRYPTION_KEY:-}'
+      - 'PG_DATABASE_URL=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@${PG_DATABASE_HOST:?}:${PG_DATABASE_PORT:-5432}/${POSTGRES_DB:-upshift}'
+      - 'REDIS_URL=redis://${REDIS_USER:-default}:${REDIS_PASSWORD:-}@${REDIS_HOST:?}:${REDIS_PORT:-6379}/0'
+      - 'PASSWORD_RESET_TOKEN_EXPIRES_IN=${PASSWORD_RESET_TOKEN_EXPIRES_IN:-5m}'
+      - 'STORAGE_TYPE=${STORAGE_TYPE:-local}'
+      - 'STORAGE_S3_REGION=${STORAGE_S3_REGION:-}'
+      - 'STORAGE_S3_NAME=${STORAGE_S3_NAME:-}'
+      - 'STORAGE_S3_ENDPOINT=${STORAGE_S3_ENDPOINT:-}'
+      - 'STORAGE_S3_ACCESS_KEY_ID=${STORAGE_S3_ACCESS_KEY_ID:-}'
+      - 'STORAGE_S3_SECRET_ACCESS_KEY=${STORAGE_S3_SECRET_ACCESS_KEY:-}'
+      - 'EMAIL_DRIVER=${EMAIL_DRIVER:-logger}'
+      - 'EMAIL_FROM_ADDRESS=${EMAIL_FROM_ADDRESS:-}'
+      - 'EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-Upshift}'
+      - 'EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST:-}'
+      - 'EMAIL_SMTP_PORT=${EMAIL_SMTP_PORT:-465}'
+      - 'EMAIL_SMTP_USER=${EMAIL_SMTP_USER:-}'
+      - 'EMAIL_SMTP_PASSWORD=${EMAIL_SMTP_PASSWORD:-}'
+      - 'DISABLE_DB_MIGRATIONS=${DISABLE_DB_MIGRATIONS:-false}'
+      - 'DISABLE_CRON_JOBS_REGISTRATION=${DISABLE_CRON_JOBS_REGISTRATION:-false}'
+      - TELEMETRY_ENABLED=false
+      - ALLOW_REQUESTS_TO_TWENTY_ICONS=false
+    volumes:
+      - 'server-local-data:/app/packages/twenty-server/.local-storage'
     healthcheck:
-      test: curl --fail http://localhost:3000/healthz
+      test: ['CMD', 'curl', '--fail', 'http://127.0.0.1:3000/healthz']
       interval: 5s
       timeout: 5s
       retries: 20
@@ -52,46 +51,49 @@ services:
     restart: always
 
   worker:
-    image: ghcr.io/exceev-technology/upshift:${TAG:-latest}
-    volumes:
-      - server-local-data:/app/packages/twenty-server/.local-storage
-    command: ["yarn", "worker:prod"]
+    image: 'ghcr.io/exceev-technology/upshift:${TAG:-latest}'
+    command: ['yarn', 'worker:prod']
     environment:
-      <<: *upshift-environment
-      DISABLE_DB_MIGRATIONS: "true"
-      DISABLE_CRON_JOBS_REGISTRATION: "true"
+      - 'SERVER_URL=${SERVER_URL:?}'
+      - 'FRONTEND_URL=${FRONTEND_URL:-${SERVER_URL}}'
+      - 'AUTH_COOKIE_ALLOWED_ORIGINS=${AUTH_COOKIE_ALLOWED_ORIGINS:-}'
+      - 'IS_MULTIWORKSPACE_ENABLED=${IS_MULTIWORKSPACE_ENABLED:-false}'
+      - 'DEFAULT_SUBDOMAIN=${DEFAULT_SUBDOMAIN:-app}'
+      - 'APP_SECRET=${SERVICE_BASE64_32_SECRET}'
+      - 'ENCRYPTION_KEY=${ENCRYPTION_KEY:-}'
+      - 'FALLBACK_ENCRYPTION_KEY=${FALLBACK_ENCRYPTION_KEY:-}'
+      - 'PG_DATABASE_URL=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@${PG_DATABASE_HOST:?}:${PG_DATABASE_PORT:-5432}/${POSTGRES_DB:-upshift}'
+      - 'REDIS_URL=redis://${REDIS_USER:-default}:${REDIS_PASSWORD:-}@${REDIS_HOST:?}:${REDIS_PORT:-6379}/0'
+      - 'PASSWORD_RESET_TOKEN_EXPIRES_IN=${PASSWORD_RESET_TOKEN_EXPIRES_IN:-5m}'
+      - 'STORAGE_TYPE=${STORAGE_TYPE:-local}'
+      - 'STORAGE_S3_REGION=${STORAGE_S3_REGION:-}'
+      - 'STORAGE_S3_NAME=${STORAGE_S3_NAME:-}'
+      - 'STORAGE_S3_ENDPOINT=${STORAGE_S3_ENDPOINT:-}'
+      - 'STORAGE_S3_ACCESS_KEY_ID=${STORAGE_S3_ACCESS_KEY_ID:-}'
+      - 'STORAGE_S3_SECRET_ACCESS_KEY=${STORAGE_S3_SECRET_ACCESS_KEY:-}'
+      - 'EMAIL_DRIVER=${EMAIL_DRIVER:-logger}'
+      - 'EMAIL_FROM_ADDRESS=${EMAIL_FROM_ADDRESS:-}'
+      - 'EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-Upshift}'
+      - 'EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST:-}'
+      - 'EMAIL_SMTP_PORT=${EMAIL_SMTP_PORT:-465}'
+      - 'EMAIL_SMTP_USER=${EMAIL_SMTP_USER:-}'
+      - 'EMAIL_SMTP_PASSWORD=${EMAIL_SMTP_PASSWORD:-}'
+      - DISABLE_DB_MIGRATIONS=true
+      - DISABLE_CRON_JOBS_REGISTRATION=true
+      - TELEMETRY_ENABLED=false
+      - ALLOW_REQUESTS_TO_TWENTY_ICONS=false
+    volumes:
+      - 'server-local-data:/app/packages/twenty-server/.local-storage'
     depends_on:
-      db:
+      upshift:
         condition: service_healthy
-      server:
-        condition: service_healthy
-    restart: always
-
-  db:
-    image: postgres:16
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: ${PG_DATABASE_NAME:-default}
-      POSTGRES_PASSWORD: ${PG_DATABASE_PASSWORD:-postgres}
-      POSTGRES_USER: ${PG_DATABASE_USER:-postgres}
     healthcheck:
-      test: pg_isready -U ${PG_DATABASE_USER:-postgres} -h localhost -d postgres
-      interval: 5s
+      test: ['CMD-SHELL', "pgrep -f 'worker:prod' > /dev/null || exit 1"]
+      interval: 10s
       timeout: 5s
-      retries: 10
-    restart: always
-
-  redis:
-    image: redis
-    command: ["--maxmemory-policy", "noeviction"]
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      retries: 5
+      start_period: 30s
     restart: always
 
 volumes:
-  db-data:
   server-local-data:

@@ -252,10 +252,22 @@ jobs:
         env:
           SINK_LOG: ${{ runner.temp }}/twenty-hosts.log
           COMPOSE_PROJECT_NAME: upshift-smoke
+          COMPOSE_FILE: docker-compose.yml:docker-compose.local.yml:smoke.override.yml
         run: |
           sudo "$(command -v node)" ../scripts/smoke-host-sink.mjs "$SINK_LOG" > "$RUNNER_TEMP/sink.out" 2>&1 &
 
-          printf 'TAG=smoke\nSERVER_URL=http://localhost:3000\nENCRYPTION_KEY=%s\n' "$(openssl rand -base64 32)" > smoke.env
+          # Nothing reads the Traefik labels here, but the compose file requires the CORS regex
+          cat > smoke.env <<EOF
+          TAG=smoke
+          SERVER_URL=http://localhost:3000
+          ENCRYPTION_KEY=$(openssl rand -base64 32)
+          SERVICE_BASE64_32_SECRET=
+          PG_DATABASE_HOST=db
+          SERVICE_USER_POSTGRES=postgres
+          SERVICE_PASSWORD_POSTGRES=$(openssl rand -hex 16)
+          REDIS_HOST=redis
+          TRAEFIK_CORS_ORIGIN_REGEX=^http://localhost:3000\$
+          EOF
 
           # Telemetry and icons are switched on here on purpose: the code-level removal must hold anyway.
           # Twenty hosts resolve to the sink on the runner, and the outbound guard is opened so attempts reach it.
@@ -276,7 +288,7 @@ jobs:
             - docs.twenty.com:host-gateway
             - twentyhq.github.io:host-gateway
           services:
-            server:
+            upshift:
               environment: *smoke-environment
               extra_hosts: *twenty-hosts
             worker:
@@ -284,10 +296,10 @@ jobs:
               extra_hosts: *twenty-hosts
           EOF
 
-          docker compose -f docker-compose.yml -f smoke.override.yml --env-file smoke.env up -d
+          docker compose --env-file smoke.env up -d
 
-          docker compose -f docker-compose.yml -f smoke.override.yml --env-file smoke.env \
-            exec -T server node -e "fetch('https://twenty-telemetry.com/smoke-control').catch(() => {})"
+          docker compose --env-file smoke.env \
+            exec -T upshift node -e "fetch('https://twenty-telemetry.com/smoke-control').catch(() => {})"
           sleep 6
           if ! grep -q "twenty-telemetry.com" "$SINK_LOG"; then
             echo "::error::The sink did not see the control request, so the privacy check would prove nothing"
@@ -301,10 +313,11 @@ jobs:
         working-directory: upshift-layer/upshift/docker
         env:
           COMPOSE_PROJECT_NAME: upshift-smoke
+          COMPOSE_FILE: docker-compose.yml:docker-compose.local.yml:smoke.override.yml
         run: |
           echo "--- connections to Twenty hosts:"
           cat "$RUNNER_TEMP/twenty-hosts.log" || true
-          docker compose -f docker-compose.yml -f smoke.override.yml --env-file smoke.env logs --tail 200 || true
+          docker compose --env-file smoke.env logs --tail 200 || true
 
       - name: Export digest
         if: needs.resolve.outputs.publish == 'true'
@@ -461,7 +474,7 @@ jobs:
             echo
             echo "### Upgrade a deployment"
             echo
-            echo "Set \`TAG=$VERSION\` in \`upshift/docker/.env\`, then run \`docker compose pull && docker compose up -d\`. Database migrations run automatically when the server starts."
+            echo "In Coolify, set the \`TAG\` variable to \`$VERSION\` and redeploy. With Docker Compose, set \`TAG=$VERSION\` in \`upshift/docker/.env\`, then run \`docker compose pull && docker compose up -d\`. Database migrations run automatically when the server starts."
             echo
             echo "### What changed"
             echo

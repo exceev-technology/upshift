@@ -1,0 +1,45 @@
+# Runs Postgres and Redis next to Upshift and publishes its port: for hosts without Coolify and for the release smoke test.
+services:
+  upshift:
+    ports:
+      - '${UPSHIFT_PORT:-3000}:3000'
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  db:
+    image: postgres:16
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-upshift}
+      POSTGRES_USER: ${SERVICE_USER_POSTGRES:?}
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_POSTGRES:?}
+    healthcheck:
+      test: pg_isready -U ${SERVICE_USER_POSTGRES} -h localhost -d postgres
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: always
+
+  redis:
+    image: redis
+    command: ['--maxmemory-policy', 'noeviction']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: always
+
+volumes:
+  db-data:

@@ -15,13 +15,15 @@ cd upshift/docker
 cp .env.example .env
 ```
 
-Set `SERVER_URL` to the address users will open, and `ENCRYPTION_KEY` to the output of `openssl rand -base64 32`. Then start it:
+Set `SERVER_URL` to the address users will open, `ENCRYPTION_KEY` to the output of `openssl rand -base64 32`, and `SERVICE_PASSWORD_POSTGRES` to a strong password without special characters. Then start it:
 
 ```bash
 docker compose up -d
 ```
 
-Upshift is then available at `SERVER_URL` (port 3000 by default). The first account you create becomes the workspace admin.
+Upshift is then available at `SERVER_URL` (port 3000 by default), with its own Postgres and Redis. The first account you create becomes the workspace admin.
+
+To deploy on Coolify with existing Postgres and Redis servers, see [Deploying with Coolify](../upshift/README.md#deploying-with-coolify).
 
 ## Versions
 
