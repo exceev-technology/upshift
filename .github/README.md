@@ -25,9 +25,15 @@ Upshift is then available at `SERVER_URL` (port 3000 by default). The first acco
 
 ## Versions
 
-Upshift follows Twenty's releases. The image `ghcr.io/exceev-technology/upshift:v2.44.0` is Twenty `v2.44.0` with the Upshift layer applied, and `latest` points to the newest release. Pin `TAG` in `.env` for production.
+Upshift follows Twenty's versions, the `twenty/vX.Y.Z` tags that Twenty also publishes as Docker images (GitHub Release pages only exist for minor versions). The image `ghcr.io/exceev-technology/upshift:v2.45.6` is Twenty `v2.45.6` with the Upshift layer applied.
 
-New Twenty releases are picked up automatically every morning by the [Upshift Release](workflows/upshift-release.yaml) workflow.
+| Image tag | Points to |
+| --- | --- |
+| `v2.45.6` | that exact version |
+| `v2.45` | the newest patch of 2.45 |
+| `v2` and `latest` | the newest version |
+
+Pin an exact version in `TAG` for production, or a minor line such as `v2.45` to receive its patches. New Twenty versions are picked up automatically every morning by the [Upshift Release](workflows/upshift-release.yaml) workflow.
 
 ## Privacy
 
