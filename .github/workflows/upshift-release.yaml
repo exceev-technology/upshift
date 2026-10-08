@@ -44,6 +44,7 @@ jobs:
       is-latest-in-minor: ${{ steps.release.outputs.is-latest-in-minor }}
       should-build: ${{ steps.published.outputs.should-build }}
       publish: ${{ steps.published.outputs.publish }}
+      release-missing: ${{ steps.missing-release.outputs.missing }}
     steps:
       - name: Check out the Upshift scripts
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -124,6 +125,21 @@ jobs:
           else
             echo "should-build=true" >> "$GITHUB_OUTPUT"
             echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # An image can exist without its Release if release creation failed after publishing
+      - name: Check for a missing GitHub Release
+        id: missing-release
+        if: github.event_name != 'pull_request' && steps.published.outputs.publish == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          if gh release view "upshift/$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "missing=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$IMAGE:$VERSION has no GitHub Release yet; it will be created."
+            echo "missing=true" >> "$GITHUB_OUTPUT"
           fi
 
   build:
@@ -359,13 +375,49 @@ jobs:
 
   github-release:
     needs: [resolve, publish]
+    if: >-
+      !cancelled() && (
+        (needs.resolve.outputs.publish == 'true' && needs.publish.result == 'success') ||
+        needs.resolve.outputs.release-missing == 'true'
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: write
+      packages: read
     steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Find the commit that built the image
+        id: target
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+        run: |
+          target_sha="$GITHUB_SHA"
+
+          if [ "$PUBLISH_RESULT" != "success" ]; then
+            revision=$(docker buildx imagetools inspect "$IMAGE:$VERSION" --format '{{json .Image}}' \
+              | jq -r '[.. | .Labels? | objects | .["org.opencontainers.image.revision"] | strings] | first // empty' || true)
+
+            if [ -n "$revision" ]; then
+              target_sha="$revision"
+            else
+              echo "::warning::$IMAGE:$VERSION has no revision label; tagging $GITHUB_SHA"
+            fi
+          fi
+
+          echo "Release target: $target_sha"
+          echo "sha=$target_sha" >> "$GITHUB_OUTPUT"
+
       - name: Create or update the GitHub Release
         env:
+          TARGET_SHA: ${{ steps.target.outputs.sha }}
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.resolve.outputs.version }}
           IS_LATEST: ${{ needs.resolve.outputs.is-latest }}
@@ -383,7 +435,7 @@ jobs:
           fi
 
           {
-            echo "Upshift **$VERSION**, built on Twenty [\`$TWENTY_TAG\`](https://github.com/twentyhq/twenty/tree/$TWENTY_TAG) with the Upshift layer from $GITHUB_SHA."
+            echo "Upshift **$VERSION**, built on Twenty [\`$TWENTY_TAG\`](https://github.com/twentyhq/twenty/tree/$TWENTY_TAG) with the Upshift layer from $TARGET_SHA."
             echo
             echo "### Docker image"
             echo
@@ -407,13 +459,13 @@ jobs:
           } > release-notes.md
 
           if gh release view "$release_tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$release_tag" -f sha="$GITHUB_SHA" -F force=true > /dev/null
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$release_tag" -f sha="$TARGET_SHA" -F force=true > /dev/null
             gh release edit "$release_tag" --repo "$GITHUB_REPOSITORY" \
               --notes-file release-notes.md --latest="$IS_LATEST"
             action=Updated
           else
             gh release create "$release_tag" --repo "$GITHUB_REPOSITORY" \
-              --target "$GITHUB_SHA" --title "Upshift $VERSION" \
+              --target "$TARGET_SHA" --title "Upshift $VERSION" \
               --notes-file release-notes.md --latest="$IS_LATEST"
             action=Created
           fi
