@@ -97,7 +97,9 @@ jobs:
             echo "is-latest-in-minor=$is_latest_in_minor"
           } >> "$GITHUB_OUTPUT"
 
+      # Pull requests never publish, so their code never runs next to a registry credential
       - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
