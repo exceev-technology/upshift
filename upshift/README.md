@@ -15,7 +15,9 @@ upshift/
     generate-icons.mjs   renders every app icon from logo.svg
     build-image.sh       builds the image locally, same steps as CI
   docker/
-    docker-compose.yml, .env.example
+    docker-compose.yml        Upshift server and worker, ready for Coolify
+    docker-compose.local.yml  adds Postgres, Redis and a published port
+    .env.example
 ```
 
 ## How a release is built
@@ -31,9 +33,63 @@ upshift/
    Every change is prepared in memory first. If any patch point is missing, nothing is written.
 3. Build Twenty's own Dockerfile (`--target twenty`) and push `ghcr.io/exceev-technology/upshift:vX.Y.Z`.
 
-The [Upshift Release](../.github/workflows/upshift-release.yaml) workflow does this every morning for the newest Twenty tag, for amd64 and arm64, and skips versions that are already published. It publishes `vX.Y.Z`, moves `vX.Y` when that is the newest patch of its minor line, and moves `vX` and `latest` when it is the newest version overall. After the image is published it creates the git tag `upshift/vX.Y.Z` on the Upshift commit that built it, with a GitHub Release page carrying the pull and upgrade instructions; rebuilding an existing version moves that tag and updates the page. Before anything is published, the amd64 image goes through a smoke test (`scripts/smoke-test.mjs`): it starts with the compose file, checks the branding on the page, manifest and MCP server card, then signs up, creates a workspace and signs in through the API. Telemetry and Twenty icons are switched on in that environment on purpose, every Twenty-owned host resolves to a listener on the runner (`scripts/smoke-host-sink.mjs`), and the test fails if anything connects to it. On pull requests the same build and smoke test run without publishing.
+The [Upshift Release](../.github/workflows/upshift-release.yaml) workflow does this every morning for the newest Twenty tag, for amd64 and arm64, and skips versions that are already published. It publishes `vX.Y.Z`, moves `vX.Y` when that is the newest patch of its minor line, and moves `vX` and `latest` when it is the newest version overall. After the image is published it creates the git tag `upshift/vX.Y.Z` on the Upshift commit that built it, with a GitHub Release page carrying the pull and upgrade instructions; rebuilding an existing version moves that tag and updates the page. Before anything is published, the amd64 image goes through a smoke test (`scripts/smoke-test.mjs`): it starts with the compose file and its local Postgres and Redis overlay, checks the branding on the page, manifest and MCP server card, then signs up, creates a workspace and signs in through the API. Telemetry and Twenty icons are switched on in that environment on purpose, every Twenty-owned host resolves to a listener on the runner (`scripts/smoke-host-sink.mjs`), and the test fails if anything connects to it. On pull requests the same build and smoke test run without publishing.
 
 The translation hook also verifies its own output on every build: message ids, placeholders and plural structure are unchanged, SDK commands such as `create-twenty-app` are untouched, and no message still says Twenty. The branding check runs it on the latest Twenty release with `--check-catalogs`. To build a specific version, run the workflow manually with `twenty-tag` set (for example `twenty/v2.43.0`). Tick `force` to rebuild an existing version.
+
+## Deploying with Coolify
+
+`docker/docker-compose.yml` is written for Coolify: Postgres and Redis are existing servers given by variables, Coolify generates the app secret, and its Traefik proxy answers CORS for the workspace subdomains.
+
+1. Create a **Docker Compose Empty** resource and paste `docker/docker-compose.yml`.
+2. Add the domains on the `upshift` service with port 3000, for example `https://crm.client-domain.com:3000`, and point their DNS at the server. With multi-workspace, every workspace is served on its own subdomain, so list each one too, comma separated: `https://crm.client-domain.com:3000,https://app.crm.client-domain.com:3000,https://acme.crm.client-domain.com:3000`. A wildcard DNS record covers them all; a single wildcard route instead needs a wildcard certificate, see Coolify's [wildcard certificates](https://coolify.io/docs/core/networking/proxy/traefik/wildcard-certs) guide.
+3. Untick **Escape special characters in labels?** on the resource. While it is ticked, Coolify passes `${TRAEFIK_CORS_ORIGIN_REGEX:?}` to Traefik literally instead of its value.
+4. Fill in the variables. Coolify blocks the deployment until the required ones have a value.
+
+| Variable | Example | Notes |
+| --- | --- | --- |
+| `SERVER_URL` | `https://crm.client-domain.com` | Required. `FRONTEND_URL` defaults to it |
+| `TRAEFIK_CORS_ORIGIN_REGEX` | `^https://([a-z0-9-]+\.)?client-domain\.com$` | Required. Enable **Literal**, the value contains `$` |
+| `PG_DATABASE_HOST`, `PG_DATABASE_PORT`, `POSTGRES_DB` | `10.0.0.5`, `5432`, `upshift` | Host is required |
+| `SERVICE_USER_POSTGRES`, `SERVICE_PASSWORD_POSTGRES` | | Coolify generates random values: replace them with the database's credentials |
+| `REDIS_HOST`, `REDIS_PORT`, `REDIS_USER`, `REDIS_PASSWORD` | `10.0.0.6`, `6379`, `default` | Host is required |
+| `PG_DATABASE_URL`, `REDIS_URL` | `postgres://upshift:p%2Fss@10.0.0.5:5432/upshift` | Replace the parts above. Use them when a user or password contains `/ ? # @ :` or `%`, percent-encoded; Coolify's generated passwords have no symbols |
+| `SERVICE_BASE64_32_SECRET` | | Generated by Coolify, becomes `APP_SECRET`. It also encrypts stored secrets unless `ENCRYPTION_KEY` is set, so never change it on a running instance |
+| `IS_MULTIWORKSPACE_ENABLED`, `DEFAULT_SUBDOMAIN` | `true`, `app` | One workspace per subdomain |
+| `AUTH_COOKIE_ALLOWED_ORIGINS` | `https://app.crm.client-domain.com,https://acme.crm.client-domain.com` | Every workspace origin, see below |
+| `STORAGE_TYPE`, `STORAGE_S3_*` | `s_3` | Defaults to `local` (a Docker volume) |
+| `EMAIL_DRIVER`, `EMAIL_SMTP_*`, `EMAIL_FROM_*` | `smtp` | Defaults to `logger`, which only writes emails to the logs |
+| `TAG` | `v2.45.6` | Pin an exact version in production |
+
+With multi-workspace, add each new workspace's domain to the service and its origin to `AUTH_COOKIE_ALLOWED_ORIGINS`, then redeploy. Twenty answers 403 to cookie-authenticated POST requests (every GraphQL call) from any origin outside that list, so the Traefik regex alone does not let a new workspace in.
+
+The CORS middleware is named `upshift-cors`. Traefik drops a middleware defined twice with different settings, so if a second Upshift stack runs behind the same Coolify proxy, rename it in all of that stack's labels.
+
+To move an existing Twenty resource to Upshift, back up the database, keep its `SERVICE_BASE64_32_SECRET`, and set `POSTGRES_DB` to the database it already uses. The server runs the upgrade when it starts, and Twenty supports jumping several versions at once.
+
+Without Coolify, `cp .env.example .env && docker compose up -d` starts Upshift with its own Postgres and Redis (`.env.example` sets `COMPOSE_FILE` to include `docker-compose.local.yml`). To use existing servers instead, drop that file from `COMPOSE_FILE`, set the hosts, and publish port 3000 through your own proxy or override file.
+
+### Moving from the first compose file
+
+The first `docker-compose.yml` bundled Postgres and Redis and named the server service `server`. A `.env` made from that version needs these lines once, with your former `PG_DATABASE_USER`, `PG_DATABASE_PASSWORD` and `PG_DATABASE_NAME` if you had set them (the defaults were `postgres`, `postgres` and `default`):
+
+```
+COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml
+PG_DATABASE_HOST=db
+SERVICE_USER_POSTGRES=postgres
+SERVICE_PASSWORD_POSTGRES=postgres
+POSTGRES_DB=default
+REDIS_HOST=redis
+TRAEFIK_CORS_ORIGIN_REGEX='^http://localhost$'
+```
+
+Then start it with `--remove-orphans`, which removes the old `server` container that still holds the port:
+
+```bash
+docker compose up -d --remove-orphans
+```
+
+`docker-compose.local.yml` keeps the project name `upshift`, so the existing database and file volumes are reused.
 
 ## Syncing Twenty into upshift-main
 
