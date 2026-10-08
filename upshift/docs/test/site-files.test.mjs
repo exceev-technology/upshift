@@ -118,8 +118,10 @@ describe('buildDocsConfig', () => {
       ['Product', 'Documentation', 'Company', 'Legal'],
     );
     assert.deepEqual(french.footer.socials, {
-      website: 'https://upshiftcloud.com',
       linkedin: 'https://linkedin.com/company/exceev-consulting',
+      x: 'https://x.com/ExceevConseil',
+      facebook: 'https://facebook.com/exceevconsulting',
+      github: 'https://github.com/exceev-consulting',
     });
     assert.deepEqual(config.footer, french.footer);
   });

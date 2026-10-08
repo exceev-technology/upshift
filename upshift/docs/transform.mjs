@@ -9,8 +9,8 @@ import {
   EXCLUDED_PAGE_PREFIXES,
   KEPT_SECTIONS,
   LANGUAGES,
-  LINKEDIN_URL,
   PRIVACY_POLICY_URL,
+  SOCIALS,
   TERMS_URL,
   TWENTY_SOURCE_URL,
   URL_REPLACEMENTS,
@@ -297,7 +297,7 @@ const buildNavbar = (labels) => ({
 });
 
 const buildFooter = (labels, tabs) => ({
-  socials: { website: WEBSITE_URL, linkedin: LINKEDIN_URL },
+  socials: SOCIALS,
   links: [
     {
       header: labels.product,

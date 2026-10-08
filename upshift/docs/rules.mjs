@@ -16,7 +16,12 @@ export const COMPANY_NAME = brand.companyName;
 export const COMPANY_URL = 'https://exceev.com';
 export const DEMO_URL =
   'https://calcom.exceev.com/team/exceev-technology/upshift-intro';
-export const LINKEDIN_URL = 'https://linkedin.com/company/exceev-consulting';
+export const SOCIALS = {
+  linkedin: 'https://linkedin.com/company/exceev-consulting',
+  x: 'https://x.com/ExceevConseil',
+  facebook: 'https://facebook.com/exceevconsulting',
+  github: 'https://github.com/exceev-consulting',
+};
 
 // The accent of upshiftcloud.com, in its light and dark themes.
 export const BRAND_COLORS = {

@@ -79,6 +79,13 @@ describe('buildSite on packages/twenty-docs', () => {
     assert.match(files.get('favicon.svg').toString(), /rx="16"/);
   });
 
+  it('keeps the four footer columns from overlapping on tablets and small laptops', () => {
+    assert.match(
+      files.get('custom.css').toString(),
+      /@media \(min-width: 768px\) and \(max-width: 1279px\) \{\n {2}footer \.sm\\:grid \{\n {4}grid-template-columns: repeat\(2, minmax\(0, 1fr\)\) !important;/,
+    );
+  });
+
   it('recolors the halftone illustrations to the Upshift accent in both themes', () => {
     const css = files.get('custom.css').toString();
 
