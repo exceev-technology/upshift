@@ -44,6 +44,7 @@ jobs:
       is-latest-in-minor: ${{ steps.release.outputs.is-latest-in-minor }}
       should-build: ${{ steps.published.outputs.should-build }}
       publish: ${{ steps.published.outputs.publish }}
+      release-out-of-date: ${{ steps.release-state.outputs.out-of-date }}
     steps:
       - name: Check out the Upshift scripts
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -124,6 +125,35 @@ jobs:
           else
             echo "should-build=true" >> "$GITHUB_OUTPUT"
             echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # A failed release step can leave an image without its Release, or a rebuilt image with a stale tag
+      - name: Check that the GitHub Release matches the image
+        id: release-state
+        if: github.event_name != 'pull_request' && steps.published.outputs.publish == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          release_tag="upshift/$VERSION"
+          image_revision=$(docker buildx imagetools inspect "$IMAGE:$VERSION" --format '{{json .Image}}' \
+            | jq -r '[.. | .Labels? | objects | .["org.opencontainers.image.revision"] | strings] | first // empty' || true)
+
+          if ! gh release view "$release_tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "$IMAGE:$VERSION has no GitHub Release yet; it will be created."
+            echo "out-of-date=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! tag_commit=$(gh api "repos/$GITHUB_REPOSITORY/commits/$release_tag" --jq .sha 2>/dev/null); then
+            tag_commit=""
+          fi
+
+          if [ -n "$image_revision" ] && [ "$tag_commit" != "$image_revision" ]; then
+            echo "$release_tag points at ${tag_commit:-nothing} but the image was built from $image_revision; it will be updated."
+            echo "out-of-date=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "out-of-date=false" >> "$GITHUB_OUTPUT"
           fi
 
   build:
@@ -356,3 +386,104 @@ jobs:
             echo "- Also tagged \`${VERSION%.*}\`: $IS_LATEST_IN_MINOR"
             echo "- Also tagged \`${VERSION%%.*}\` and \`latest\`: $IS_LATEST"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  github-release:
+    needs: [resolve, publish]
+    if: >-
+      !cancelled() && (
+        (needs.resolve.outputs.publish == 'true' && needs.publish.result == 'success') ||
+        needs.resolve.outputs.release-out-of-date == 'true'
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Find the commit that built the image
+        id: target
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+        run: |
+          target_sha="$GITHUB_SHA"
+
+          if [ "$PUBLISH_RESULT" != "success" ]; then
+            revision=$(docker buildx imagetools inspect "$IMAGE:$VERSION" --format '{{json .Image}}' \
+              | jq -r '[.. | .Labels? | objects | .["org.opencontainers.image.revision"] | strings] | first // empty' || true)
+
+            if [ -n "$revision" ]; then
+              target_sha="$revision"
+            else
+              echo "::warning::$IMAGE:$VERSION has no revision label; tagging $GITHUB_SHA"
+            fi
+          fi
+
+          echo "Release target: $target_sha"
+          echo "sha=$target_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update the GitHub Release
+        env:
+          TARGET_SHA: ${{ steps.target.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+          IS_LATEST: ${{ needs.resolve.outputs.is-latest }}
+          IS_LATEST_IN_MINOR: ${{ needs.resolve.outputs.is-latest-in-minor }}
+          TWENTY_TAG: ${{ needs.resolve.outputs.twenty-tag }}
+        run: |
+          release_tag="upshift/$VERSION"
+
+          image_tags="\`$VERSION\`"
+          if [ "$IS_LATEST_IN_MINOR" = "true" ]; then
+            image_tags="$image_tags, \`${VERSION%.*}\`"
+          fi
+          if [ "$IS_LATEST" = "true" ]; then
+            image_tags="$image_tags, \`${VERSION%%.*}\`, \`latest\`"
+          fi
+
+          {
+            echo "Upshift **$VERSION**, built on Twenty [\`$TWENTY_TAG\`](https://github.com/twentyhq/twenty/tree/$TWENTY_TAG) with the Upshift layer from $TARGET_SHA."
+            echo
+            echo "### Docker image"
+            echo
+            echo '```bash'
+            echo "docker pull $IMAGE:$VERSION"
+            echo '```'
+            echo
+            echo "Image tags: $image_tags (amd64 and arm64)."
+            echo
+            echo "### Upgrade a deployment"
+            echo
+            echo "Set \`TAG=$VERSION\` in \`upshift/docker/.env\`, then run \`docker compose pull && docker compose up -d\`. Database migrations run automatically when the server starts."
+            echo
+            echo "### What changed"
+            echo
+            if [ "${VERSION##*.}" = "0" ]; then
+              echo "See Twenty's [${VERSION%.*} release notes](https://github.com/twentyhq/twenty/releases/tag/twenty/${VERSION%.*}.0)."
+            else
+              echo "This patch version ships fixes on top of Twenty ${VERSION%.*}.0; see its [release notes](https://github.com/twentyhq/twenty/releases/tag/twenty/${VERSION%.*}.0)."
+            fi
+          } > release-notes.md
+
+          if gh release view "$release_tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release edit "$release_tag" --repo "$GITHUB_REPOSITORY" \
+              --notes-file release-notes.md --latest="$IS_LATEST"
+            # The tag moves last: the next run retries the whole update until it points at the image's commit
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$release_tag" -f sha="$TARGET_SHA" -F force=true > /dev/null \
+              || gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$release_tag" -f sha="$TARGET_SHA" > /dev/null
+            action=Updated
+          else
+            gh release create "$release_tag" --repo "$GITHUB_REPOSITORY" \
+              --target "$TARGET_SHA" --title "Upshift $VERSION" \
+              --notes-file release-notes.md --latest="$IS_LATEST"
+            action=Created
+          fi
+
+          echo "### $action release [$release_tag]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$release_tag)" >> "$GITHUB_STEP_SUMMARY"

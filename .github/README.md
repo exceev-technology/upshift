@@ -33,7 +33,7 @@ Upshift follows Twenty's versions, the `twenty/vX.Y.Z` tags that Twenty also pub
 | `v2.45` | the newest patch of 2.45 |
 | `v2` and `latest` | the newest version |
 
-Pin an exact version in `TAG` for production, or a minor line such as `v2.45` to receive its patches. New Twenty versions are picked up automatically every morning by the [Upshift Release](workflows/upshift-release.yaml) workflow.
+Pin an exact version in `TAG` for production, or a minor line such as `v2.45` to receive its patches. Each published version also gets a page under [Releases](https://github.com/exceev-technology/upshift/releases) (git tag `upshift/vX.Y.Z`) with its upgrade instructions. New Twenty versions are picked up automatically every morning by the [Upshift Release](workflows/upshift-release.yaml) workflow.
 
 ## Privacy
 
