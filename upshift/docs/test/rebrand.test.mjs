@@ -1,8 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { LANGUAGES } from '../rules.mjs';
-import { applyPhraseReplacements, rebrandPage } from '../transform.mjs';
+import { LANGUAGES, TERM_REPLACEMENTS } from '../rules.mjs';
+import {
+  applyPhraseReplacements,
+  rebrandPage,
+  replaceTerms,
+} from '../transform.mjs';
 
 const [FRENCH, ENGLISH] = LANGUAGES;
 
@@ -127,6 +131,28 @@ describe('rebrandPage on French cards', () => {
         FRENCH.brandWord,
       ),
       '<Card title="Flux" href="/user-guide/workflows/overview">Automatiser.</Card>',
+    );
+  });
+});
+
+describe('replaceTerms', () => {
+  it('stops calling Upshift a CRM in French, outside migrations and code', () => {
+    assert.equal(
+      replaceTerms(
+        "Importez vos données CRM, liées aux enregistrements CRM concernés, dans votre CRM. Migration depuis d'autres CRM. `données CRM`",
+        TERM_REPLACEMENTS.fr,
+      ),
+      "Importez vos données, liées aux enregistrements concernés, dans Upshift. Migration depuis d'autres CRM. `données CRM`",
+    );
+  });
+
+  it('stops calling Upshift a CRM in English, outside migrations and code', () => {
+    assert.equal(
+      replaceTerms(
+        'Visualize your CRM data, linked to relevant CRM records in your CRM. Migrate from other CRMs. `CRM data`',
+        TERM_REPLACEMENTS.en,
+      ),
+      'Visualize your data, linked to relevant records in Upshift. Migrate from other CRMs. `CRM data`',
     );
   });
 });

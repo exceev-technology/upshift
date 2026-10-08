@@ -4,6 +4,7 @@ import {
   COMPANY_NAME,
   COMPANY_URL,
   CONTACT_LINK,
+  CRM_ALLOWED_CONTEXTS,
   DEMO_URL,
   DOCS_URL,
   EXCLUDED_PAGE_PREFIXES,
@@ -27,6 +28,7 @@ const HREF_ATTRIBUTE = /\bhref="(\/[^"]*)"/g;
 const IMAGE_REFERENCE = /\/images\/[^\s)"'`]+/g;
 const SNIPPET_IMPORT = /from\s+['"]\/(snippets\/[^'"]+)['"]/g;
 const FORBIDDEN_IN_PAGES = ['twenty.com', 'twentyhq'];
+const CRM_WORD = /\bCRMs?\b/;
 
 export const renamePage = (page) => page.replaceAll('twenty', 'upshift');
 
@@ -215,6 +217,34 @@ export const filterRedirects = (redirects, publishedPages) => {
   return uniqueBySource([...twentyRedirects, ...renameRedirects]);
 };
 
+const withoutCode = (source) =>
+  source
+    .split(CODE_SEGMENT)
+    .filter((segment, index) => index % 2 === 0)
+    .join('');
+
+export const replaceTerms = (source, rules) =>
+  rules.reduce(
+    (output, [pattern, replacement]) =>
+      replaceOutsideCode(output, pattern, replacement),
+    source,
+  );
+
+export const applyOverrides = (files, overrides, sitePages) => {
+  const published = new Set(sitePages);
+  const problems = [];
+
+  for (const [filePath, content] of overrides) {
+    if (published.has(filePath.replace(/\.mdx$/, ''))) {
+      files.set(filePath, content);
+    } else {
+      problems.push(`overrides/${filePath} does not replace any published page`);
+    }
+  }
+
+  return problems;
+};
+
 export const replaceOutsideCode = (source, pattern, replacement) =>
   source
     .split(CODE_SEGMENT)
@@ -393,6 +423,16 @@ export const auditSite = (files, sitePages) => {
     for (const needle of FORBIDDEN_IN_PAGES) {
       if (text.includes(needle)) {
         problems.push(`${filePath} still references ${needle}`);
+      }
+    }
+
+    for (const line of withoutCode(text).split('\n')) {
+      const isAllowed = CRM_ALLOWED_CONTEXTS.some((context) => context.test(line));
+
+      if (CRM_WORD.test(line) && !isAllowed) {
+        problems.push(
+          `${filePath} presents ${BRAND_NAME} as a CRM: "${line.trim().slice(0, 100)}"`,
+        );
       }
     }
 

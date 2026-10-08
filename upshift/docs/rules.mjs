@@ -98,6 +98,11 @@ const FRENCH_CONTACT_TEAM = `Contactez l'équipe ${BRAND_NAME}`;
 export const PHRASE_REPLACEMENTS = {
   fr: [
     {
+      from: 'Twenty est une plateforme CRM complète. Voici ce que vous pouvez créer avec Twenty.',
+      to: `${BRAND_NAME} réunit les processus commerciaux et opérationnels de votre entreprise sur une seule plateforme. Voici ce que vous pouvez y construire.`,
+      count: 1,
+    },
+    {
       from: 'Vous avez besoin de configurer le SSO pour votre organisation ? [Trouvez un partenaire Twenty certifié](https://twenty.com/partners/list?categories=SOLUTIONING\\&ref=docs-sso) spécialisé en SSO et en gestion des identités. *(Vous préférez impliquer directement Twenty ? [contact@twenty.com](mailto:contact@twenty.com))*',
       to: `Vous avez besoin de configurer le SSO pour votre organisation ? [${FRENCH_CONTACT_TEAM}](${CONTACT_LINK}).`,
       count: 1,
@@ -139,6 +144,11 @@ export const PHRASE_REPLACEMENTS = {
     },
   ],
   en: [
+    {
+      from: "Twenty is a full-featured CRM platform. Here's what you can build with it.",
+      to: `${BRAND_NAME} brings your company's sales and operations processes together on one platform. Here's what you can build with it.`,
+      count: 1,
+    },
     {
       from: 'Need SSO configured for your organization? [Find a certified Twenty partner](https://twenty.com/partners/list?categories=SOLUTIONING&ref=docs-sso) who specializes in SSO and identity setup. *(Prefer to loop in Twenty directly? [contact@twenty.com](mailto:contact@twenty.com))*',
       to: `Need SSO configured for your organization? [${CONTACT_TEAM}](${CONTACT_LINK}).`,
@@ -195,4 +205,48 @@ export const URL_REPLACEMENTS = [
   [/\b[\w-]+\.twenty\.com/g, EXAMPLE_SERVER_HOST],
   [/@twenty\.com/g, '@example.com'],
   [/https:\/\/twenty\.com/g, 'https://example.com'],
+];
+
+// Upshift covers the whole chain from first contact to reporting, CRM being
+// only its first step, so prose that calls Upshift or its data "CRM" is
+// reworded. Applied after the brand rename, outside code.
+export const TERM_REPLACEMENTS = {
+  fr: [
+    [/\b(données|enregistrements|objets) CRM\b/g, '$1'],
+    [/\bexpérience CRM\b/g, 'expérience'],
+    [/\bdirectement dans votre CRM\b/g, 'directement dans la plateforme'],
+    [/\bque votre CRM reste\b/g, 'que vos données restent'],
+    [/\b(dans|vers) votre CRM\b/g, `$1 ${BRAND_NAME}`],
+    [/\bde votre CRM\b/g, `d'${BRAND_NAME}`],
+    [/\bau CRM\b/g, `à ${BRAND_NAME}`],
+    [/\bque votre CRM\b/g, `qu'${BRAND_NAME}`],
+    [/\bLe CRM a\b/g, `${BRAND_NAME} a`],
+    [new RegExp(`\\ble CRM ${BRAND_NAME}\\b`, 'g'), BRAND_NAME],
+    [new RegExp(`\\b${BRAND_NAME} CRM\\b`, 'g'), BRAND_NAME],
+    [/\ble CRM qui\b/g, 'la plateforme qui'],
+  ],
+  en: [
+    [/\bCRM (data|records|objects|experience|work)\b/g, '$1'],
+    [/\bdirectly into your CRM\b/g, 'directly into the platform'],
+    [/\b(in|into|to|within|through) your CRM\b/g, `$1 ${BRAND_NAME}`],
+    [/\bto the CRM\b/g, `to ${BRAND_NAME}`],
+    [/\byour CRM stays\b/g, 'your data stays'],
+    [/\byour CRM changes\b/g, 'your data changes'],
+    [/\bYour CRM can\b/g, `${BRAND_NAME} can`],
+    [/\bThe CRM has\b/g, `${BRAND_NAME} has`],
+    [new RegExp(`\\b${BRAND_NAME} CRM\\b`, 'g'), BRAND_NAME],
+    [/\bthe CRM that\b/g, 'the platform that'],
+  ],
+};
+
+// Lines where "CRM" is fine because it means another product or the
+// prospecting step of Upshift; any other mention fails the import.
+export const CRM_ALLOWED_CONTEXTS = [
+  /\b(other|any|current|previous|old|traditional|most) CRMs?\b/i,
+  /\bCRM Automations\b/,
+  /\b(autres|n'importe quel|ancien|plupart des) CRM\b/i,
+  /\bCRM (actuel|précédent|traditionnels)\b/i,
+  /\bAutomatisations CRM\b/,
+  /\|\s*(Your|Votre) CRM\s*\|/,
+  /\b(Prospection et|Prospecting and) CRM\b/,
 ];

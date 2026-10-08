@@ -10,9 +10,14 @@ import {
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { LANGUAGES, PHRASE_REPLACEMENTS } from './rules.mjs';
+import {
+  LANGUAGES,
+  PHRASE_REPLACEMENTS,
+  TERM_REPLACEMENTS,
+} from './rules.mjs';
 import {
   adaptCustomCss,
+  applyOverrides,
   applyPhraseReplacements,
   auditSite,
   buildDocsConfig,
@@ -23,6 +28,7 @@ import {
   isExcluded,
   listLinkedPages,
   rebrandPage,
+  replaceTerms,
   sitePath,
 } from './transform.mjs';
 
@@ -30,6 +36,7 @@ const DOCS_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const LAYER_REPOSITORY_ROOT = path.resolve(DOCS_ROOT, '..', '..');
 const BRANDING_ROOT = path.join(LAYER_REPOSITORY_ROOT, 'upshift/branding');
 const SITE_ROOT = path.join(DOCS_ROOT, 'site');
+const OVERRIDES_ROOT = path.join(DOCS_ROOT, 'overrides');
 
 export const TWENTY_DOCS_ROOT = path.join(
   LAYER_REPOSITORY_ROOT,
@@ -105,10 +112,27 @@ export const buildSite = (twentyDocsRoot) => {
     for (const [page, source] of outputs) {
       files.set(
         `${sitePath(language, page)}.mdx`,
-        rebrandPage(source, publishedPages, language.brandWord),
+        replaceTerms(
+          rebrandPage(source, publishedPages, language.brandWord),
+          TERM_REPLACEMENTS[language.language],
+        ),
       );
     }
   }
+
+  const sitePages = LANGUAGES.flatMap((language) =>
+    [...publishedPages.get(language.language)].map((page) =>
+      sitePath(language, page),
+    ),
+  );
+  const overrides = new Map(
+    listSiteFiles(OVERRIDES_ROOT).map((relativePath) => [
+      relativePath,
+      readFileSync(path.join(OVERRIDES_ROOT, relativePath)).toString(),
+    ]),
+  );
+
+  problems.push(...applyOverrides(files, overrides, sitePages));
 
   const { snippets } = collectAssets([...files.values()]);
 
@@ -142,16 +166,7 @@ export const buildSite = (twentyDocsRoot) => {
     `${JSON.stringify(buildDocsConfig(twentyDocsConfig, navigation, redirects), null, 2)}\n`,
   );
 
-  problems.push(
-    ...auditSite(
-      files,
-      LANGUAGES.flatMap((language) =>
-        [...publishedPages.get(language.language)].map((page) =>
-          sitePath(language, page),
-        ),
-      ),
-    ),
-  );
+  problems.push(...auditSite(files, sitePages));
 
   return {
     files,

@@ -63,6 +63,20 @@ describe('buildSite on packages/twenty-docs', () => {
     );
   });
 
+  it('presents Upshift as one platform for the whole business, not a CRM', () => {
+    const french = files.get('getting-started/introduction.mdx');
+    const english = files.get('en/getting-started/introduction.mdx');
+
+    assert.match(french, /Toute votre entreprise, sur une seule plateforme simple/);
+    assert.match(english, /Your whole business, on one simple platform/);
+    assert.doesNotMatch(french + english, /Salesforce|vibe-coded/);
+    assert.doesNotMatch(
+      files.get('getting-started/key-features.mdx') +
+        files.get('en/getting-started/key-features.mdx'),
+      /plateforme CRM|CRM platform/,
+    );
+  });
+
   it('ships the files Mintlify needs at the site root', () => {
     for (const filePath of [
       'docs.json',

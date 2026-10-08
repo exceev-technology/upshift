@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 import { LANGUAGES } from '../rules.mjs';
 import {
   adaptCustomCss,
+  applyOverrides,
   auditSite,
   buildDocsConfig,
   collectAssets,
@@ -181,6 +182,40 @@ describe('adaptCustomCss', () => {
         '}',
       ].join('\n'),
     );
+  });
+});
+
+describe('applyOverrides', () => {
+  it('replaces published pages and reports overrides that match no page', () => {
+    const files = new Map([['getting-started/introduction.mdx', 'Twenty manifesto']]);
+
+    const problems = applyOverrides(
+      files,
+      new Map([
+        ['getting-started/introduction.mdx', 'Upshift positioning'],
+        ['getting-started/old-page.mdx', 'Orphan'],
+      ]),
+      ['getting-started/introduction'],
+    );
+
+    assert.equal(files.get('getting-started/introduction.mdx'), 'Upshift positioning');
+    assert.equal(files.has('getting-started/old-page.mdx'), false);
+    assert.deepEqual(problems, [
+      'overrides/getting-started/old-page.mdx does not replace any published page',
+    ]);
+  });
+});
+
+describe('auditSite on CRM wording', () => {
+  it('reports pages that present Upshift as a CRM, outside migration contexts', () => {
+    const files = new Map([
+      ['en/a.mdx', 'Upshift is a full-featured CRM.\nMigrate from other CRMs.\n`CRM`'],
+      ['b.mdx', "Migration depuis d'autres CRM.\nContrairement aux CRM traditionnels."],
+    ]);
+
+    assert.deepEqual(auditSite(files, ['en/a', 'b']), [
+      'en/a.mdx presents Upshift as a CRM: "Upshift is a full-featured CRM."',
+    ]);
   });
 });
 
