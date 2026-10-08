@@ -99,14 +99,14 @@ docker compose up -d --remove-orphans
 
 `docs/` publishes the user documentation at https://docs.upshiftcloud.com with Mintlify. It is built from Twenty's own docs in `packages/twenty-docs`, which stays untouched:
 
-- `docs/rules.mjs` says what is published and how it is rebranded: the Getting Started and User Guide tabs in French (the default, served at the root) and English (under `/en/`), without Twenty's billing, legal, cloud migration and partner pages, with Twenty's links and addresses pointed at Upshift. French links to a page Twenty has not translated yet go to its English version.
+- `docs/rules.mjs` says what is published and how it is rebranded: the Getting Started and User Guide tabs in French (the default, served at the root) and English (under `/en/`), without Twenty's billing, legal, cloud migration and partner pages, with Twenty's links and addresses pointed at Upshift. Pages those tabs link to but that Twenty keeps out of its navigation are published too, without a navigation entry. French links to a page Twenty has not translated yet go to its English version.
 - `docs/import-docs.mjs` applies the rules and writes `docs/site/`, the folder Mintlify deploys from `upshift-main`. Never edit `docs/site/` by hand or in the Mintlify web editor: the next import replaces it. Change the rules instead.
 
 ```bash
 node upshift/docs/import-docs.mjs
 ```
 
-The import fails when a sentence a rule expects has changed in Twenty's docs, or when a page still references a Twenty address or links to a page that is not published. Update the rule's text or `count` in `rules.mjs` and run it again. The Upshift Branding Check runs the importer's tests and fails while `docs/site/` differs from what the import produces.
+The import fails when a sentence a rule expects has changed in Twenty's docs, when an excluded section no longer matches any Twenty page (so a moved legal or billing page cannot slip through), or when a page still references a Twenty address or links to a page that is not published. Update the rule's text or `count` in `rules.mjs` and run it again. The Upshift Branding Check runs the importer's tests and fails while `docs/site/` differs from what the import produces.
 
 To preview the site locally:
 
