@@ -474,7 +474,7 @@ jobs:
             echo
             echo "### Upgrade a deployment"
             echo
-            echo "In Coolify, set the \`TAG\` variable to \`$VERSION\` and redeploy. With Docker Compose, set \`TAG=$VERSION\` in \`upshift/docker/.env\`, then run \`docker compose pull && docker compose up -d\`. Database migrations run automatically when the server starts."
+            echo "In Coolify, set the \`TAG\` variable to \`$VERSION\` and redeploy. With Docker Compose, set \`TAG=$VERSION\` in \`upshift/docker/.env\`, then run \`docker compose pull && docker compose up -d\`. Database migrations run automatically when the server starts. If your \`.env\` predates \`docker-compose.local.yml\`, follow [Moving from the first compose file]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/upshift-main/upshift/README.md#moving-from-the-first-compose-file) once."
             echo
             echo "### What changed"
             echo

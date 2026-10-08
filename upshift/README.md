@@ -42,7 +42,7 @@ The translation hook also verifies its own output on every build: message ids, p
 `docker/docker-compose.yml` is written for Coolify: Postgres and Redis are existing servers given by variables, Coolify generates the app secret, and its Traefik proxy answers CORS for the workspace subdomains.
 
 1. Create a **Docker Compose Empty** resource and paste `docker/docker-compose.yml`.
-2. Add the domains on the `upshift` service with port 3000, for example `https://crm.client-domain.com:3000`.
+2. Add the domains on the `upshift` service with port 3000, for example `https://crm.client-domain.com:3000`, and point their DNS at the server. With multi-workspace, every workspace is served on its own subdomain, so list each one too, comma separated: `https://crm.client-domain.com:3000,https://app.crm.client-domain.com:3000,https://acme.crm.client-domain.com:3000`. A wildcard DNS record covers them all; a single wildcard route instead needs a wildcard certificate, see Coolify's [wildcard certificates](https://coolify.io/docs/core/networking/proxy/traefik/wildcard-certs) guide.
 3. Untick **Escape special characters in labels?** on the resource. While it is ticked, Coolify passes `${TRAEFIK_CORS_ORIGIN_REGEX:?}` to Traefik literally instead of its value.
 4. Fill in the variables. Coolify blocks the deployment until the required ones have a value.
 
@@ -61,13 +61,35 @@ The translation hook also verifies its own output on every build: message ids, p
 | `EMAIL_DRIVER`, `EMAIL_SMTP_*`, `EMAIL_FROM_*` | `smtp` | Defaults to `logger`, which only writes emails to the logs |
 | `TAG` | `v2.45.6` | Pin an exact version in production |
 
-With multi-workspace, add each new workspace's origin to `AUTH_COOKIE_ALLOWED_ORIGINS` and restart. Twenty answers 403 to cookie-authenticated POST requests (every GraphQL call) from any origin outside that list, so the Traefik regex alone does not let a new workspace in.
+With multi-workspace, add each new workspace's domain to the service and its origin to `AUTH_COOKIE_ALLOWED_ORIGINS`, then redeploy. Twenty answers 403 to cookie-authenticated POST requests (every GraphQL call) from any origin outside that list, so the Traefik regex alone does not let a new workspace in.
 
 The CORS middleware is named `upshift-cors`. Traefik drops a middleware defined twice with different settings, so if a second Upshift stack runs behind the same Coolify proxy, rename it in all of that stack's labels.
 
 To move an existing Twenty resource to Upshift, back up the database, keep its `SERVICE_BASE64_32_SECRET`, and set `POSTGRES_DB` to the database it already uses. The server runs the upgrade when it starts, and Twenty supports jumping several versions at once.
 
 Without Coolify, `cp .env.example .env && docker compose up -d` starts Upshift with its own Postgres and Redis (`.env.example` sets `COMPOSE_FILE` to include `docker-compose.local.yml`). To use existing servers instead, drop that file from `COMPOSE_FILE`, set the hosts, and publish port 3000 through your own proxy or override file.
+
+### Moving from the first compose file
+
+The first `docker-compose.yml` bundled Postgres and Redis and named the server service `server`. A `.env` made from that version needs these lines once, with your former `PG_DATABASE_USER`, `PG_DATABASE_PASSWORD` and `PG_DATABASE_NAME` if you had set them (the defaults were `postgres`, `postgres` and `default`):
+
+```
+COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml
+PG_DATABASE_HOST=db
+SERVICE_USER_POSTGRES=postgres
+SERVICE_PASSWORD_POSTGRES=postgres
+POSTGRES_DB=default
+REDIS_HOST=redis
+TRAEFIK_CORS_ORIGIN_REGEX='^http://localhost$'
+```
+
+Then start it with `--remove-orphans`, which removes the old `server` container that still holds the port:
+
+```bash
+docker compose up -d --remove-orphans
+```
+
+`docker-compose.local.yml` keeps the project name `upshift`, so the existing database and file volumes are reused.
 
 ## Syncing Twenty into upshift-main
 

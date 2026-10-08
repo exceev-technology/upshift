@@ -1,4 +1,7 @@
 # Runs Postgres and Redis next to Upshift and publishes its port: for hosts without Coolify and for the release smoke test.
+# The project name keeps the volumes of installs made with the first compose file, which set it.
+name: upshift
+
 services:
   upshift:
     ports:
