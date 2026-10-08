@@ -473,10 +473,11 @@ jobs:
           } > release-notes.md
 
           if gh release view "$release_tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$release_tag" -f sha="$TARGET_SHA" -F force=true > /dev/null \
-              || gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$release_tag" -f sha="$TARGET_SHA" > /dev/null
             gh release edit "$release_tag" --repo "$GITHUB_REPOSITORY" \
               --notes-file release-notes.md --latest="$IS_LATEST"
+            # The tag moves last: the next run retries the whole update until it points at the image's commit
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$release_tag" -f sha="$TARGET_SHA" -F force=true > /dev/null \
+              || gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$release_tag" -f sha="$TARGET_SHA" > /dev/null
             action=Updated
           else
             gh release create "$release_tag" --repo "$GITHUB_REPOSITORY" \
