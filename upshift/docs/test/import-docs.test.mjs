@@ -40,6 +40,20 @@ describe('buildSite on packages/twenty-docs', () => {
     assert.deepEqual(unwanted, []);
   });
 
+  it('never sends a French reader to an English page that exists in French', () => {
+    const englishLinksWithFrenchPages = [...files]
+      .filter(
+        ([filePath]) => filePath.endsWith('.mdx') && !filePath.startsWith('en/'),
+      )
+      .flatMap(([filePath, content]) =>
+        [...content.toString().matchAll(/["(]\/en\/([^"#)?\s]+)/g)]
+          .filter(([, page]) => files.has(`${page}.mdx`))
+          .map(([, page]) => `${filePath} -> /en/${page}`),
+      );
+
+    assert.deepEqual(englishLinksWithFrenchPages, []);
+  });
+
   it('ships the files Mintlify needs at the site root', () => {
     for (const filePath of ['docs.json', 'custom.css', 'logo.svg', 'favicon.svg']) {
       assert.ok(files.has(filePath), filePath);

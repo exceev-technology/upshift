@@ -215,13 +215,9 @@ export const rebrandPage = (source, publishedPages, brandWord) => {
     output = output.replace(pattern, replacement);
   }
 
-  output = output.replace(CARD_WITH_HREF, (card, target) => {
-    const resolved = resolveLink(target, publishedPages);
-
-    return resolved === null
-      ? ''
-      : card.replace(`href="${target}"`, `href="${resolved}"`);
-  });
+  output = output.replace(CARD_WITH_HREF, (card, target) =>
+    resolveLink(target, publishedPages) === null ? '' : card,
+  );
 
   output = output.replace(MARKDOWN_LINK, (link, text, target) => {
     const resolved = resolveLink(target, publishedPages);

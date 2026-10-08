@@ -118,6 +118,19 @@ describe('rebrandPage', () => {
   });
 });
 
+describe('rebrandPage on French cards', () => {
+  it('keeps French card links on the French site', () => {
+    assert.equal(
+      rebrandPage(
+        '<Card title="Flux" href="/fr/user-guide/workflows/overview">Automatiser.</Card>',
+        publishedPages,
+        FRENCH.brandWord,
+      ),
+      '<Card title="Flux" href="/user-guide/workflows/overview">Automatiser.</Card>',
+    );
+  });
+});
+
 describe('applyPhraseReplacements', () => {
   const rules = [
     { from: 'Find a certified Twenty partner', to: 'Contact the Upshift team', count: 2 },
