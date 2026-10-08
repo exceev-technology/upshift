@@ -239,3 +239,122 @@ export const rebrandPage = (source, publishedPages, brandWord) => {
 
   return replaceOutsideCode(output, brandWord, BRAND_NAME);
 };
+
+export const collectAssets = (sources) => {
+  const images = new Set();
+  const snippets = new Set();
+
+  for (const source of sources) {
+    for (const [image] of source.matchAll(IMAGE_REFERENCE)) {
+      images.add(image.slice(1));
+    }
+
+    for (const [, snippet] of source.matchAll(SNIPPET_IMPORT)) {
+      snippets.add(snippet);
+    }
+  }
+
+  return { images: [...images].sort(), snippets: [...snippets].sort() };
+};
+
+const buildNavbar = (labels) => ({
+  primary: { type: 'button', label: labels.contactUs, href: CONTACT_LINK },
+});
+
+const buildFooter = (labels) => ({
+  links: [
+    {
+      header: BRAND_NAME,
+      items: [
+        { label: labels.website, href: WEBSITE_URL },
+        { label: labels.contact, href: CONTACT_LINK },
+        { label: labels.privacyPolicy, href: PRIVACY_POLICY_URL },
+        { label: labels.terms, href: TERMS_URL },
+      ],
+    },
+    {
+      header: labels.credits,
+      items: [{ label: labels.basedOnTwenty, href: TWENTY_SOURCE_URL }],
+    },
+  ],
+});
+
+export const buildDocsConfig = (twentyDocsConfig, navigation, redirects) => {
+  const defaultLabels = LANGUAGES.find(({ isDefault }) => isDefault).labels;
+
+  return {
+    $schema: twentyDocsConfig.$schema,
+    name: `${BRAND_NAME} Documentation`,
+    theme: twentyDocsConfig.theme,
+    logo: { light: '/logo.svg', dark: '/logo.svg' },
+    favicon: '/favicon.svg',
+    colors: BRAND_COLORS,
+    interaction: twentyDocsConfig.interaction,
+    navbar: buildNavbar(defaultLabels),
+    styling: twentyDocsConfig.styling,
+    seo: { metatags: { canonical: DOCS_URL } },
+    navigation: {
+      languages: navigation.map(({ language, tabs }) => ({
+        language: language.language,
+        ...(language.isDefault ? { default: true } : {}),
+        navbar: buildNavbar(language.labels),
+        footer: buildFooter(language.labels),
+        tabs,
+      })),
+    },
+    footer: buildFooter(defaultLabels),
+    redirects,
+  };
+};
+
+export const adaptCustomCss = (css) =>
+  css
+    .split('\n')
+    .filter((line) => !line.includes('/developers/'))
+    .join('\n')
+    .replaceAll("[href='/", "[href$='/");
+
+export const auditSite = (files, sitePages) => {
+  const published = new Set(sitePages);
+  const problems = sitePages
+    .filter((page) => !files.has(`${page}.mdx`))
+    .map((page) => `${page} is in the navigation but has no page`);
+
+  for (const [filePath, content] of files) {
+    const text = content.toString();
+
+    if (filePath === 'docs.json') {
+      if (text.includes('twenty.com')) {
+        problems.push('docs.json still references twenty.com');
+      }
+
+      continue;
+    }
+
+    if (!filePath.endsWith('.mdx')) {
+      continue;
+    }
+
+    for (const needle of FORBIDDEN_IN_PAGES) {
+      if (text.includes(needle)) {
+        problems.push(`${filePath} still references ${needle}`);
+      }
+    }
+
+    const targets = [
+      ...[...text.matchAll(MARKDOWN_LINK)].map((match) => match[2]),
+      ...[...text.matchAll(HREF_ATTRIBUTE)].map((match) => match[1]),
+    ];
+
+    for (const target of targets) {
+      const [page] = splitTarget(target);
+      const isMissing = isAsset(page) ? !files.has(page) : !published.has(page);
+
+      if (isMissing) {
+        problems.push(`${filePath} links to ${target}, which is not published`);
+      }
+    }
+  }
+
+  return problems;
+};
