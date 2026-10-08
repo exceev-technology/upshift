@@ -7,6 +7,7 @@ upshift/
   branding/
     brand.json        name, URLs and legal links used everywhere
     logo.svg          source logo (rounded), logo-square.svg, mark.svg
+    wordmark.svg      logo with the name for light backgrounds, wordmark-dark.svg for dark (docs)
     assets/           logo-email.png, logo-512.png, social-card.png (served from GitHub)
     overlay/          files copied over Twenty's: app icons, onboarding logo, email footer
   scripts/
@@ -18,6 +19,10 @@ upshift/
     docker-compose.yml        Upshift server and worker, ready for Coolify
     docker-compose.local.yml  adds Postgres, Redis and a published port
     .env.example
+  docs/
+    rules.mjs           what is published and how it is rebranded
+    import-docs.mjs     builds docs/site from packages/twenty-docs
+    site/               generated Mintlify site, deployed to docs.upshiftcloud.com
 ```
 
 ## How a release is built
@@ -91,6 +96,26 @@ docker compose up -d --remove-orphans
 
 `docker-compose.local.yml` keeps the project name `upshift`, so the existing database and file volumes are reused.
 
+## Documentation
+
+`docs/` publishes the user documentation at https://docs.upshiftcloud.com with Mintlify. It is built from Twenty's own docs in `packages/twenty-docs`, which stays untouched:
+
+- `docs/rules.mjs` says what is published and how it is rebranded: the Getting Started and User Guide tabs in French (the default, served at the root) and English (under `/en/`), without Twenty's billing, legal, cloud migration and partner pages, with Twenty's links and addresses pointed at Upshift. Pages those tabs link to but that Twenty keeps out of its navigation are published too, without a navigation entry. French links to a page Twenty has not translated yet go to its English version. Upshift covers the whole chain from first contact to reporting, so the rules also reword prose that calls Upshift or its data "CRM"; "CRM" stays only for other products, migrations and the prospecting step.
+- `docs/overrides/` holds pages written for Upshift, such as "Pourquoi Upshift" (`getting-started/introduction.mdx`, and its English version under `en/`), which replace Twenty's version of the same page.
+- `docs/import-docs.mjs` applies the rules and overrides and writes `docs/site/`, the folder Mintlify deploys from `upshift-main`. Never edit `docs/site/` by hand or in the Mintlify web editor: the next import replaces it. Change the rules or add an override instead.
+
+```bash
+node upshift/docs/import-docs.mjs
+```
+
+The import fails when a sentence a rule expects has changed in Twenty's docs, when an excluded section no longer matches any Twenty page (so a moved legal or billing page cannot slip through), when a page still references a Twenty address or links to a page that is not published, when a page presents Upshift as a CRM (add a term rule, or an allowed context in `CRM_ALLOWED_CONTEXTS`), or when an override no longer matches a published page. Update the rule's text or `count` in `rules.mjs` and run it again. The Upshift Branding Check runs the importer's tests and fails while `docs/site/` differs from what the import produces.
+
+To preview the site locally:
+
+```bash
+cd upshift/docs/site && npx --yes mintlify@4.2.956 dev
+```
+
 ## Syncing Twenty into upshift-main
 
 `main` mirrors Twenty and only receives Twenty's commits.
@@ -106,6 +131,8 @@ git switch main && git pull --ff-only
 ```bash
 git switch -c sync/twenty-$(date +%Y-%m-%d) upshift-main && git merge main
 ```
+
+Then refresh the docs in the same branch with `node upshift/docs/import-docs.mjs` and commit `upshift/docs/site` if it changed.
 
 Open a PR into `upshift-main`. The merge has no conflicts because Upshift only adds files. The [Upshift Branding Check](../.github/workflows/upshift-branding-check.yaml) workflow applies the layer to the PR and to the latest Twenty release, so you learn about broken patch points before the next release.
 

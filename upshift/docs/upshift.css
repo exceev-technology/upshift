@@ -1,0 +1,17 @@
+/* Twenty's halftone illustrations are drawn in #4838F8. These filters map that
+   color to the upshiftcloud.com accent: #1A1BB5 in light mode, #9192F0 in dark. */
+img[src*='/images/user-guide/halftone/'] {
+  filter: brightness(0.51) saturate(1.62) hue-rotate(-4deg);
+}
+
+:is(.dark, [data-theme='dark']) img[src*='/images/user-guide/halftone/'] {
+  filter: saturate(0.24) brightness(2.09) hue-rotate(-5deg);
+}
+
+/* Mintlify gives each footer column an equal share of the width and never wraps
+   its links, so four columns overlap until the window is about 1280px wide. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  footer .sm\:grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
