@@ -18,6 +18,10 @@ upshift/
     docker-compose.yml        Upshift server and worker, ready for Coolify
     docker-compose.local.yml  adds Postgres, Redis and a published port
     .env.example
+  docs/
+    rules.mjs           what is published and how it is rebranded
+    import-docs.mjs     builds docs/site from packages/twenty-docs
+    site/               generated Mintlify site, deployed to docs.upshiftcloud.com
 ```
 
 ## How a release is built
@@ -91,6 +95,25 @@ docker compose up -d --remove-orphans
 
 `docker-compose.local.yml` keeps the project name `upshift`, so the existing database and file volumes are reused.
 
+## Documentation
+
+`docs/` publishes the user documentation at https://docs.upshiftcloud.com with Mintlify. It is built from Twenty's own docs in `packages/twenty-docs`, which stays untouched:
+
+- `docs/rules.mjs` says what is published and how it is rebranded: the Getting Started and User Guide tabs in French (the default, served at the root) and English (under `/en/`), without Twenty's billing, legal, cloud migration and partner pages, with Twenty's links and addresses pointed at Upshift. French links to a page Twenty has not translated yet go to its English version.
+- `docs/import-docs.mjs` applies the rules and writes `docs/site/`, the folder Mintlify deploys from `upshift-main`. Never edit `docs/site/` by hand or in the Mintlify web editor: the next import replaces it. Change the rules instead.
+
+```bash
+node upshift/docs/import-docs.mjs
+```
+
+The import fails when a sentence a rule expects has changed in Twenty's docs, or when a page still references a Twenty address or links to a page that is not published. Update the rule's text or `count` in `rules.mjs` and run it again. The Upshift Branding Check runs the importer's tests and fails while `docs/site/` differs from what the import produces.
+
+To preview the site locally:
+
+```bash
+cd upshift/docs/site && npx --yes mintlify@4.2.956 dev
+```
+
 ## Syncing Twenty into upshift-main
 
 `main` mirrors Twenty and only receives Twenty's commits.
@@ -106,6 +129,8 @@ git switch main && git pull --ff-only
 ```bash
 git switch -c sync/twenty-$(date +%Y-%m-%d) upshift-main && git merge main
 ```
+
+Then refresh the docs in the same branch with `node upshift/docs/import-docs.mjs` and commit `upshift/docs/site` if it changed.
 
 Open a PR into `upshift-main`. The merge has no conflicts because Upshift only adds files. The [Upshift Branding Check](../.github/workflows/upshift-branding-check.yaml) workflow applies the layer to the PR and to the latest Twenty release, so you learn about broken patch points before the next release.
 

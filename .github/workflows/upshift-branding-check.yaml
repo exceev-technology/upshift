@@ -47,6 +47,26 @@ jobs:
       - name: Apply the layer to this branch
         run: node upshift/scripts/apply-branding.mjs --root .
 
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out this branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+
+      - name: Test the docs importer
+        run: node --test upshift/docs/test/*.test.mjs
+
+      - name: Check the docs site matches Twenty's docs
+        run: node upshift/docs/import-docs.mjs --check
+
   disable-twenty-workflows:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
