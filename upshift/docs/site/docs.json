@@ -1,0 +1,28 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Upshift Documentation",
+  "theme": "almond",
+  "logo": {
+    "light": "/logo.svg",
+    "dark": "/logo.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#18181B",
+    "light": "#FAFAFA",
+    "dark": "#18181B"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Upshift",
+            "pages": ["index"]
+          }
+        ]
+      }
+    ]
+  }
+}
