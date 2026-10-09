@@ -5,6 +5,7 @@ import {
   COMPANY_URL,
   CONTACT_LINK,
   CRM_ALLOWED_CONTEXTS,
+  DEMO_PAGE_URL,
   DEMO_URL,
   DOCS_URL,
   EXCLUDED_PAGE_PREFIXES,
@@ -348,6 +349,7 @@ const buildFooter = (labels, tabs) => ({
       header: labels.product,
       items: [
         { label: labels.website, href: WEBSITE_URL },
+        { label: labels.watchDemo, href: DEMO_PAGE_URL },
         { label: labels.bookDemo, href: DEMO_URL },
       ],
     },

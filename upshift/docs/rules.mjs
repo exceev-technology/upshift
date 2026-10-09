@@ -14,6 +14,7 @@ export const DOCS_URL = 'https://docs.upshiftcloud.com';
 export const TWENTY_SOURCE_URL = 'https://github.com/twentyhq/twenty';
 export const COMPANY_NAME = brand.companyName;
 export const COMPANY_URL = 'https://exceev.com';
+export const DEMO_PAGE_URL = `${brand.websiteUrl}/demo`;
 export const DEMO_URL =
   'https://calcom.exceev.com/team/exceev-technology/upshift-intro';
 export const SOCIALS = {
@@ -46,6 +47,7 @@ export const LANGUAGES = [
       contactUs: 'Nous contacter',
       product: 'Produit',
       website: 'Site web',
+      watchDemo: 'Voir la démo',
       bookDemo: 'Réserver une démo',
       documentation: 'Documentation',
       sections: ['Prise en main', 'Guide utilisateur'],
@@ -66,6 +68,7 @@ export const LANGUAGES = [
       contactUs: 'Contact us',
       product: 'Product',
       website: 'Website',
+      watchDemo: 'Watch the demo',
       bookDemo: 'Book a demo',
       documentation: 'Documentation',
       sections: ['Getting started', 'User guide'],
