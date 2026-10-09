@@ -58,6 +58,10 @@
                   "href": "https://upshiftcloud.com"
                 },
                 {
+                  "label": "Voir la démo",
+                  "href": "https://upshiftcloud.com/demo"
+                },
+                {
                   "label": "Réserver une démo",
                   "href": "https://calcom.exceev.com/team/exceev-technology/upshift-intro"
                 }
@@ -438,6 +442,10 @@
                 {
                   "label": "Website",
                   "href": "https://upshiftcloud.com"
+                },
+                {
+                  "label": "Watch the demo",
+                  "href": "https://upshiftcloud.com/demo"
                 },
                 {
                   "label": "Book a demo",
@@ -833,6 +841,10 @@
           {
             "label": "Site web",
             "href": "https://upshiftcloud.com"
+          },
+          {
+            "label": "Voir la démo",
+            "href": "https://upshiftcloud.com/demo"
           },
           {
             "label": "Réserver une démo",

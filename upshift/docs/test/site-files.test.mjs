@@ -127,6 +127,23 @@ describe('buildDocsConfig', () => {
     assert.deepEqual(config.footer, french.footer);
   });
 
+  it('links the product column to the website, the demo page and the demo booking', () => {
+    const [french, english] = config.navigation.languages;
+    const bookingUrl =
+      'https://calcom.exceev.com/team/exceev-technology/upshift-intro';
+
+    assert.deepEqual(french.footer.links[0].items, [
+      { label: 'Site web', href: 'https://upshiftcloud.com' },
+      { label: 'Voir la démo', href: 'https://upshiftcloud.com/demo' },
+      { label: 'Réserver une démo', href: bookingUrl },
+    ]);
+    assert.deepEqual(english.footer.links[0].items, [
+      { label: 'Website', href: 'https://upshiftcloud.com' },
+      { label: 'Watch the demo', href: 'https://upshiftcloud.com/demo' },
+      { label: 'Book a demo', href: bookingUrl },
+    ]);
+  });
+
   it('links the footer to each published tab in its own language', () => {
     const [french, english] = config.navigation.languages;
 
