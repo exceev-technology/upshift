@@ -380,10 +380,10 @@ const PATCHES = [
   {
     file: `${SERVER}/engine/core-modules/well-known/utils/build-mcp-server-card.util.ts`,
     replacements: [
-      { from: "title: 'Twenty CRM',", to: "title: '{{name}} CRM'," },
+      { from: "title: 'Twenty CRM',", to: "title: '{{name}}'," },
       {
         from: "'Read and write your Twenty CRM data",
-        to: "'Read and write your {{name}} CRM data",
+        to: "'Read and write your {{name}} data",
       },
       {
         from: "websiteUrl: 'https://twenty.com',",

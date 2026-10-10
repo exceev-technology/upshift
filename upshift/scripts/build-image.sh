@@ -46,7 +46,7 @@ docker build \
   --target twenty \
   --build-arg "APP_VERSION=${VERSION#v}" \
   --label "org.opencontainers.image.title=Upshift" \
-  --label "org.opencontainers.image.description=Upshift CRM, built on Twenty $TWENTY_TAG" \
+  --label "org.opencontainers.image.description=Upshift process platform, built on Twenty $TWENTY_TAG" \
   --label "org.opencontainers.image.version=$VERSION" \
   --file "$BUILD_DIRECTORY/twenty/packages/twenty-docker/twenty/Dockerfile" \
   --tag "$IMAGE" \
