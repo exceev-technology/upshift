@@ -443,7 +443,7 @@ export const auditSite = (files, sitePages) => {
       continue;
     }
 
-    if (!/\.(mdx|jsx)$/.test(filePath)) {
+    if (!/\.(mdx|jsx?)$/.test(filePath)) {
       continue;
     }
 

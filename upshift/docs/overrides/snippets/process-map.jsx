@@ -6,6 +6,7 @@ export const ProcessMap = ({ lang = 'fr' }) => {
         previousSectors: 'Secteurs précédents',
         nextSectors: 'Secteurs suivants',
         stepPosition: (number, total) => 'Étape ' + number + ' sur ' + total,
+        stepList: (sectorName) => 'Étapes : ' + sectorName,
         previousStep: 'Étape précédente',
         nextStep: 'Étape suivante',
         sharedRecord: 'Une fiche commune à chaque étape',
@@ -276,7 +277,7 @@ export const ProcessMap = ({ lang = 'fr' }) => {
         ],
         ['Dashboards', 'Graphiques et KPI que vous construisez vous-même'],
         ['E-mail et agenda', 'Chaque échange arrive sur la bonne fiche'],
-        ['WhatsApp et appels', 'Intégrés, bientôt disponibles'],
+        ['WhatsApp et appels', 'Intégration native, bientôt disponible'],
         [
           'Historique des fiches',
           'Chronologie, notes, tâches et fichiers sur chaque fiche',
@@ -284,7 +285,7 @@ export const ProcessMap = ({ lang = 'fr' }) => {
         ['Rôles et permissions', 'Définis par équipe et par utilisateur'],
         [
           'Documents métier',
-          'Devis, factures et documents métier générés en PDF',
+          'Devis, factures et autres documents générés en PDF',
         ],
         ['Import et export', 'Depuis et vers Excel ou CSV'],
         ['API et webhooks', 'Connectez vos autres outils'],
@@ -300,6 +301,7 @@ export const ProcessMap = ({ lang = 'fr' }) => {
         previousSectors: 'Previous industries',
         nextSectors: 'Next industries',
         stepPosition: (number, total) => 'Step ' + number + ' of ' + total,
+        stepList: (sectorName) => 'Steps: ' + sectorName,
         previousStep: 'Previous step',
         nextStep: 'Next step',
         sharedRecord: 'One shared record at every step',
@@ -569,12 +571,12 @@ export const ProcessMap = ({ lang = 'fr' }) => {
         ['No-code workflows', 'Triggers, approvals and automatic reminders'],
         ['Dashboards', 'Charts and KPIs you build yourself'],
         ['Email and calendar', 'Every exchange lands on the right record'],
-        ['WhatsApp and calls', 'Built in, coming soon'],
+        ['WhatsApp and calls', 'Native integration, coming soon'],
         ['Record history', 'Timeline, notes, tasks and files on every record'],
         ['Roles and permissions', 'Set per team and per user'],
         [
           'Business documents',
-          'Quotes, invoices and business documents generated as PDF',
+          'Quotes, invoices and other documents generated as PDF',
         ],
         ['Import and export', 'From and to Excel or CSV'],
         ['API and webhooks', 'Connect your other tools'],
@@ -598,14 +600,23 @@ export const ProcessMap = ({ lang = 'fr' }) => {
   const [stepTitle, stepDetail] = sector.steps[stepIndex];
   const idPrefix = 'upshift-process-map-' + lang;
 
-  const selectSector = (index, chip) => {
-    setSectorIndex(index);
-    setStepIndex(0);
+  const getScrollBehavior = () =>
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? 'auto'
+      : 'smooth';
+
+  const revealChip = (chip) => {
     chip.scrollIntoView({
-      behavior: 'smooth',
+      behavior: getScrollBehavior(),
       block: 'nearest',
       inline: 'center',
     });
+  };
+
+  const selectSector = (index, chip) => {
+    setSectorIndex(index);
+    setStepIndex(0);
+    revealChip(chip);
   };
 
   const updateRailEdges = () => {
@@ -617,12 +628,22 @@ export const ProcessMap = ({ lang = 'fr' }) => {
     });
   };
 
+  // The rail only reports scrolls, so its edges are measured again whenever
+  // its width changes, starting with the first render.
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(updateRailEdges);
+
+    resizeObserver.observe(railRef.current);
+
+    return () => resizeObserver.disconnect();
+  }, []);
+
   const scrollRail = (direction) => {
     const rail = railRef.current;
 
     rail.scrollBy({
       left: direction * rail.clientWidth * 0.6,
-      behavior: 'smooth',
+      behavior: getScrollBehavior(),
     });
   };
 
@@ -665,8 +686,8 @@ export const ProcessMap = ({ lang = 'fr' }) => {
       type="button"
       className="upshift-process-map__icon-button"
       aria-label={label}
-      disabled={isDisabled}
-      onClick={onClick}
+      aria-disabled={isDisabled}
+      onClick={isDisabled ? undefined : onClick}
     >
       {renderChevron(direction)}
     </button>
@@ -704,6 +725,7 @@ export const ProcessMap = ({ lang = 'fr' }) => {
             className="upshift-process-map__chip"
             aria-pressed={index === sectorIndex}
             onClick={(event) => selectSector(index, event.currentTarget)}
+            onFocus={(event) => revealChip(event.currentTarget)}
           >
             {item.name}
           </button>
@@ -716,7 +738,7 @@ export const ProcessMap = ({ lang = 'fr' }) => {
             className="upshift-process-map__steps"
             role="tablist"
             aria-orientation="vertical"
-            aria-label={sector.name}
+            aria-label={labels.stepList(sector.name)}
             onKeyDown={handleStepKeyDown}
           >
             {sector.steps.map(([title], index) => (
@@ -782,7 +804,7 @@ export const ProcessMap = ({ lang = 'fr' }) => {
       </div>
       <p className="upshift-process-map__note">{labels.note}</p>
       <section className="upshift-process-map__section">
-        <p className="upshift-process-map__heading">{labels.company}</p>
+        <h3 className="upshift-process-map__heading">{labels.company}</h3>
         <p className="upshift-process-map__intro">{labels.companyIntro}</p>
         <dl className="upshift-process-map__areas">
           {areas.map(([title, detail]) => (
@@ -794,7 +816,7 @@ export const ProcessMap = ({ lang = 'fr' }) => {
         </dl>
       </section>
       <section className="upshift-process-map__section">
-        <p className="upshift-process-map__heading">{labels.platform}</p>
+        <h3 className="upshift-process-map__heading">{labels.platform}</h3>
         <p className="upshift-process-map__intro">{labels.platformIntro}</p>
         <ul className="upshift-process-map__capabilities">
           {capabilities.map(([title, detail]) => (

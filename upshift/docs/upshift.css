@@ -58,7 +58,7 @@ img[src*='/images/user-guide/halftone/'] {
   outline-offset: 2px;
 }
 
-.upshift-process-map :where(p, dl, dd, ul, ol) {
+.upshift-process-map :where(h3, p, dl, dd, ul, ol) {
   margin: 0;
 }
 
@@ -89,12 +89,12 @@ img[src*='/images/user-guide/halftone/'] {
   transition: border-color 150ms, color 150ms;
 }
 
-.upshift-process-map__icon-button:hover:not(:disabled) {
+.upshift-process-map__icon-button:hover:not([aria-disabled='true']) {
   border-color: var(--process-map-accent);
   color: var(--process-map-accent);
 }
 
-.upshift-process-map__icon-button:disabled {
+.upshift-process-map__icon-button[aria-disabled='true'] {
   opacity: 0.35;
   cursor: default;
 }
@@ -124,6 +124,11 @@ img[src*='/images/user-guide/halftone/'] {
 .upshift-process-map__rail[data-start='false'][data-end='true'] {
   -webkit-mask-image: linear-gradient(to right, transparent, #000 3rem);
   mask-image: linear-gradient(to right, transparent, #000 3rem);
+}
+
+.upshift-process-map__rail[data-start='true'][data-end='true'] {
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 .upshift-process-map__chip {

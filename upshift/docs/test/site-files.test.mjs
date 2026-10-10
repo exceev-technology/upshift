@@ -266,10 +266,12 @@ describe('auditSite on CRM wording', () => {
         'snippets/process-map.jsx',
         "['Prospecting and CRM', 'Leads'],\n['Upshift CRM', 'Everything'],",
       ],
+      ['snippets/data.js', "export const TAGLINE = 'The CRM for teams';"],
     ]);
 
     assert.deepEqual(auditSite(files, []), [
       `snippets/process-map.jsx presents Upshift as a CRM: "['Upshift CRM', 'Everything'],"`,
+      `snippets/data.js presents Upshift as a CRM: "export const TAGLINE = 'The CRM for teams';"`,
     ]);
   });
 });
