@@ -88,6 +88,8 @@ describe('buildSite on packages/twenty-docs', () => {
     assert.match(processMap, /name: 'Non-profit and public sector'/);
     assert.match(processMap, /name: 'Équipement médical'/);
     assert.match(processMap, /name: 'Medical equipment'/);
+    assert.match(processMap, /'Conformité réglementaire'/);
+    assert.match(processMap, /'Regulatory compliance'/);
   });
 
   it('drops the Community settings the Upshift app removes, and the steps that point to it', () => {

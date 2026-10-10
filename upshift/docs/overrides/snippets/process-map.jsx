@@ -107,12 +107,34 @@ export const ProcessMap = ({ lang = 'fr' }) => {
         {
           name: 'Équipement médical',
           steps: [
-            ['Prospection', 'Hôpitaux, cliniques, cabinets, pharmacies, appels d’offres publics'],
-            ['Devis et appels d’offres', 'Configurations, prix fabricant en devises, marges, dossiers de soumission'],
-            ['Achats et import', 'Commandes fournisseurs, dédouanement, homologations'],
-            ['Stock et livraison', 'Lots, numéros de série, dates de péremption, livraisons'],
-            ['Installation et formation', 'Visite technique, mise en service, PV de réception, formation des utilisateurs'],
-            ['SAV et maintenance', 'Contrats de maintenance, interventions, pièces détachées, matériovigilance'],
+            [
+              'Prospection',
+              'Hôpitaux, cliniques, cabinets, pharmacies, appels d’offres publics',
+            ],
+            [
+              'Devis et appels d’offres',
+              'Configurations, prix fabricant en devises, marges, dossiers de soumission',
+            ],
+            [
+              'Conformité réglementaire',
+              'Homologations, certificats CE et ISO, dossiers techniques, échéances de renouvellement, matériovigilance et rappels',
+            ],
+            [
+              'Achats et import',
+              'Commandes fournisseurs, import, dédouanement, réceptions',
+            ],
+            [
+              'Stock et livraison',
+              'Lots, numéros de série, dates de péremption, livraisons',
+            ],
+            [
+              'Installation et formation',
+              'Visite technique, mise en service, PV de réception, formation des utilisateurs',
+            ],
+            [
+              'SAV et maintenance',
+              'Contrats de maintenance, interventions, pièces détachées, garanties',
+            ],
           ],
         },
         {
@@ -381,12 +403,34 @@ export const ProcessMap = ({ lang = 'fr' }) => {
         {
           name: 'Medical equipment',
           steps: [
-            ['Prospecting', 'Hospitals, clinics, practices, pharmacies, public tenders'],
-            ['Quotes and tenders', 'Configurations, manufacturer prices in foreign currency, margins, bid files'],
-            ['Purchasing and import', 'Supplier orders, customs clearance, regulatory approvals'],
-            ['Stock and delivery', 'Batches, serial numbers, expiry dates, deliveries'],
-            ['Installation and training', 'Site survey, commissioning, acceptance report, user training'],
-            ['After-sales and maintenance', 'Maintenance contracts, interventions, spare parts, device vigilance'],
+            [
+              'Prospecting',
+              'Hospitals, clinics, practices, pharmacies, public tenders',
+            ],
+            [
+              'Quotes and tenders',
+              'Configurations, manufacturer prices in foreign currency, margins, bid files',
+            ],
+            [
+              'Regulatory compliance',
+              'Device registrations, CE and ISO certificates, technical files, renewal dates, vigilance and recalls',
+            ],
+            [
+              'Purchasing and import',
+              'Supplier orders, import, customs clearance, receipts',
+            ],
+            [
+              'Stock and delivery',
+              'Batches, serial numbers, expiry dates, deliveries',
+            ],
+            [
+              'Installation and training',
+              'Site survey, commissioning, acceptance report, user training',
+            ],
+            [
+              'After-sales and maintenance',
+              'Maintenance contracts, interventions, spare parts, warranties',
+            ],
           ],
         },
         {
