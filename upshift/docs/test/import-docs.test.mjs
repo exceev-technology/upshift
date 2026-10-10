@@ -82,10 +82,12 @@ describe('buildSite on packages/twenty-docs', () => {
 
     assert.match(files.get('getting-started/introduction.mdx'), /<ProcessMap lang="fr" \/>/);
     assert.match(files.get('en/getting-started/introduction.mdx'), /<ProcessMap lang="en" \/>/);
-    assert.match(processMap, /\['RH', 'Recrutement/);
-    assert.match(processMap, /\['HR', 'Recruitment/);
+    assert.match(processMap, /\[\s*'RH',\s*'Recrutement/);
+    assert.match(processMap, /\[\s*'HR',\s*'Recruitment/);
     assert.match(processMap, /name: 'Associations et secteur public'/);
     assert.match(processMap, /name: 'Non-profit and public sector'/);
+    assert.match(processMap, /name: 'Équipement médical'/);
+    assert.match(processMap, /name: 'Medical equipment'/);
   });
 
   it('drops the Community settings the Upshift app removes, and the steps that point to it', () => {

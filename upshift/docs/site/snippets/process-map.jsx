@@ -10,7 +10,8 @@ export const ProcessMap = ({ lang = 'fr' }) => {
         nextStep: 'Étape suivante',
         sharedRecord: 'Une fiche commune à chaque étape',
         company: 'Toute l’entreprise',
-        companyIntro: 'Les fonctions qui accompagnent chaque étape, sur les mêmes fiches.',
+        companyIntro:
+          'Les fonctions qui accompagnent chaque étape, sur les mêmes fiches.',
         platform: 'Le socle, sous chaque module',
         platformIntro: 'Les briques communes à tous les modules.',
         note: 'Ces étapes sont des exemples : votre chaîne suit vos propres étapes, autant qu’il en faut, et chaque espace de travail est configuré sur votre métier.',
@@ -19,12 +20,30 @@ export const ProcessMap = ({ lang = 'fr' }) => {
         {
           name: 'Vue d’ensemble',
           steps: [
-            ['Prospection et CRM', 'Leads, comptes, contacts et opportunités, avec chaque échange sur la bonne fiche'],
-            ['Devis et commandes', 'Devis multi-devises, circuits de validation, PDF envoyés au client, acomptes'],
-            ['Achats et stocks', 'Demandes d’achat, commandes fournisseurs, réceptions, mouvements de stock'],
-            ['Projets et installations', 'Visites techniques, prérequis du site, planning, équipes, réception'],
-            ['SAV et maintenance', 'Tickets, interventions, contrats de maintenance, garanties, parc installé'],
-            ['Dashboards et reporting', 'Pipeline, chiffre d’affaires, activité et KPI, par équipe et par entité'],
+            [
+              'Prospection et CRM',
+              'Leads, comptes, contacts et opportunités, avec chaque échange sur la bonne fiche',
+            ],
+            [
+              'Devis et commandes',
+              'Devis multi-devises, circuits de validation, PDF envoyés au client, acomptes',
+            ],
+            [
+              'Achats et stocks',
+              'Demandes d’achat, commandes fournisseurs, réceptions, mouvements de stock',
+            ],
+            [
+              'Projets et installations',
+              'Visites techniques, prérequis du site, planning, équipes, réception',
+            ],
+            [
+              'SAV et maintenance',
+              'Tickets, interventions, contrats de maintenance, garanties, parc installé',
+            ],
+            [
+              'Dashboards et reporting',
+              'Pipeline, chiffre d’affaires, activité et KPI, par équipe et par entité',
+            ],
           ],
         },
         {
@@ -33,7 +52,10 @@ export const ProcessMap = ({ lang = 'fr' }) => {
             ['Prospection', 'Distributeurs, grands comptes, appels d’offres'],
             ['Devis technique', 'Configurations produit, nomenclatures, prix'],
             ['Commande', 'Bons de commande, validation, acomptes'],
-            ['Fabrication', 'Ordres de fabrication, approvisionnement, qualité'],
+            [
+              'Fabrication',
+              'Ordres de fabrication, approvisionnement, qualité',
+            ],
             ['Livraison', 'Expéditions, bons de livraison, facturation'],
             ['SAV et garantie', 'Garanties, maintenance, pièces détachées'],
           ],
@@ -80,6 +102,17 @@ export const ProcessMap = ({ lang = 'fr' }) => {
             ['Soins et actes', 'Planning des soins, matériel, consommables'],
             ['Facturation', 'Tiers payant, feuilles de soins, encaissements'],
             ['Suivi', 'Contrôles, relances, satisfaction patient'],
+          ],
+        },
+        {
+          name: 'Équipement médical',
+          steps: [
+            ['Prospection', 'Hôpitaux, cliniques, cabinets, pharmacies, appels d’offres publics'],
+            ['Devis et appels d’offres', 'Configurations, prix fabricant en devises, marges, dossiers de soumission'],
+            ['Achats et import', 'Commandes fournisseurs, dédouanement, homologations'],
+            ['Stock et livraison', 'Lots, numéros de série, dates de péremption, livraisons'],
+            ['Installation et formation', 'Visite technique, mise en service, PV de réception, formation des utilisateurs'],
+            ['SAV et maintenance', 'Contrats de maintenance, interventions, pièces détachées, matériovigilance'],
           ],
         },
         {
@@ -183,27 +216,60 @@ export const ProcessMap = ({ lang = 'fr' }) => {
         },
       ],
       areas: [
-        ['RH', 'Recrutement, contrats de travail, absences et congés, temps et notes de frais, entretiens annuels, compétences et habilitations, documents RH'],
-        ['Formation', 'Catalogue, sessions, inscriptions, présences et attestations, pour vos équipes comme pour vos clients'],
-        ['Finance', 'Factures et échéanciers, encaissements, relances, avoirs, factures fournisseurs, plusieurs devises'],
-        ['Contrats et financement', 'Contrats clients et de maintenance, avenants, dossiers de financement, garanties'],
-        ['Qualité et réglementation', 'Homologations, conformité, audits, non-conformités, vigilance'],
-        ['Parc installé', 'Chaque équipement livré, avec son numéro de série, son site et ses interventions'],
-        ['Référentiel', 'Sociétés, contacts, produits, fabricants, tarifs et entités, partagés par tous les modules'],
+        [
+          'RH',
+          'Recrutement, contrats de travail, absences et congés, temps et notes de frais, entretiens annuels, compétences et habilitations, documents RH',
+        ],
+        [
+          'Formation',
+          'Catalogue, sessions, inscriptions, présences et attestations, pour vos équipes comme pour vos clients',
+        ],
+        [
+          'Finance',
+          'Factures et échéanciers, encaissements, relances, avoirs, factures fournisseurs, plusieurs devises',
+        ],
+        [
+          'Contrats et financement',
+          'Contrats clients et de maintenance, avenants, dossiers de financement, garanties',
+        ],
+        [
+          'Qualité et réglementation',
+          'Homologations, conformité, audits, non-conformités, vigilance',
+        ],
+        [
+          'Parc installé',
+          'Chaque équipement livré, avec son numéro de série, son site et ses interventions',
+        ],
+        [
+          'Référentiel',
+          'Sociétés, contacts, produits, fabricants, tarifs et entités, partagés par tous les modules',
+        ],
       ],
       capabilities: [
         ['Modèle de données', 'Objets, champs et relations personnalisés'],
         ['Vues', 'Tableaux et kanbans, avec filtres et tris par équipe'],
-        ['Workflows sans code', 'Déclencheurs, validations et rappels automatiques'],
+        [
+          'Workflows sans code',
+          'Déclencheurs, validations et rappels automatiques',
+        ],
         ['Dashboards', 'Graphiques et KPI que vous construisez vous-même'],
         ['E-mail et agenda', 'Chaque échange arrive sur la bonne fiche'],
         ['WhatsApp et appels', 'Intégrés, bientôt disponibles'],
-        ['Historique des fiches', 'Chronologie, notes, tâches et fichiers sur chaque fiche'],
+        [
+          'Historique des fiches',
+          'Chronologie, notes, tâches et fichiers sur chaque fiche',
+        ],
         ['Rôles et permissions', 'Définis par équipe et par utilisateur'],
-        ['Documents métier', 'Devis, factures et documents métier générés en PDF'],
+        [
+          'Documents métier',
+          'Devis, factures et documents métier générés en PDF',
+        ],
         ['Import et export', 'Depuis et vers Excel ou CSV'],
         ['API et webhooks', 'Connectez vos autres outils'],
-        ['IA native', 'Chat IA, agents dans vos workflows, et MCP pour ChatGPT ou Claude'],
+        [
+          'IA native',
+          'Chat IA, agents dans vos workflows, et MCP pour ChatGPT ou Claude',
+        ],
       ],
     },
     en: {
@@ -225,23 +291,47 @@ export const ProcessMap = ({ lang = 'fr' }) => {
         {
           name: 'Overview',
           steps: [
-            ['Prospecting and CRM', 'Leads, accounts, contacts and opportunities, with every exchange on the right record'],
-            ['Quotes and orders', 'Multi-currency quotes, approval flows, PDFs sent to the customer, deposits'],
-            ['Purchasing and stock', 'Purchase requests, supplier orders, receipts, stock movements'],
-            ['Projects and installations', 'Site surveys, site prerequisites, planning, teams, acceptance'],
-            ['After-sales and maintenance', 'Tickets, interventions, maintenance contracts, warranties, installed base'],
-            ['Dashboards and reporting', 'Pipeline, revenue, activity and KPIs, by team and by entity'],
+            [
+              'Prospecting and CRM',
+              'Leads, accounts, contacts and opportunities, with every exchange on the right record',
+            ],
+            [
+              'Quotes and orders',
+              'Multi-currency quotes, approval flows, PDFs sent to the customer, deposits',
+            ],
+            [
+              'Purchasing and stock',
+              'Purchase requests, supplier orders, receipts, stock movements',
+            ],
+            [
+              'Projects and installations',
+              'Site surveys, site prerequisites, planning, teams, acceptance',
+            ],
+            [
+              'After-sales and maintenance',
+              'Tickets, interventions, maintenance contracts, warranties, installed base',
+            ],
+            [
+              'Dashboards and reporting',
+              'Pipeline, revenue, activity and KPIs, by team and by entity',
+            ],
           ],
         },
         {
           name: 'Manufacturing',
           steps: [
             ['Prospecting', 'Distributors, key accounts, tenders'],
-            ['Technical quote', 'Product configurations, bills of materials, prices'],
+            [
+              'Technical quote',
+              'Product configurations, bills of materials, prices',
+            ],
             ['Order', 'Purchase orders, approval, deposits'],
             ['Production', 'Production orders, supply, quality'],
             ['Delivery', 'Shipments, delivery notes, invoicing'],
-            ['After-sales and warranty', 'Warranties, maintenance, spare parts'],
+            [
+              'After-sales and warranty',
+              'Warranties, maintenance, spare parts',
+            ],
           ],
         },
         {
@@ -286,6 +376,17 @@ export const ProcessMap = ({ lang = 'fr' }) => {
             ['Care and procedures', 'Care schedule, equipment, consumables'],
             ['Billing', 'Third-party payment, care sheets, collections'],
             ['Follow-up', 'Check-ups, reminders, patient satisfaction'],
+          ],
+        },
+        {
+          name: 'Medical equipment',
+          steps: [
+            ['Prospecting', 'Hospitals, clinics, practices, pharmacies, public tenders'],
+            ['Quotes and tenders', 'Configurations, manufacturer prices in foreign currency, margins, bid files'],
+            ['Purchasing and import', 'Supplier orders, customs clearance, regulatory approvals'],
+            ['Stock and delivery', 'Batches, serial numbers, expiry dates, deliveries'],
+            ['Installation and training', 'Site survey, commissioning, acceptance report, user training'],
+            ['After-sales and maintenance', 'Maintenance contracts, interventions, spare parts, device vigilance'],
           ],
         },
         {
@@ -389,13 +490,34 @@ export const ProcessMap = ({ lang = 'fr' }) => {
         },
       ],
       areas: [
-        ['HR', 'Recruitment, employment contracts, leave and absences, time and expenses, annual reviews, skills and certifications, HR documents'],
-        ['Training', 'Catalog, sessions, enrollments, attendance and certificates, for your teams and your customers'],
-        ['Finance', 'Invoices and payment schedules, collections, reminders, credit notes, supplier invoices, multiple currencies'],
-        ['Contracts and financing', 'Customer and maintenance contracts, amendments, financing files, guarantees'],
-        ['Quality and compliance', 'Approvals, compliance, audits, non-conformities, vigilance'],
-        ['Installed base', 'Every delivered unit, with its serial number, site and interventions'],
-        ['Master data', 'Companies, contacts, products, manufacturers, prices and entities, shared by every module'],
+        [
+          'HR',
+          'Recruitment, employment contracts, leave and absences, time and expenses, annual reviews, skills and certifications, HR documents',
+        ],
+        [
+          'Training',
+          'Catalog, sessions, enrollments, attendance and certificates, for your teams and your customers',
+        ],
+        [
+          'Finance',
+          'Invoices and payment schedules, collections, reminders, credit notes, supplier invoices, multiple currencies',
+        ],
+        [
+          'Contracts and financing',
+          'Customer and maintenance contracts, amendments, financing files, guarantees',
+        ],
+        [
+          'Quality and compliance',
+          'Approvals, compliance, audits, non-conformities, vigilance',
+        ],
+        [
+          'Installed base',
+          'Every delivered unit, with its serial number, site and interventions',
+        ],
+        [
+          'Master data',
+          'Companies, contacts, products, manufacturers, prices and entities, shared by every module',
+        ],
       ],
       capabilities: [
         ['Data model', 'Custom objects, fields and relations'],
@@ -406,10 +528,16 @@ export const ProcessMap = ({ lang = 'fr' }) => {
         ['WhatsApp and calls', 'Built in, coming soon'],
         ['Record history', 'Timeline, notes, tasks and files on every record'],
         ['Roles and permissions', 'Set per team and per user'],
-        ['Business documents', 'Quotes, invoices and business documents generated as PDF'],
+        [
+          'Business documents',
+          'Quotes, invoices and business documents generated as PDF',
+        ],
         ['Import and export', 'From and to Excel or CSV'],
         ['API and webhooks', 'Connect your other tools'],
-        ['Native AI', 'AI chat, agents in your workflows, and MCP for ChatGPT or Claude'],
+        [
+          'Native AI',
+          'AI chat, agents in your workflows, and MCP for ChatGPT or Claude',
+        ],
       ],
     },
   }[lang];
@@ -429,7 +557,11 @@ export const ProcessMap = ({ lang = 'fr' }) => {
   const selectSector = (index, chip) => {
     setSectorIndex(index);
     setStepIndex(0);
-    chip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    chip.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center',
+    });
   };
 
   const updateRailEdges = () => {
@@ -444,7 +576,10 @@ export const ProcessMap = ({ lang = 'fr' }) => {
   const scrollRail = (direction) => {
     const rail = railRef.current;
 
-    rail.scrollBy({ left: direction * rail.clientWidth * 0.6, behavior: 'smooth' });
+    rail.scrollBy({
+      left: direction * rail.clientWidth * 0.6,
+      behavior: 'smooth',
+    });
   };
 
   const handleStepKeyDown = (event) => {
@@ -467,7 +602,11 @@ export const ProcessMap = ({ lang = 'fr' }) => {
   const renderChevron = (direction) => (
     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
       <path
-        d={direction === 'previous' ? 'M10 3.5 5.5 8l4.5 4.5' : 'M6 3.5 10.5 8 6 12.5'}
+        d={
+          direction === 'previous'
+            ? 'M10 3.5 5.5 8l4.5 4.5'
+            : 'M6 3.5 10.5 8 6 12.5'
+        }
         fill="none"
         stroke="currentColor"
         strokeWidth="1.5"
@@ -494,8 +633,15 @@ export const ProcessMap = ({ lang = 'fr' }) => {
       <div className="upshift-process-map__rail-header">
         <p className="upshift-process-map__caption">{labels.sectors}</p>
         <div className="upshift-process-map__controls">
-          {renderIconButton('previous', labels.previousSectors, railEdges.start, () => scrollRail(-1))}
-          {renderIconButton('next', labels.nextSectors, railEdges.end, () => scrollRail(1))}
+          {renderIconButton(
+            'previous',
+            labels.previousSectors,
+            railEdges.start,
+            () => scrollRail(-1),
+          )}
+          {renderIconButton('next', labels.nextSectors, railEdges.end, () =>
+            scrollRail(1),
+          )}
         </div>
       </div>
       <div
@@ -530,7 +676,11 @@ export const ProcessMap = ({ lang = 'fr' }) => {
             onKeyDown={handleStepKeyDown}
           >
             {sector.steps.map(([title], index) => (
-              <li key={title} className="upshift-process-map__step" role="presentation">
+              <li
+                key={title}
+                className="upshift-process-map__step"
+                role="presentation"
+              >
                 <button
                   ref={(node) => {
                     stepRefs.current[index] = node;
@@ -544,7 +694,9 @@ export const ProcessMap = ({ lang = 'fr' }) => {
                   tabIndex={index === stepIndex ? 0 : -1}
                   onClick={() => setStepIndex(index)}
                 >
-                  <span className="upshift-process-map__step-number">{index + 1}</span>
+                  <span className="upshift-process-map__step-number">
+                    {index + 1}
+                  </span>
                   <span>{title}</span>
                 </button>
               </li>
@@ -558,7 +710,10 @@ export const ProcessMap = ({ lang = 'fr' }) => {
           role="tabpanel"
           aria-labelledby={idPrefix + '-step-' + stepIndex}
         >
-          <div key={sectorIndex + '-' + stepIndex} className="upshift-process-map__panel-body">
+          <div
+            key={sectorIndex + '-' + stepIndex}
+            className="upshift-process-map__panel-body"
+          >
             <p className="upshift-process-map__caption">
               {labels.stepPosition(stepIndex + 1, sector.steps.length)}
             </p>
@@ -566,8 +721,18 @@ export const ProcessMap = ({ lang = 'fr' }) => {
             <p className="upshift-process-map__panel-text">{stepDetail}</p>
           </div>
           <div className="upshift-process-map__controls">
-            {renderIconButton('previous', labels.previousStep, stepIndex === 0, () => setStepIndex(stepIndex - 1))}
-            {renderIconButton('next', labels.nextStep, stepIndex === lastStepIndex, () => setStepIndex(stepIndex + 1))}
+            {renderIconButton(
+              'previous',
+              labels.previousStep,
+              stepIndex === 0,
+              () => setStepIndex(stepIndex - 1),
+            )}
+            {renderIconButton(
+              'next',
+              labels.nextStep,
+              stepIndex === lastStepIndex,
+              () => setStepIndex(stepIndex + 1),
+            )}
           </div>
         </div>
       </div>
