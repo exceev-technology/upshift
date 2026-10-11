@@ -202,6 +202,11 @@ jobs:
         with:
           node-version: 24
 
+      - name: Test privacy guards against the release source
+        run: node --test upshift-layer/upshift/scripts/*.test.mjs
+        env:
+          UPSHIFT_PRIVACY_SOURCE_ROOT: ${{ github.workspace }}/twenty
+
       - name: Apply the Upshift layer
         run: node upshift-layer/upshift/scripts/apply-branding.mjs --root twenty
 
@@ -277,6 +282,14 @@ jobs:
             TELEMETRY_ENABLED: "true"
             ALLOW_REQUESTS_TO_TWENTY_ICONS: "true"
             OUTBOUND_HTTP_ALLOWED_INTERNAL_HOSTS: "*"
+            ANALYTICS_ENABLED: "true"
+            EXCEPTION_HANDLER_DRIVER: "SENTRY"
+            SENTRY_ENVIRONMENT: "privacy-smoke"
+            SENTRY_DSN: "http://upshift-smoke@twenty-telemetry.com/1"
+            SENTRY_FRONT_DSN: "http://upshift-smoke@twenty-telemetry.com/1"
+            METER_DRIVER: "opentelemetry"
+            METER_EXPORT_INTERVAL_MS: "1000"
+            OTLP_COLLECTOR_METRICS_ENDPOINT_URL: "http://twenty-telemetry.com/v1/metrics"
           x-twenty-hosts: &twenty-hosts
             - twenty-telemetry.com:host-gateway
             - twenty-icons.com:host-gateway
@@ -297,15 +310,17 @@ jobs:
               extra_hosts: *twenty-hosts
           EOF
 
-          docker compose --env-file smoke.env up -d
-
-          docker compose --env-file smoke.env \
-            exec -T upshift node -e "fetch('https://twenty-telemetry.com/smoke-control').catch(() => {})"
+          # Prove the sink is reachable without starting the app or its dependencies.
+          docker compose --env-file smoke.env run --rm --no-deps --entrypoint node upshift \
+            -e "fetch('https://twenty-telemetry.com/smoke-control').catch(() => {})"
           sleep 6
           if ! grep -q "twenty-telemetry.com" "$SINK_LOG"; then
             echo "::error::The sink did not see the control request, so the privacy check would prove nothing"
             exit 1
           fi
+          sudo truncate -s 0 "$SINK_LOG"
+
+          docker compose --env-file smoke.env up -d
 
           node ../scripts/smoke-test.mjs --base-url http://localhost:3000 --sink-log "$SINK_LOG"
 

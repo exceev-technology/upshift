@@ -13,6 +13,8 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 import { PLATFORM_WORDING_REPLACEMENTS } from './catalog-wording.mjs';
+import { FRONTEND_PRIVACY_PATCHES } from './frontend-privacy-patches.mjs';
+import { SERVER_PRIVACY_PATCHES } from './server-privacy-patches.mjs';
 
 const UPSHIFT_DIRECTORY = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -54,6 +56,8 @@ const CODE_OVERLAY_UPSTREAM_SHA256 = {
 };
 
 const PATCHES = [
+  ...FRONTEND_PRIVACY_PATCHES,
+  ...SERVER_PRIVACY_PATCHES,
   {
     file: `${FRONT}/index.html`,
     replacements: [
@@ -793,6 +797,20 @@ const BARREL_EXPORT = 'constant re-export only';
 // Every remaining reference to Twenty-owned hosts or links; anything new fails the build until reviewed
 const REFERENCE_CENSUS = [
   {
+    needle: 'TrackPageViewEffect',
+    allowed: {
+      [`${FRONT}/src/modules/analytics/components/TrackPageViewEffect.tsx`]:
+        'unmounted component; any new caller must be reviewed',
+    },
+  },
+  {
+    needle: 'SentryInitEffect',
+    allowed: {
+      [`${FRONT}/src/modules/error-handler/components/SentryInitEffect.tsx`]:
+        'unmounted component; any new caller must be reviewed',
+    },
+  },
+  {
     needle: 'twenty.com',
     allowed: {
       [`${FRONT}/src/pages/settings/applications/utils/getCustomApplicationDescription.ts`]:
@@ -810,7 +828,7 @@ const REFERENCE_CENSUS = [
       [`${SERVER}/engine/core-modules/dpa/config/dpa-region-config.constant.ts`]: UNREACHABLE_DPA,
       [`${SERVER}/engine/core-modules/dpa/constants/dpa-template.constant.ts`]: UNREACHABLE_DPA,
       [`${SERVER}/engine/core-modules/twenty-config/config-variables.ts`]:
-        'ENTERPRISE_API_URL, only used with a Twenty enterprise key',
+        'enterprise network requests are blocked before this URL is read',
     },
   },
   {

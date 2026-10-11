@@ -41,6 +41,14 @@ jobs:
           path: .upshift-check/twenty-release
           persist-credentials: false
 
+      - name: Test privacy guards against this branch
+        run: node --test upshift/scripts/*.test.mjs
+
+      - name: Test privacy guards against the latest Twenty release
+        run: node --test upshift/scripts/*.test.mjs
+        env:
+          UPSHIFT_PRIVACY_SOURCE_ROOT: ${{ github.workspace }}/.upshift-check/twenty-release
+
       - name: Apply the layer to the latest Twenty release and check its translations
         run: node upshift/scripts/apply-branding.mjs --root .upshift-check/twenty-release --check-catalogs
 
