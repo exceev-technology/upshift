@@ -135,16 +135,6 @@ const PATCHES = [
     ],
   },
   {
-    file: `${FRONT}/src/modules/settings/hooks/useSettingsNavigationItems.tsx`,
-    replacements: [
-      {
-        pattern:
-          /(label: t`Community`,\n\s+path: SettingsPath\.Community,\n\s+Icon: IconUsers,\n\s+isHidden: )[^\n]+,/g,
-        to: '$1true,',
-      },
-    ],
-  },
-  {
     file: `${FRONT}/src/modules/app/components/SettingsRoutes.tsx`,
     replacements: [
       {
@@ -158,8 +148,123 @@ const PATCHES = [
         ].join('\n'),
         to: '',
       },
+    ],
+  },
+  // The cover shows Twenty's contributors; the changelog stays hidden until Upshift publishes its own
+  {
+    file: `${FRONT}/src/pages/settings/community/SettingsCommunity.tsx`,
+    replacements: [
       {
-        from: '      <Route path={SettingsPath.Community} element={<SettingsCommunity />} />\n',
+        from: '  IconBrandX,\n  IconBriefcase,\n',
+        to: '  IconBrandLinkedin,\n  IconBrandX,\n  IconBriefcase,\n',
+      },
+      {
+        from: [
+          "      href: 'https://discord.com/invite/cx5n4Jzs57',",
+          '      Icon: IconBrandDiscord,',
+          '      iconColor: themeCssVariables.color.blue9,',
+          '      cardTitle: t`Join our Discord`,',
+        ].join('\n'),
+        to: [
+          "      href: '{{linkedinUrl}}',",
+          '      Icon: IconBrandLinkedin,',
+          '      iconColor: themeCssVariables.color.blue9,',
+          '      cardTitle: t`Follow us on LinkedIn`,',
+        ].join('\n'),
+      },
+      { from: "'https://x.com/twentycrm'", to: "'{{xUrl}}'" },
+      {
+        from: [
+          '        <Section.Root>',
+          '          <SettingsDiscoveryHeroCard',
+          '            lightSrc={coverLight}',
+          '            darkSrc={coverDark}',
+          '            instanceIdPrefix={SETTINGS_COMMUNITY_HERO_INSTANCE_ID_PREFIX}',
+          '            tabs={[]}',
+          '          />',
+          '        </Section.Root>',
+          '',
+          '',
+        ].join('\n'),
+        to: '',
+      },
+      {
+        from: [
+          '        <Section.Root>',
+          '          <Section.Header',
+          '            title={t`Partners`}',
+          '            description={t`Hire a partner to help you implement and customize Twenty.`}',
+          '          />',
+          '          <StyledCardLink',
+          '            href="https://twenty.com/partners/list"',
+          '            target="_blank"',
+          '            rel="noopener noreferrer"',
+          '          >',
+          '            <SettingsCard',
+          '              Icon={',
+          '                <IconBriefcase',
+          '                  size={theme.icon.size.md}',
+          '                  stroke={theme.icon.stroke.sm}',
+          '                />',
+          '              }',
+          '              title={t`Browse partners`}',
+          '            />',
+          '          </StyledCardLink>',
+          '        </Section.Root>',
+          '',
+          '',
+        ].join('\n'),
+        to: '',
+      },
+      {
+        from: [
+          '            <StyledCardLink',
+          '              href="https://twenty.com/releases"',
+          '              target="_blank"',
+          '              rel="noopener noreferrer"',
+          '            >',
+          '              <SettingsCard',
+          '                Icon={',
+          '                  <IconTransform',
+          '                    size={theme.icon.size.md}',
+          '                    stroke={theme.icon.stroke.sm}',
+          '                  />',
+          '                }',
+          '                title={t`Read changelog`}',
+          '              />',
+          '            </StyledCardLink>',
+          '',
+        ].join('\n'),
+        to: '',
+      },
+    ],
+  },
+  {
+    file: `${FRONT}/src/locales/fr-FR.po`,
+    replacements: [
+      {
+        pattern: /(\nmsgid "Follow us on X"\nmsgstr "[^"\n]*"\n)/g,
+        to: '$1\n#: src/pages/settings/community/SettingsCommunity.tsx\nmsgid "Follow us on LinkedIn"\nmsgstr "Suivez-nous sur LinkedIn"\n',
+      },
+    ],
+  },
+  {
+    file: `${FRONT}/src/modules/settings/admin-panel/hooks/useSettingsAdminTabs.ts`,
+    replacements: [
+      {
+        from: [
+          '    ...(!isBillingEnabled',
+          '      ? [',
+          '          {',
+          '            id: SETTINGS_ADMIN_TABS.ORGANIZATION,',
+          '            title: t`Organization`,',
+          '            Icon: IconKey,',
+          '            disabled: !canAccessFullAdminPanel && !canImpersonate,',
+          '          },',
+          '        ]',
+          '      : []),',
+          '',
+        ].join('\n'),
         to: '',
       },
     ],
@@ -575,8 +680,6 @@ const REFERENCE_CENSUS = [
         TRANSLATED_IN_CATALOGS,
       [`${SERVER}/engine/api/common/common-args-processors/data-arg-processor/validator-utils/validate-links-field-or-throw.util.ts`]:
         TRANSLATED_IN_CATALOGS,
-      [`${FRONT}/src/pages/settings/community/SettingsCommunity.tsx`]:
-        'Community page, its route and menu item are removed',
       [`${SERVER}/engine/core-modules/dpa/config/dpa-region-config.constant.ts`]: UNREACHABLE_DPA,
       [`${SERVER}/engine/core-modules/dpa/constants/dpa-template.constant.ts`]: UNREACHABLE_DPA,
       [`${SERVER}/engine/core-modules/twenty-config/config-variables.ts`]:

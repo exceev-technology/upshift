@@ -10,7 +10,7 @@ export const CONTACT_LINK = `mailto:${brand.contactEmail}`;
 export const WEBSITE_URL = brand.websiteUrl;
 export const PRIVACY_POLICY_URL = brand.privacyPolicyUrl;
 export const TERMS_URL = brand.termsUrl;
-export const DOCS_URL = 'https://docs.upshiftcloud.com';
+export const DOCS_URL = brand.docsUrl;
 export const TWENTY_SOURCE_URL = 'https://github.com/twentyhq/twenty';
 export const COMPANY_NAME = brand.companyName;
 export const COMPANY_URL = 'https://exceev.com';
@@ -18,8 +18,8 @@ export const DEMO_PAGE_URL = `${brand.websiteUrl}/demo`;
 export const DEMO_URL =
   'https://calcom.exceev.com/team/exceev-technology/upshift-intro';
 export const SOCIALS = {
-  linkedin: 'https://linkedin.com/company/exceev-consulting',
-  x: 'https://x.com/ExceevConseil',
+  linkedin: brand.linkedinUrl,
+  x: brand.xUrl,
   facebook: 'https://facebook.com/exceevconsulting',
   github: 'https://github.com/exceev-consulting',
 };
@@ -82,8 +82,8 @@ export const LANGUAGES = [
 ];
 
 // These pages describe Twenty's cloud plans, partner network and legal
-// commitments, which Upshift does not offer, or the Community settings page
-// that upshift/scripts/apply-branding.mjs removes from the app.
+// commitments, which Upshift does not offer, or Twenty's Community settings
+// page, which upshift/scripts/apply-branding.mjs replaces with Exceev's links.
 export const EXCLUDED_PAGE_PREFIXES = [
   'user-guide/billing/',
   'user-guide/legal/',
@@ -93,7 +93,7 @@ export const EXCLUDED_PAGE_PREFIXES = [
   'user-guide/settings/capabilities/community-settings',
 ];
 
-// Twenty's community channels, and settings the Upshift app no longer has.
+// Twenty's community channels, and settings that differ in the Upshift app.
 export const FORBIDDEN_IN_PAGES = [
   'twenty.com',
   'twentyhq',

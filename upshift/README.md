@@ -212,8 +212,9 @@ Left in place on purpose:
 ## What users see
 
 - Name, logo, icons, page titles, emails, translations (all languages), AI assistant prompts, MCP and OpenAPI metadata say Upshift.
-- Documentation links point to `docsUrl` (`https://upshiftcloud.com/docs`) with Twenty's paths kept, for example `/user-guide/workflows/...` and `/developers/extend/apps/getting-started`. The Upshift docs site should serve or redirect those paths.
-- Hidden: the Community settings page (Twenty's Discord, X, partners, changelog), the Legal / DPA pages (Twenty's own legal agreement) and the ChatGPT card that installs Twenty's ChatGPT app.
+- Documentation links point to `docsUrl` (`https://docs.upshiftcloud.com`) with Twenty's paths kept, for example `/user-guide/workflows/...` and `/developers/extend/apps/getting-started`. The Upshift docs site should serve or redirect those paths.
+- The Community settings page links to Exceev's LinkedIn and X (`linkedinUrl`, `xUrl`) and keeps the beta Features toggles. Twenty's contributor cover, partners and changelog are removed from it.
+- Hidden: the Organization tab of the admin panel (Twenty's enterprise licence and plans), the Legal / DPA pages (Twenty's own legal agreement) and the ChatGPT card that installs Twenty's ChatGPT app.
 
 Still named Twenty on purpose, because they are real identifiers:
 
