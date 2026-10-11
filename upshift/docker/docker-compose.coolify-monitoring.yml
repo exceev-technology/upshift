@@ -1,0 +1,210 @@
+{
+  "networks": {
+    "default": {}
+  },
+  "services": {
+    "alloy": {
+      "command": [
+        "case \"$$UPSHIFT_MONITORING_URL\" in https://*) ;; *) echo 'Monitoring requires an HTTPS gateway URL' >&2; exit 1;; esac\nexec /bin/alloy run --disable-reporting --server.http.listen-addr=127.0.0.1:12345 /etc/alloy/config.alloy\n"
+      ],
+      "entrypoint": [
+        "/bin/sh",
+        "-ec"
+      ],
+      "environment": {
+        "UPSHIFT_MONITORING_TOKEN": "${UPSHIFT_MONITORING_TOKEN:?}",
+        "UPSHIFT_MONITORING_URL": "${UPSHIFT_MONITORING_URL:?}"
+      },
+      "image": "grafana/alloy:v1.11.3",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-file": "3",
+          "max-size": "10m"
+        }
+      },
+      "mem_limit": "256m",
+      "networks": {
+        "default": null
+      },
+      "restart": "unless-stopped",
+      "volumes": [
+        {
+          "bind": {
+            "create_host_path": true
+          },
+          "read_only": true,
+          "source": "../observability/client/config.alloy",
+          "target": "/etc/alloy/config.alloy",
+          "type": "bind"
+        }
+      ]
+    },
+    "upshift": {
+      "environment": [
+        "SERVICE_URL_UPSHIFT_3000",
+        "SERVER_URL=${SERVER_URL:?}",
+        "FRONTEND_URL=${FRONTEND_URL:-${SERVER_URL}}",
+        "AUTH_COOKIE_ALLOWED_ORIGINS=${AUTH_COOKIE_ALLOWED_ORIGINS:-}",
+        "IS_MULTIWORKSPACE_ENABLED=${IS_MULTIWORKSPACE_ENABLED:-false}",
+        "DEFAULT_SUBDOMAIN=${DEFAULT_SUBDOMAIN:-app}",
+        "APP_SECRET=${SERVICE_BASE64_32_SECRET}",
+        "ENCRYPTION_KEY=${ENCRYPTION_KEY:-}",
+        "FALLBACK_ENCRYPTION_KEY=${FALLBACK_ENCRYPTION_KEY:-}",
+        "PG_DATABASE_URL=${PG_DATABASE_URL:-postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@${PG_DATABASE_HOST:?}:${PG_DATABASE_PORT:-5432}/${POSTGRES_DB:-upshift}}",
+        "REDIS_URL=${REDIS_URL:-redis://${REDIS_USER:-default}:${REDIS_PASSWORD:-}@${REDIS_HOST:?}:${REDIS_PORT:-6379}/0}",
+        "PASSWORD_RESET_TOKEN_EXPIRES_IN=${PASSWORD_RESET_TOKEN_EXPIRES_IN:-5m}",
+        "STORAGE_TYPE=${STORAGE_TYPE:-local}",
+        "STORAGE_S3_REGION=${STORAGE_S3_REGION:-}",
+        "STORAGE_S3_NAME=${STORAGE_S3_NAME:-}",
+        "STORAGE_S3_ENDPOINT=${STORAGE_S3_ENDPOINT:-}",
+        "STORAGE_S3_ACCESS_KEY_ID=${STORAGE_S3_ACCESS_KEY_ID:-}",
+        "STORAGE_S3_SECRET_ACCESS_KEY=${STORAGE_S3_SECRET_ACCESS_KEY:-}",
+        "EMAIL_DRIVER=${EMAIL_DRIVER:-logger}",
+        "EMAIL_FROM_ADDRESS=${EMAIL_FROM_ADDRESS:-}",
+        "EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-Upshift}",
+        "EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST:-}",
+        "EMAIL_SMTP_PORT=${EMAIL_SMTP_PORT:-465}",
+        "EMAIL_SMTP_USER=${EMAIL_SMTP_USER:-}",
+        "EMAIL_SMTP_PASSWORD=${EMAIL_SMTP_PASSWORD:-}",
+        "DISABLE_DB_MIGRATIONS=${DISABLE_DB_MIGRATIONS:-false}",
+        "DISABLE_CRON_JOBS_REGISTRATION=${DISABLE_CRON_JOBS_REGISTRATION:-false}",
+        "TELEMETRY_ENABLED=false",
+        "ALLOW_REQUESTS_TO_TWENTY_ICONS=false",
+        "UPSHIFT_OBSERVABILITY_ENABLED=true",
+        "UPSHIFT_OBSERVABILITY_ENVIRONMENT=${UPSHIFT_OBSERVABILITY_ENVIRONMENT:-production}",
+        "UPSHIFT_OBSERVABILITY_SERVICE=server",
+        "UPSHIFT_OTLP_ENDPOINT=http://alloy:4318",
+        "UPSHIFT_TRACE_SAMPLE_RATE=${UPSHIFT_TRACE_SAMPLE_RATE:-0.1}"
+      ],
+      "healthcheck": {
+        "interval": "5s",
+        "retries": 20,
+        "start_period": "300s",
+        "test": [
+          "CMD",
+          "curl",
+          "--fail",
+          "http://127.0.0.1:3000/healthz"
+        ],
+        "timeout": "5s"
+      },
+      "image": "ghcr.io/exceev-technology/upshift:${TAG:-latest}",
+      "labels": [
+        "traefik.http.middlewares.upshift-cors.headers.accessControlAllowOriginListRegex=${TRAEFIK_CORS_ORIGIN_REGEX:?}",
+        "traefik.http.middlewares.upshift-cors.headers.accessControlAllowCredentials=true",
+        "traefik.http.middlewares.upshift-cors.headers.accessControlAllowMethods=GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+        "traefik.http.middlewares.upshift-cors.headers.accessControlAllowHeaders=content-type,authorization,x-app-version,x-locale,x-schema-version,sentry-trace,baggage,apollographql-client-name,apollographql-client-version,apollo-require-preflight,x-requested-with,accept",
+        "traefik.http.middlewares.upshift-cors.headers.accessControlMaxAge=7200",
+        "traefik.http.middlewares.upshift-cors.headers.addVaryHeader=true",
+        "coolify.traefik.middlewares=upshift-cors"
+      ],
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-file": "3",
+          "max-size": "10m"
+        }
+      },
+      "networks": {
+        "default": null
+      },
+      "restart": "always",
+      "volumes": [
+        {
+          "source": "server-local-data",
+          "target": "/app/packages/twenty-server/.local-storage",
+          "type": "volume",
+          "volume": {}
+        }
+      ]
+    },
+    "worker": {
+      "command": [
+        "yarn",
+        "worker:prod"
+      ],
+      "depends_on": {
+        "upshift": {
+          "condition": "service_healthy",
+          "required": true
+        }
+      },
+      "environment": [
+        "SERVER_URL=${SERVER_URL:?}",
+        "FRONTEND_URL=${FRONTEND_URL:-${SERVER_URL}}",
+        "AUTH_COOKIE_ALLOWED_ORIGINS=${AUTH_COOKIE_ALLOWED_ORIGINS:-}",
+        "IS_MULTIWORKSPACE_ENABLED=${IS_MULTIWORKSPACE_ENABLED:-false}",
+        "DEFAULT_SUBDOMAIN=${DEFAULT_SUBDOMAIN:-app}",
+        "APP_SECRET=${SERVICE_BASE64_32_SECRET}",
+        "ENCRYPTION_KEY=${ENCRYPTION_KEY:-}",
+        "FALLBACK_ENCRYPTION_KEY=${FALLBACK_ENCRYPTION_KEY:-}",
+        "PG_DATABASE_URL=${PG_DATABASE_URL:-postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@${PG_DATABASE_HOST:?}:${PG_DATABASE_PORT:-5432}/${POSTGRES_DB:-upshift}}",
+        "REDIS_URL=${REDIS_URL:-redis://${REDIS_USER:-default}:${REDIS_PASSWORD:-}@${REDIS_HOST:?}:${REDIS_PORT:-6379}/0}",
+        "PASSWORD_RESET_TOKEN_EXPIRES_IN=${PASSWORD_RESET_TOKEN_EXPIRES_IN:-5m}",
+        "STORAGE_TYPE=${STORAGE_TYPE:-local}",
+        "STORAGE_S3_REGION=${STORAGE_S3_REGION:-}",
+        "STORAGE_S3_NAME=${STORAGE_S3_NAME:-}",
+        "STORAGE_S3_ENDPOINT=${STORAGE_S3_ENDPOINT:-}",
+        "STORAGE_S3_ACCESS_KEY_ID=${STORAGE_S3_ACCESS_KEY_ID:-}",
+        "STORAGE_S3_SECRET_ACCESS_KEY=${STORAGE_S3_SECRET_ACCESS_KEY:-}",
+        "EMAIL_DRIVER=${EMAIL_DRIVER:-logger}",
+        "EMAIL_FROM_ADDRESS=${EMAIL_FROM_ADDRESS:-}",
+        "EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-Upshift}",
+        "EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST:-}",
+        "EMAIL_SMTP_PORT=${EMAIL_SMTP_PORT:-465}",
+        "EMAIL_SMTP_USER=${EMAIL_SMTP_USER:-}",
+        "EMAIL_SMTP_PASSWORD=${EMAIL_SMTP_PASSWORD:-}",
+        "DISABLE_DB_MIGRATIONS=true",
+        "DISABLE_CRON_JOBS_REGISTRATION=true",
+        "TELEMETRY_ENABLED=false",
+        "ALLOW_REQUESTS_TO_TWENTY_ICONS=false",
+        "UPSHIFT_OBSERVABILITY_ENABLED=true",
+        "UPSHIFT_OBSERVABILITY_ENVIRONMENT=${UPSHIFT_OBSERVABILITY_ENVIRONMENT:-production}",
+        "UPSHIFT_OBSERVABILITY_SERVICE=worker",
+        "UPSHIFT_OTLP_ENDPOINT=http://alloy:4318",
+        "UPSHIFT_TRACE_SAMPLE_RATE=${UPSHIFT_TRACE_SAMPLE_RATE:-0.1}"
+      ],
+      "healthcheck": {
+        "interval": "10s",
+        "retries": 5,
+        "start_period": "30s",
+        "test": [
+          "CMD-SHELL",
+          "pgrep -f 'worker:prod' > /dev/null || exit 1"
+        ],
+        "timeout": "5s"
+      },
+      "image": "ghcr.io/exceev-technology/upshift:${TAG:-latest}",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-file": "3",
+          "max-size": "10m"
+        }
+      },
+      "networks": {
+        "default": null
+      },
+      "restart": "always",
+      "volumes": [
+        {
+          "source": "server-local-data",
+          "target": "/app/packages/twenty-server/.local-storage",
+          "type": "volume",
+          "volume": {}
+        }
+      ]
+    }
+  },
+  "volumes": {
+    "server-local-data": {}
+  },
+  "x-logging": {
+    "driver": "json-file",
+    "options": {
+      "max-file": "3",
+      "max-size": "10m"
+    }
+  }
+}

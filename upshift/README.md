@@ -238,3 +238,7 @@ Still named Twenty on purpose, because they are real identifiers:
 - The app developer commands `npx create-twenty-app` and `yarn twenty ...` (published npm packages; the example folder is renamed `my-upshift-app`).
 - Webhook signature headers `X-Twenty-Webhook-Signature`, `-Timestamp`, `-Nonce` (API contract).
 - Internal package paths, logs and environment variable names inside the container.
+
+## Optional self-hosted monitoring
+
+Deploy your own Grafana/Loki/Tempo/Mimir stack with client collectors using [the Coolify and Infisical guide](observability/README.md). Collection is explicitly opt-in, with filtered operational records, per-client credentials, retained-data budgets and alerts. Twenty reporting stays blocked. Existing images must be rebuilt and published before enabling the monitoring compose.

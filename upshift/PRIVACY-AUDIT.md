@@ -54,3 +54,7 @@ remain available. User-configured integrations, workflows, installed apps and
 external content can still make network requests; this is not a general egress
 firewall. The API smoke test covers its configured destinations and flows, not
 all browser actions or every possible third-party dependency.
+
+## Optional operator-owned monitoring
+
+The additive `upshift/observability` layer introduces a separate opt-in Node preload for reviewed HTTP completion logs, server request spans and bounded request/process metrics. It defaults off and accepts only a local collector origin. It does not reopen any upstream Sentry, OTLP, telemetry, browser analytics or enterprise-reporting path. See [coverage and deployment limitations](observability/README.md). Tests check disabled export, sensitive-field exclusion, tenant isolation, gzip/ingestion bounds and storage-budget gates.

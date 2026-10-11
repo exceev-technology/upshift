@@ -14,6 +14,10 @@ import { parseArgs } from 'node:util';
 
 import { PLATFORM_WORDING_REPLACEMENTS } from './catalog-wording.mjs';
 import { FRONTEND_PRIVACY_PATCHES } from './frontend-privacy-patches.mjs';
+import {
+  OBSERVABILITY_PATCHES,
+  installObservabilityInstrumentation,
+} from './observability-patches.mjs';
 import { SERVER_PRIVACY_PATCHES } from './server-privacy-patches.mjs';
 
 const UPSHIFT_DIRECTORY = path.resolve(
@@ -58,6 +62,7 @@ const CODE_OVERLAY_UPSTREAM_SHA256 = {
 const PATCHES = [
   ...FRONTEND_PRIVACY_PATCHES,
   ...SERVER_PRIVACY_PATCHES,
+  ...OBSERVABILITY_PATCHES,
   {
     file: `${FRONT}/index.html`,
     replacements: [
@@ -1225,6 +1230,7 @@ disableYarnTelemetry();
 exitOnFailures('preparation (nothing was written)');
 
 commitPlannedWrites();
+installObservabilityInstrumentation(twentyRoot);
 writeFileSync(
   path.join(twentyRoot, LAYER_MARKER_FILE_NAME),
   `${new Date().toISOString()}\n`,
