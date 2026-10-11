@@ -43,6 +43,8 @@ export const isExcluded = (page) =>
 const isAsset = (relativePath) =>
   ASSET_PREFIXES.some((prefix) => relativePath.startsWith(prefix));
 
+const isSnippet = (relativePath) => relativePath.startsWith('snippets/');
+
 const splitTarget = (target) => {
   const suffixStart = target.search(/[#?]/);
   const pathPart = suffixStart === -1 ? target : target.slice(0, suffixStart);
@@ -251,10 +253,18 @@ export const applyOverrides = (files, overrides, sitePages) => {
   const problems = [];
 
   for (const [filePath, content] of overrides) {
-    if (published.has(filePath.replace(/\.mdx$/, ''))) {
+    if (isSnippet(filePath) || published.has(filePath.replace(/\.mdx$/, ''))) {
       files.set(filePath, content);
     } else {
       problems.push(`overrides/${filePath} does not replace any published page`);
+    }
+  }
+
+  const { snippets } = collectAssets([...files.values()]);
+
+  for (const filePath of overrides.keys()) {
+    if (isSnippet(filePath) && !snippets.includes(filePath)) {
+      problems.push(`overrides/${filePath} is not imported by any page`);
     }
   }
 
@@ -433,7 +443,7 @@ export const auditSite = (files, sitePages) => {
       continue;
     }
 
-    if (!filePath.endsWith('.mdx')) {
+    if (!/\.(mdx|jsx?)$/.test(filePath)) {
       continue;
     }
 

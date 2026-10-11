@@ -140,7 +140,7 @@ const checkBranding = async () => {
     (response) => response.json(),
   );
 
-  check('MCP server card title', serverCard.title === `${brandName} CRM`, serverCard.title);
+  check('MCP server card title', serverCard.title === brandName, serverCard.title);
   check(
     'no twenty in the MCP server card',
     !/twenty/i.test(JSON.stringify(serverCard)),

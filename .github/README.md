@@ -4,7 +4,9 @@
 
 <h1 align="center">Upshift</h1>
 
-<p align="center">The CRM by Exceev Technology, built on <a href="https://github.com/twentyhq/twenty">Twenty</a>.</p>
+<p align="center">The process digitization platform by Exceev Technology, built on <a href="https://github.com/twentyhq/twenty">Twenty</a>.</p>
+
+Upshift runs a company's processes end to end on one platform, with one shared record at every step: prospecting, quotes and orders, purchasing and stock, projects and installations, after-sales service, finance, HR and training, with dashboards, workflows and AI across all of them. Each workspace is configured around the company's own steps, whatever its industry. See [Why Upshift](https://docs.upshiftcloud.com/en/getting-started/introduction).
 
 ## Run Upshift
 

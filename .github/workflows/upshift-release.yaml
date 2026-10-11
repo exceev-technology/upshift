@@ -228,7 +228,7 @@ jobs:
             APP_VERSION=${{ needs.resolve.outputs.app-version }}
           labels: |
             org.opencontainers.image.title=Upshift
-            org.opencontainers.image.description=Upshift CRM, built on Twenty ${{ needs.resolve.outputs.twenty-tag }}
+            org.opencontainers.image.description=Upshift process platform, built on Twenty ${{ needs.resolve.outputs.twenty-tag }}
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.version=${{ needs.resolve.outputs.version }}
             org.opencontainers.image.revision=${{ github.sha }}
@@ -382,7 +382,7 @@ jobs:
 
           docker buildx imagetools create "${tags[@]}" \
             --annotation "index:org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
-            --annotation "index:org.opencontainers.image.description=Upshift CRM, built on Twenty $TWENTY_TAG" \
+            --annotation "index:org.opencontainers.image.description=Upshift process platform, built on Twenty $TWENTY_TAG" \
             $(printf "$IMAGE@sha256:%s " *)
 
           docker buildx imagetools inspect "$IMAGE:$VERSION"

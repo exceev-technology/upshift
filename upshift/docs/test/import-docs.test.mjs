@@ -77,6 +77,21 @@ describe('buildSite on packages/twenty-docs', () => {
     );
   });
 
+  it('maps the processes of every industry, HR included, on both introductions', () => {
+    const processMap = files.get('snippets/process-map.jsx');
+
+    assert.match(files.get('getting-started/introduction.mdx'), /<ProcessMap lang="fr" \/>/);
+    assert.match(files.get('en/getting-started/introduction.mdx'), /<ProcessMap lang="en" \/>/);
+    assert.match(processMap, /\[\s*'RH',\s*'Recrutement/);
+    assert.match(processMap, /\[\s*'HR',\s*'Recruitment/);
+    assert.match(processMap, /name: 'Associations et secteur public'/);
+    assert.match(processMap, /name: 'Non-profit and public sector'/);
+    assert.match(processMap, /name: 'Équipement médical'/);
+    assert.match(processMap, /name: 'Medical equipment'/);
+    assert.match(processMap, /'Conformité réglementaire'/);
+    assert.match(processMap, /'Regulatory compliance'/);
+  });
+
   it('drops the Community settings the Upshift app removes, and the steps that point to it', () => {
     const unwanted = [...files.keys()].filter((filePath) =>
       filePath.endsWith('settings/capabilities/community-settings.mdx'),

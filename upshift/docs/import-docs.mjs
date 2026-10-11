@@ -142,7 +142,9 @@ export const buildSite = (twentyDocsRoot) => {
   const { snippets } = collectAssets([...files.values()]);
 
   for (const snippet of snippets) {
-    files.set(snippet, readTwenty(snippet).toString());
+    if (!files.has(snippet)) {
+      files.set(snippet, readTwenty(snippet).toString());
+    }
   }
 
   const { images } = collectAssets([...files.values()]);

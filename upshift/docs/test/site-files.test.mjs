@@ -221,6 +221,31 @@ describe('applyOverrides', () => {
       'overrides/getting-started/old-page.mdx does not replace any published page',
     ]);
   });
+
+  it('adds the snippets pages import, and reports snippets no page imports', () => {
+    const files = new Map();
+
+    const problems = applyOverrides(
+      files,
+      new Map([
+        [
+          'getting-started/introduction.mdx',
+          'import { ProcessMap } from "/snippets/process-map.jsx"\n\n<ProcessMap />',
+        ],
+        ['snippets/process-map.jsx', 'export const ProcessMap = () => null'],
+        ['snippets/unused.jsx', 'export const Unused = () => null'],
+      ]),
+      ['getting-started/introduction'],
+    );
+
+    assert.equal(
+      files.get('snippets/process-map.jsx'),
+      'export const ProcessMap = () => null',
+    );
+    assert.deepEqual(problems, [
+      'overrides/snippets/unused.jsx is not imported by any page',
+    ]);
+  });
 });
 
 describe('auditSite on CRM wording', () => {
@@ -232,6 +257,21 @@ describe('auditSite on CRM wording', () => {
 
     assert.deepEqual(auditSite(files, ['en/a', 'b']), [
       'en/a.mdx presents Upshift as a CRM: "Upshift is a full-featured CRM."',
+    ]);
+  });
+
+  it('checks React snippets too, where the prospecting step may still say CRM', () => {
+    const files = new Map([
+      [
+        'snippets/process-map.jsx',
+        "['Prospecting and CRM', 'Leads'],\n['Upshift CRM', 'Everything'],",
+      ],
+      ['snippets/data.js', "export const TAGLINE = 'The CRM for teams';"],
+    ]);
+
+    assert.deepEqual(auditSite(files, []), [
+      `snippets/process-map.jsx presents Upshift as a CRM: "['Upshift CRM', 'Everything'],"`,
+      `snippets/data.js presents Upshift as a CRM: "export const TAGLINE = 'The CRM for teams';"`,
     ]);
   });
 });
