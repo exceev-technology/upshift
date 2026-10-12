@@ -92,16 +92,19 @@ describe('buildSite on packages/twenty-docs', () => {
     assert.match(processMap, /'Regulatory compliance'/);
   });
 
-  it('drops the Community settings the Upshift app removes, and the steps that point to it', () => {
-    const unwanted = [...files.keys()].filter((filePath) =>
-      filePath.endsWith('settings/capabilities/community-settings.mdx'),
-    );
+  it('publishes the Upshift Community settings page, with Exceev links instead of Discord', () => {
+    for (const filePath of [
+      'user-guide/settings/capabilities/community-settings.mdx',
+      'en/user-guide/settings/capabilities/community-settings.mdx',
+    ]) {
+      const page = String(files.get(filePath));
 
-    assert.deepEqual(unwanted, []);
-    assert.doesNotMatch(
-      [...files.values()].map(String).join('\n'),
-      /Paramètres → Communauté|Settings → Community|discord\.gg/,
-    );
+      assert.match(page, /linkedin\.com\/company\/exceev-consulting/);
+      assert.match(page, /x\.com\/ExceevConseil/);
+      assert.match(page, /Paramètres → Communauté|Settings → Community/);
+    }
+
+    assert.doesNotMatch([...files.values()].map(String).join('\n'), /discord\.gg/);
   });
 
   it('sends links built by the app for /fr/ and other languages to published pages', () => {

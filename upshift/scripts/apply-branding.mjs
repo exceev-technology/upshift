@@ -12,6 +12,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
+import { PLATFORM_WORDING_REPLACEMENTS } from './catalog-wording.mjs';
+
 const UPSHIFT_DIRECTORY = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
@@ -31,7 +33,10 @@ const CATALOG_TEXT_REPLACEMENTS = [
   ['https://docs.twenty.com', '{{docsUrl}}'],
   ['my-twenty-app', 'my-{{slug}}-app'],
   ['twenty.com', '{{domain}}'],
+  ...Object.values(PLATFORM_WORDING_REPLACEMENTS).flat(),
 ];
+const PLATFORM_SUMMARY =
+  "a business platform that digitizes all of a company's processes, from CRM and sales to operations, finance and HR";
 const LAYER_MARKER_FILE_NAME = '.upshift-layer-applied';
 const ICONS_RELATIVE_DIRECTORY = 'packages/twenty-front/public/images/icons';
 const TEMPLATE_EXTENSIONS = new Set(['.ts', '.tsx', '.json', '.html', '.md']);
@@ -236,6 +241,45 @@ const PATCHES = [
           '',
         ].join('\n'),
         to: '',
+      },
+      // Self-hosted servers usually expose no beta feature, which would leave an empty section
+      {
+        from: "import { SettingsLabContent } from '@/settings/lab/components/SettingsLabContent';\n",
+        to: [
+          "import { SettingsLabContent } from '@/settings/lab/components/SettingsLabContent';",
+          "import { labPublicFeatureFlagsState } from '@/client-config/states/labPublicFeatureFlagsState';",
+          "import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';",
+          '',
+        ].join('\n'),
+      },
+      {
+        from: "import { getSettingsPath } from 'twenty-shared/utils';",
+        to: "import { getSettingsPath, isNonEmptyArray } from 'twenty-shared/utils';",
+      },
+      {
+        from: '  const { getIcon } = useIcons();\n',
+        to: [
+          '  const { getIcon } = useIcons();',
+          '  const labPublicFeatureFlags = useAtomStateValue(labPublicFeatureFlagsState);',
+          '',
+        ].join('\n'),
+      },
+      {
+        from: [
+          '        <Section.Root>',
+          '          <Section.Header',
+          '            title={t`Features`}',
+        ].join('\n'),
+        to: [
+          '        {isNonEmptyArray(labPublicFeatureFlags) && (',
+          '        <Section.Root>',
+          '          <Section.Header',
+          '            title={t`Features`}',
+        ].join('\n'),
+      },
+      {
+        from: '          </StyledFeaturesContent>\n        </Section.Root>\n',
+        to: '          </StyledFeaturesContent>\n        </Section.Root>\n        )}\n',
       },
     ],
   },
@@ -534,6 +578,79 @@ const PATCHES = [
       },
     ],
   },
+  // Upshift digitizes all company processes, CRM included: text calling the product
+  // "a CRM" or "Twenty CRM" is reworded, CRM as one of its parts stays. Runs before
+  // the brand word pass below.
+  {
+    file: `${SERVER}/engine/api/mcp/utils/build-mcp-server-instructions.util.ts`,
+    replacements: [
+      { from: 'for a Twenty CRM workspace.', to: 'for this Twenty workspace.' },
+      {
+        from: 'Your role is to manage CRM data,',
+        to: 'Your role is to manage workspace data,',
+      },
+    ],
+  },
+  {
+    file: `${SERVER}/engine/metadata-modules/ai/ai-agent/constants/agent-run-base-system-prompt.const.ts`,
+    replacements: [
+      { from: 'You are an AI agent in Twenty CRM,', to: 'You are an AI agent in Twenty,' },
+    ],
+  },
+  {
+    file: `${SERVER}/engine/metadata-modules/ai/ai-agent-trigger/constants/agent-trigger-base-system-prompt.const.ts`,
+    optional: true,
+    replacements: [
+      { from: 'You are an AI agent in Twenty CRM,', to: 'You are an AI agent in Twenty,' },
+    ],
+  },
+  ...[
+    'engine/metadata-modules/ai/ai-chat/constants/chat-system-prompts.const.ts',
+    'engine/metadata-modules/ai/ai-chat/constants/workspace-setup-system-prompt.constant.ts',
+  ].map((relativePath) => ({
+    file: `${SERVER}/${relativePath}`,
+    replacements: [
+      {
+        from: 'Twenty, a CRM (similar to Salesforce)',
+        to: `Twenty, ${PLATFORM_SUMMARY} (similar to Salesforce)`,
+      },
+    ],
+  })),
+  {
+    file: `${SERVER}/engine/metadata-modules/ai/ai-chat/constants/chat-system-prompts.const.ts`,
+    replacements: [
+      { from: 'for ALL Twenty CRM data operations', to: 'for ALL Twenty data operations' },
+    ],
+  },
+  {
+    file: `${SERVER}/engine/metadata-modules/ai/ai-chat/constants/workspace-setup-alternative-system-prompt.constant.ts`,
+    optional: true,
+    replacements: [
+      { from: 'inside Twenty, a CRM, holding', to: `inside Twenty, ${PLATFORM_SUMMARY}, holding` },
+    ],
+  },
+  {
+    file: [
+      `${SERVER}/modules/workflow/workflow-executor/workflow-actions/ai-agent/constants/workflow-base-system-prompt.constant.ts`,
+      `${SERVER}/engine/metadata-modules/ai/ai-agent/constants/workflow-base-system-prompt.const.ts`,
+    ],
+    replacements: [
+      { from: 'workflow automation in Twenty CRM.', to: 'workflow automation in Twenty.' },
+    ],
+  },
+  {
+    file: `${SERVER}/database/commands/upgrade-version-command/2-46/suspend-paused-agent-steps-run-spec.util.ts`,
+    optional: true,
+    replacements: [
+      { from: 'workflow automation in Twenty CRM.', to: 'workflow automation in Twenty.' },
+    ],
+  },
+  {
+    file: `${SERVER}/engine/workspace-manager/twenty-standard-application/utils/agent-metadata/create-standard-flat-agent-metadata.util.ts`,
+    replacements: [
+      { from: 'learn how to use Twenty CRM', to: 'learn how to use Twenty' },
+    ],
+  },
   ...[
     'engine/core-modules/tool/tools/code-interpreter-tool/twenty-mcp-helper.const.ts',
     'engine/workspace-manager/twenty-standard-application/utils/skill-metadata/create-standard-flat-skill-metadata.util.ts',
@@ -570,6 +687,16 @@ const PATCHES = [
     optional: true,
     replacements: [{ brandWord: true }],
   })),
+  {
+    file: `${SERVER}/engine/core-modules/tool/tools/email-tool/email-tool.schema.ts`,
+    replacements: [
+      {
+        from: '"href":"https://twenty.com"',
+        to: '"href":"{{websiteUrl}}"',
+        optional: true,
+      },
+    ],
+  },
   {
     file: `${EMAILS}/components/Logo.tsx`,
     replacements: [
@@ -937,6 +1064,11 @@ const applyPatches = () => {
 
       const expectedCount = replacement.count ?? 1;
       const actualCount = countOccurrences(content, replacement.from);
+
+      // Safe to skip: the reference census still fails on a Twenty link the patch no longer finds
+      if (actualCount === 0 && replacement.optional) {
+        continue;
+      }
 
       if (actualCount !== expectedCount) {
         fail(

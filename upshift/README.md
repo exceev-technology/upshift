@@ -187,7 +187,7 @@ Every failure names the file and what was expected.
 | `no longer exists in Twenty` | Twenty moved or deleted a patched file | Add the new path first in the patch's `file` list and keep the old one while releases still use it. A file that only exists in newer Twenty code can be marked `optional: true` |
 | `changed in Twenty (sha256 ...)` | Twenty edited a file Upshift replaces whole (the email footer) | Compare with the overlay, port anything relevant, add the new hash to `CODE_OVERLAY_UPSTREAM_SHA256` |
 | `has no Upshift version` | Twenty added a new app icon | `node upshift/scripts/generate-icons.mjs --root <checkout>` and commit |
-| `references <host or link>` | New code calls or links to a Twenty-owned host | Patch it. If it is unreachable or intentional, add the file to `REFERENCE_CENSUS` with the reason |
+| `references <host or link>` | New code calls or links to a Twenty-owned host | Patch it; while the latest Twenty release does not have that code yet, mark the replacement `optional: true`. If it is unreachable or intentional, add the file to `REFERENCE_CENSUS` with the reason |
 | `lingui compile command not found` / `catalogs changed shape` | Twenty changed its translation build | Update `installCatalogHooks` or `brand-catalogs.mjs` |
 
 ## What the layer disables
@@ -212,8 +212,9 @@ Left in place on purpose:
 ## What users see
 
 - Name, logo, icons, page titles, emails, translations (all languages), AI assistant prompts, MCP and OpenAPI metadata say Upshift.
+- Upshift is described as a platform that digitizes all company processes, CRM included, not as a CRM: the invitation email in every language (`scripts/catalog-wording.mjs`), the AI assistant, agent and workflow prompts and the MCP instructions. CRM stays where it names that part of the product, such as the CRM Hygiene skill.
 - Documentation links point to `docsUrl` (`https://docs.upshiftcloud.com`) with Twenty's paths kept, for example `/user-guide/workflows/...` and `/developers/extend/apps/getting-started`. The Upshift docs site should serve or redirect those paths.
-- The Community settings page links to Exceev's LinkedIn and X (`linkedinUrl`, `xUrl`) and keeps the beta Features toggles. Twenty's contributor cover, partners and changelog are removed from it.
+- The Community settings page links to Exceev's LinkedIn and X (`linkedinUrl`, `xUrl`) and shows the beta Features toggles, so each workspace can turn a feature on or off, only when the server offers at least one. Twenty's contributor cover, partners and changelog are removed from it.
 - Hidden: the Organization tab of the admin panel (Twenty's enterprise licence and plans), the Legal / DPA pages (Twenty's own legal agreement) and the ChatGPT card that installs Twenty's ChatGPT app.
 
 Still named Twenty on purpose, because they are real identifiers:
