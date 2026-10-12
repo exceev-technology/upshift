@@ -35,7 +35,7 @@ groups:
         labels: { severity: critical }
         annotations:
           summary: Monitoring cannot measure storage; ingestion closes after 180 seconds
-          description: Check MinIO, gateway S3 credentials and storage permissions.
+          description: Check SeaweedFS, gateway S3 credentials and storage permissions.
       - alert: MonitoringServiceDown
         expr: up{job=~"upshift-monitoring|monitoring-backends"} == 0
         for: 2m

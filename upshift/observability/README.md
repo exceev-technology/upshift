@@ -1,5 +1,7 @@
 # Self-hosted monitoring with Coolify and Infisical
 
+For a new client installation, start with the [client installation guide](CLIENT-INSTALLATION.md), then choose [client-owned Grafana Cloud](GRAFANA-CLOUD.md) or [dedicated on-premises Grafana](ON-PREMISE.md). This page describes the self-hosted backend and its operator runbooks; the Cloud option has different authentication and storage limits.
+
 This is an optional, single-server monitoring deployment for Upshift. It sends operational data to your own infrastructure. It does not enable Twenty telemetry, enterprise callbacks, browser analytics, Sentry or the upstream remote metric exporter. Existing images do not acquire this instrumentation: build and publish a new Upshift image from this branch, then pin its tag or digest in each client resource.
 
 ```mermaid
@@ -80,9 +82,9 @@ At 70%/85%, alerts ask you to reduce sampling or add capacity. At 100% of a clie
 
 `ALERT_WEBHOOK_URL` is not a plain Slack incoming-webhook URL; use an Alertmanager-compatible receiver or adapt `config/alertmanager.yml` for your notification provider. The supplied local test verifies webhook delivery without sending an external notification.
 
-Grafana is **operator-only**. Grafana OSS datasource visibility is organization-wide: do not give customers accounts in the central operator organization. Customer-facing access needs separate organizations with only that customer's datasources and separately tested authorization.
+For a shared central deployment, Grafana is **operator-only**. Grafana OSS datasource visibility is organization-wide: do not give customers accounts in the central operator organization. Customer-facing access needs separate organizations with only that customer's datasources and separately tested authorization. A dedicated client deployment can give that client direct access because it contains only their data; follow the [on-premises guide](ON-PREMISE.md).
 
-Backend services use a Docker `internal` network. Gateway, Grafana and Alertmanager also join the Coolify-facing/default network. Only the selected domains should be routed. All components with usage reporting controls have reporting disabled; Grafana plugin preinstallation and update checks are disabled too. SeaweedFS's additional web interfaces are private and its admin/WebDAV/Iceberg services are disabled. Storage credentials are currently shared by central services, including the inventory reader; they never belong on client servers. The stack is a single-node deployment, not highly available.
+Backend services use a Docker `internal` network. Gateway, Grafana and Alertmanager also join the Coolify-facing/default network. Only the selected domains should be routed. All components with usage reporting controls have reporting disabled; Grafana plugin preinstallation and update checks are disabled too. SeaweedFS's additional web interfaces are private and its admin/WebDAV/Iceberg services are disabled. Storage credentials are currently shared by backend services, including the inventory reader; keep them in the monitoring resource, never in the application or Alloy resource. In a dedicated installation, that backend runs on the client's server. The stack is a single-node deployment, not highly available.
 
 ## Add a client
 
@@ -101,7 +103,7 @@ For the client in Coolify:
 3. Attach that client's Infisical source and map the existing Upshift secret variables plus `UPSHIFT_MONITORING_TOKEN` using `{{vault.KEY}}`. Set `UPSHIFT_MONITORING_URL` to your gateway's **HTTPS origin**, without `/v1/...`; set `UPSHIFT_OBSERVABILITY_ENVIRONMENT=production` and optionally `UPSHIFT_TRACE_SAMPLE_RATE=0.1` in Coolify.
 4. Set `TAG` to the newly published image from this branch (prefer an immutable release/digest). Preserve the existing Upshift domain/Traefik settings and DB/storage settings. Deploy and check all three datasources for the client.
 
-The monitoring compose enables `UPSHIFT_OBSERVABILITY_ENABLED=true` explicitly for server and worker. The ordinary `docker-compose.yml` remains monitoring-free. To disable export, return to the base compose or set this runtime flag false for both services. Remove Alloy if no longer used. For fully local monitoring, deploy the central stack on that client's server and point their collector at its local HTTPS gateway domain with only that client's tenant configured.
+The monitoring compose enables `UPSHIFT_OBSERVABILITY_ENABLED=true` explicitly for server and worker. The ordinary `docker-compose.yml` remains monitoring-free. To disable export, return to the base compose or edit the selected Compose file to set this flag false for both services; a same-named Coolify variable does not override the literal value. Remove Alloy if no longer used. For fully local monitoring, deploy the central stack on that client's server and point their collector at its local HTTPS gateway domain with only that client's tenant configured.
 
 **Preserve existing `ENCRYPTION_KEY` and `SERVICE_BASE64_32_SECRET` when moving them into Infisical.** The latter becomes `APP_SECRET`. Do not regenerate existing application or database secrets as part of adoption. Infisical reduces repeated entry; it does not rotate database credentials automatically. Grafana's admin-password environment variable initializes a new database; changing it does not reset an existing Grafana user's password. SeaweedFS initial credentials also need a planned rotation for existing data.
 

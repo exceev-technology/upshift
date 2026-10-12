@@ -239,6 +239,6 @@ Still named Twenty on purpose, because they are real identifiers:
 - Webhook signature headers `X-Twenty-Webhook-Signature`, `-Timestamp`, `-Nonce` (API contract).
 - Internal package paths, logs and environment variable names inside the container.
 
-## Optional self-hosted monitoring
+## Optional client monitoring
 
-Deploy your own Grafana/Loki/Tempo/Mimir stack with client collectors using [the Coolify and Infisical guide](observability/README.md). Collection is explicitly opt-in, with filtered operational records, per-client credentials, retained-data budgets and alerts. Twenty reporting stays blocked. Existing images must be rebuilt and published before enabling the monitoring compose.
+Start with the [client installation guide](observability/CLIENT-INSTALLATION.md), then choose [client-owned Grafana Cloud](observability/GRAFANA-CLOUD.md) or [a dedicated on-premises Grafana stack](observability/ON-PREMISE.md). Both use Coolify, client-scoped Infisical secrets and a local Alloy collector. The Cloud guide includes a recipe for its separate authentication and deployment files; the on-premises stack includes per-client retained-data budgets and infrastructure alerts. Collection is opt-in and filters operational records. Twenty reporting stays blocked. Publish a rebuilt Upshift image before enabling instrumentation. See the [self-hosted operator runbooks](observability/README.md) for backend maintenance.
