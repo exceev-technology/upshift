@@ -242,6 +242,45 @@ const PATCHES = [
         ].join('\n'),
         to: '',
       },
+      // Self-hosted servers usually expose no beta feature, which would leave an empty section
+      {
+        from: "import { SettingsLabContent } from '@/settings/lab/components/SettingsLabContent';\n",
+        to: [
+          "import { SettingsLabContent } from '@/settings/lab/components/SettingsLabContent';",
+          "import { labPublicFeatureFlagsState } from '@/client-config/states/labPublicFeatureFlagsState';",
+          "import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';",
+          '',
+        ].join('\n'),
+      },
+      {
+        from: "import { getSettingsPath } from 'twenty-shared/utils';",
+        to: "import { getSettingsPath, isNonEmptyArray } from 'twenty-shared/utils';",
+      },
+      {
+        from: '  const { getIcon } = useIcons();\n',
+        to: [
+          '  const { getIcon } = useIcons();',
+          '  const labPublicFeatureFlags = useAtomStateValue(labPublicFeatureFlagsState);',
+          '',
+        ].join('\n'),
+      },
+      {
+        from: [
+          '        <Section.Root>',
+          '          <Section.Header',
+          '            title={t`Features`}',
+        ].join('\n'),
+        to: [
+          '        {isNonEmptyArray(labPublicFeatureFlags) && (',
+          '        <Section.Root>',
+          '          <Section.Header',
+          '            title={t`Features`}',
+        ].join('\n'),
+      },
+      {
+        from: '          </StyledFeaturesContent>\n        </Section.Root>\n',
+        to: '          </StyledFeaturesContent>\n        </Section.Root>\n        )}\n',
+      },
     ],
   },
   {
