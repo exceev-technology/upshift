@@ -31,7 +31,23 @@ const CATALOG_TEXT_REPLACEMENTS = [
   ['https://docs.twenty.com', '{{docsUrl}}'],
   ['my-twenty-app', 'my-{{slug}}-app'],
   ['twenty.com', '{{domain}}'],
+  // CRM is only the first step of what Upshift covers; rewritten here so every other locale keeps its translation
+  [
+    "It's a CRM, a software to help businesses manage their customer data and relationships efficiently.",
+    "It's a platform that brings your company's sales and operations processes together.",
+  ],
+  [
+    "C'est un CRM, un logiciel qui aide les entreprises à gérer efficacement leurs données clients et leurs relations.",
+    "C'est une plateforme qui réunit les processus commerciaux et opérationnels de votre entreprise.",
+  ],
+  ['They define the shape of your CRM,', 'They define the shape of your workspace,'],
+  [
+    'Ils définissent la structure de votre CRM,',
+    'Ils définissent la structure de votre espace de travail,',
+  ],
 ];
+const PLATFORM_SUMMARY =
+  "a business platform that brings a company's sales and operations processes together";
 const LAYER_MARKER_FILE_NAME = '.upshift-layer-applied';
 const ICONS_RELATIVE_DIRECTORY = 'packages/twenty-front/public/images/icons';
 const TEMPLATE_EXTENSIONS = new Set(['.ts', '.tsx', '.json', '.html', '.md']);
@@ -531,6 +547,99 @@ const PATCHES = [
       {
         from: "'https://docs.twenty.com/getting-started/introduction'",
         to: "'{{docsUrl}}/getting-started/introduction'",
+      },
+    ],
+  },
+  // Runs before the brand word pass below; mentions of other CRMs, such as migrating from one, stay
+  {
+    file: `${SERVER}/engine/api/mcp/utils/build-mcp-server-instructions.util.ts`,
+    replacements: [
+      { from: 'for a Twenty CRM workspace.', to: 'for a Twenty workspace.' },
+      {
+        from: 'Your role is to manage CRM data,',
+        to: 'Your role is to manage workspace data,',
+      },
+    ],
+  },
+  {
+    file: `${SERVER}/engine/metadata-modules/ai/ai-agent/constants/agent-run-base-system-prompt.const.ts`,
+    replacements: [
+      { from: 'You are an AI agent in Twenty CRM,', to: 'You are an AI agent in Twenty,' },
+    ],
+  },
+  {
+    file: `${SERVER}/engine/metadata-modules/ai/ai-agent-trigger/constants/agent-trigger-base-system-prompt.const.ts`,
+    optional: true,
+    replacements: [
+      { from: 'You are an AI agent in Twenty CRM,', to: 'You are an AI agent in Twenty,' },
+    ],
+  },
+  ...[
+    'engine/metadata-modules/ai/ai-chat/constants/chat-system-prompts.const.ts',
+    'engine/metadata-modules/ai/ai-chat/constants/workspace-setup-system-prompt.constant.ts',
+  ].map((relativePath) => ({
+    file: `${SERVER}/${relativePath}`,
+    replacements: [
+      {
+        from: 'Twenty, a CRM (similar to Salesforce)',
+        to: `Twenty, ${PLATFORM_SUMMARY} (similar to Salesforce)`,
+      },
+    ],
+  })),
+  {
+    file: `${SERVER}/engine/metadata-modules/ai/ai-chat/constants/chat-system-prompts.const.ts`,
+    replacements: [
+      { from: 'for ALL Twenty CRM data operations', to: 'for ALL Twenty data operations' },
+    ],
+  },
+  {
+    file: `${SERVER}/engine/metadata-modules/ai/ai-chat/constants/workspace-setup-alternative-system-prompt.constant.ts`,
+    optional: true,
+    replacements: [
+      { from: 'inside Twenty, a CRM, holding', to: `inside Twenty, ${PLATFORM_SUMMARY}, holding` },
+      { from: 'People keep a CRM when', to: 'People keep using Twenty when' },
+    ],
+  },
+  {
+    file: [
+      `${SERVER}/modules/workflow/workflow-executor/workflow-actions/ai-agent/constants/workflow-base-system-prompt.constant.ts`,
+      `${SERVER}/engine/metadata-modules/ai/ai-agent/constants/workflow-base-system-prompt.const.ts`,
+    ],
+    replacements: [
+      { from: 'workflow automation in Twenty CRM.', to: 'workflow automation in Twenty.' },
+    ],
+  },
+  {
+    file: `${SERVER}/database/commands/upgrade-version-command/2-46/suspend-paused-agent-steps-run-spec.util.ts`,
+    optional: true,
+    replacements: [
+      { from: 'workflow automation in Twenty CRM.', to: 'workflow automation in Twenty.' },
+    ],
+  },
+  {
+    file: `${SERVER}/engine/workspace-manager/twenty-standard-application/utils/agent-metadata/create-standard-flat-agent-metadata.util.ts`,
+    replacements: [
+      { from: 'learn how to use Twenty CRM', to: 'learn how to use Twenty' },
+    ],
+  },
+  {
+    file: `${SERVER}/engine/workspace-manager/twenty-standard-application/utils/skill-metadata/create-standard-flat-skill-metadata.util.ts`,
+    replacements: [
+      { from: "label: 'CRM Hygiene',", to: "label: 'Data Hygiene'," },
+      { from: '# CRM Hygiene Skill', to: '# Data Hygiene Skill' },
+      { from: 'asks to clean up the CRM,', to: 'asks to clean up their data,' },
+      {
+        from: 'fill in what the CRM does not know about them',
+        to: 'fill in what the workspace does not know about them',
+      },
+    ],
+  },
+  {
+    file: `${SERVER}/engine/core-modules/twenty-config/constants/config-variables-group-metadata.ts`,
+    replacements: [
+      {
+        from: 'This is not used to email CRM contacts.',
+        to: 'This is not used to email the contacts stored in workspaces.',
       },
     ],
   },
