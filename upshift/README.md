@@ -212,6 +212,7 @@ Left in place on purpose:
 ## What users see
 
 - Name, logo, icons, page titles, emails, translations (all languages), AI assistant prompts, MCP and OpenAPI metadata say Upshift.
+- Upshift is described as a platform that digitizes all company processes, CRM included, not as a CRM: the invitation email in every language (`scripts/catalog-wording.mjs`), the AI assistant, agent and workflow prompts and the MCP instructions. CRM stays where it names that part of the product, such as the CRM Hygiene skill.
 - Documentation links point to `docsUrl` (`https://docs.upshiftcloud.com`) with Twenty's paths kept, for example `/user-guide/workflows/...` and `/developers/extend/apps/getting-started`. The Upshift docs site should serve or redirect those paths.
 - The Community settings page links to Exceev's LinkedIn and X (`linkedinUrl`, `xUrl`) and keeps the beta Features toggles. Twenty's contributor cover, partners and changelog are removed from it.
 - Hidden: the Organization tab of the admin panel (Twenty's enterprise licence and plans), the Legal / DPA pages (Twenty's own legal agreement) and the ChatGPT card that installs Twenty's ChatGPT app.

@@ -12,6 +12,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
+import { PLATFORM_WORDING_REPLACEMENTS } from './catalog-wording.mjs';
+
 const UPSHIFT_DIRECTORY = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
@@ -31,23 +33,10 @@ const CATALOG_TEXT_REPLACEMENTS = [
   ['https://docs.twenty.com', '{{docsUrl}}'],
   ['my-twenty-app', 'my-{{slug}}-app'],
   ['twenty.com', '{{domain}}'],
-  // CRM is only the first step of what Upshift covers; rewritten here so every other locale keeps its translation
-  [
-    "It's a CRM, a software to help businesses manage their customer data and relationships efficiently.",
-    "It's a platform that brings your company's sales and operations processes together.",
-  ],
-  [
-    "C'est un CRM, un logiciel qui aide les entreprises à gérer efficacement leurs données clients et leurs relations.",
-    "C'est une plateforme qui réunit les processus commerciaux et opérationnels de votre entreprise.",
-  ],
-  ['They define the shape of your CRM,', 'They define the shape of your workspace,'],
-  [
-    'Ils définissent la structure de votre CRM,',
-    'Ils définissent la structure de votre espace de travail,',
-  ],
+  ...Object.values(PLATFORM_WORDING_REPLACEMENTS).flat(),
 ];
 const PLATFORM_SUMMARY =
-  "a business platform that brings a company's sales and operations processes together";
+  "a business platform that digitizes all of a company's processes, from CRM and sales to operations, finance and HR";
 const LAYER_MARKER_FILE_NAME = '.upshift-layer-applied';
 const ICONS_RELATIVE_DIRECTORY = 'packages/twenty-front/public/images/icons';
 const TEMPLATE_EXTENSIONS = new Set(['.ts', '.tsx', '.json', '.html', '.md']);
@@ -550,7 +539,9 @@ const PATCHES = [
       },
     ],
   },
-  // Runs before the brand word pass below; mentions of other CRMs, such as migrating from one, stay
+  // Upshift digitizes all company processes, CRM included: text calling the product
+  // "a CRM" or "Twenty CRM" is reworded, CRM as one of its parts stays. Runs before
+  // the brand word pass below.
   {
     file: `${SERVER}/engine/api/mcp/utils/build-mcp-server-instructions.util.ts`,
     replacements: [
@@ -597,7 +588,6 @@ const PATCHES = [
     optional: true,
     replacements: [
       { from: 'inside Twenty, a CRM, holding', to: `inside Twenty, ${PLATFORM_SUMMARY}, holding` },
-      { from: 'People keep a CRM when', to: 'People keep using Twenty when' },
     ],
   },
   {
@@ -620,27 +610,6 @@ const PATCHES = [
     file: `${SERVER}/engine/workspace-manager/twenty-standard-application/utils/agent-metadata/create-standard-flat-agent-metadata.util.ts`,
     replacements: [
       { from: 'learn how to use Twenty CRM', to: 'learn how to use Twenty' },
-    ],
-  },
-  {
-    file: `${SERVER}/engine/workspace-manager/twenty-standard-application/utils/skill-metadata/create-standard-flat-skill-metadata.util.ts`,
-    replacements: [
-      { from: "label: 'CRM Hygiene',", to: "label: 'Data Hygiene'," },
-      { from: '# CRM Hygiene Skill', to: '# Data Hygiene Skill' },
-      { from: 'asks to clean up the CRM,', to: 'asks to clean up their data,' },
-      {
-        from: 'fill in what the CRM does not know about them',
-        to: 'fill in what the workspace does not know about them',
-      },
-    ],
-  },
-  {
-    file: `${SERVER}/engine/core-modules/twenty-config/constants/config-variables-group-metadata.ts`,
-    replacements: [
-      {
-        from: 'This is not used to email CRM contacts.',
-        to: 'This is not used to email the contacts stored in workspaces.',
-      },
     ],
   },
   ...[
