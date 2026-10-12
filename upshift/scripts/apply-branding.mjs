@@ -571,6 +571,16 @@ const PATCHES = [
     replacements: [{ brandWord: true }],
   })),
   {
+    file: `${SERVER}/engine/core-modules/tool/tools/email-tool/email-tool.schema.ts`,
+    replacements: [
+      {
+        from: '"href":"https://twenty.com"',
+        to: '"href":"{{websiteUrl}}"',
+        optional: true,
+      },
+    ],
+  },
+  {
     file: `${EMAILS}/components/Logo.tsx`,
     replacements: [
       {
@@ -937,6 +947,11 @@ const applyPatches = () => {
 
       const expectedCount = replacement.count ?? 1;
       const actualCount = countOccurrences(content, replacement.from);
+
+      // Safe to skip: the reference census still fails on a Twenty link the patch no longer finds
+      if (actualCount === 0 && replacement.optional) {
+        continue;
+      }
 
       if (actualCount !== expectedCount) {
         fail(

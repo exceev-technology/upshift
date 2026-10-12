@@ -187,7 +187,7 @@ Every failure names the file and what was expected.
 | `no longer exists in Twenty` | Twenty moved or deleted a patched file | Add the new path first in the patch's `file` list and keep the old one while releases still use it. A file that only exists in newer Twenty code can be marked `optional: true` |
 | `changed in Twenty (sha256 ...)` | Twenty edited a file Upshift replaces whole (the email footer) | Compare with the overlay, port anything relevant, add the new hash to `CODE_OVERLAY_UPSTREAM_SHA256` |
 | `has no Upshift version` | Twenty added a new app icon | `node upshift/scripts/generate-icons.mjs --root <checkout>` and commit |
-| `references <host or link>` | New code calls or links to a Twenty-owned host | Patch it. If it is unreachable or intentional, add the file to `REFERENCE_CENSUS` with the reason |
+| `references <host or link>` | New code calls or links to a Twenty-owned host | Patch it; while the latest Twenty release does not have that code yet, mark the replacement `optional: true`. If it is unreachable or intentional, add the file to `REFERENCE_CENSUS` with the reason |
 | `lingui compile command not found` / `catalogs changed shape` | Twenty changed its translation build | Update `installCatalogHooks` or `brand-catalogs.mjs` |
 
 ## What the layer disables
