@@ -82,25 +82,17 @@ export const LANGUAGES = [
 ];
 
 // These pages describe Twenty's cloud plans, partner network and legal
-// commitments, which Upshift does not offer, or Twenty's Community settings
-// page, which upshift/scripts/apply-branding.mjs replaces with Exceev's links.
+// commitments, which Upshift does not offer.
 export const EXCLUDED_PAGE_PREFIXES = [
   'user-guide/billing/',
   'user-guide/legal/',
   'user-guide/data-migration/how-tos/migrating-from-self-hosted-to-cloud',
   'user-guide/getting-started/capabilities/implementation-services',
   'user-guide/workflows/how-tos/need-more-help/professional-services',
-  'user-guide/settings/capabilities/community-settings',
 ];
 
-// Twenty's community channels, and settings that differ in the Upshift app.
-export const FORBIDDEN_IN_PAGES = [
-  'twenty.com',
-  'twentyhq',
-  'discord.gg',
-  'Settings → Community',
-  'Paramètres → Communauté',
-];
+// Twenty's sites and community channels.
+export const FORBIDDEN_IN_PAGES = ['twenty.com', 'twentyhq', 'discord.gg'];
 
 // The app adds these language prefixes to its documentation links; languages
 // this site does not publish go to the English pages.
@@ -120,11 +112,8 @@ export const PHRASE_REPLACEMENTS = {
       to: `${BRAND_NAME} réunit les processus commerciaux et opérationnels de votre entreprise sur une seule plateforme. Voici ce que vous pouvez y construire.`,
       count: 1,
     },
-    {
-      from: "\n\n<Accordion title=\"Comment activer les fonctionnalités en Accès anticipé ?\">\n1. Allez dans **Paramètres → Communauté**\n2. Faites défiler vers le bas jusqu'à la section **Fonctionnalités**\n3. Repérez la fonctionnalité souhaitée\n4. Activez-la\n5. La fonctionnalité devient disponible immédiatement\n</Accordion>",
-      to: '',
-      count: 1,
-    },
+    // Twenty's French pages still ask to enable junction relations as a beta
+    // feature; they no longer are one, and the English pages dropped the step.
     {
       from: "<Warning>\n**Fonctionnalité bêta**: Les relations de jonction doivent être activées dans **Paramètres → Communauté → Fonctionnalités** avant l'utilisation.\n</Warning>\n\n",
       to: '',
@@ -195,11 +184,6 @@ export const PHRASE_REPLACEMENTS = {
     {
       from: "Twenty is a full-featured CRM platform. Here's what you can build with it.",
       to: `${BRAND_NAME} brings your company's sales and operations processes together on one platform. Here's what you can build with it.`,
-      count: 1,
-    },
-    {
-      from: '\n\n<Accordion title="How do I enable Early Access features?">\n1. Go to **Settings → Community**\n2. Scroll down to the **Features** section\n3. Find the feature you want\n4. Toggle it on\n5. The feature becomes available immediately\n</Accordion>',
-      to: '',
       count: 1,
     },
     {

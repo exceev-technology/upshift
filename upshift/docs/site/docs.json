@@ -404,7 +404,8 @@
                       "user-guide/settings/capabilities/member-management",
                       "user-guide/settings/capabilities/profile-settings",
                       "user-guide/settings/capabilities/experience-settings",
-                      "user-guide/settings/capabilities/domains-settings"
+                      "user-guide/settings/capabilities/domains-settings",
+                      "user-guide/settings/capabilities/community-settings"
                     ]
                   },
                   {
@@ -810,7 +811,8 @@
                       "en/user-guide/settings/capabilities/member-management",
                       "en/user-guide/settings/capabilities/profile-settings",
                       "en/user-guide/settings/capabilities/experience-settings",
-                      "en/user-guide/settings/capabilities/domains-settings"
+                      "en/user-guide/settings/capabilities/domains-settings",
+                      "en/user-guide/settings/capabilities/community-settings"
                     ]
                   },
                   {
@@ -1449,6 +1451,14 @@
     {
       "source": "/en/user-guide/settings/domains-settings",
       "destination": "/en/user-guide/settings/capabilities/domains-settings"
+    },
+    {
+      "source": "/user-guide/settings/releases-settings",
+      "destination": "/user-guide/settings/capabilities/community-settings"
+    },
+    {
+      "source": "/en/user-guide/settings/releases-settings",
+      "destination": "/en/user-guide/settings/capabilities/community-settings"
     },
     {
       "source": "/user-guide/settings/settings-faq",
