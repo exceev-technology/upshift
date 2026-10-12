@@ -554,7 +554,7 @@ const PATCHES = [
   {
     file: `${SERVER}/engine/api/mcp/utils/build-mcp-server-instructions.util.ts`,
     replacements: [
-      { from: 'for a Twenty CRM workspace.', to: 'for a Twenty workspace.' },
+      { from: 'for a Twenty CRM workspace.', to: 'for this Twenty workspace.' },
       {
         from: 'Your role is to manage CRM data,',
         to: 'Your role is to manage workspace data,',
