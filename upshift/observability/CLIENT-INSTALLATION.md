@@ -93,7 +93,7 @@ This opt-in operational monitoring does not re-enable Twenty analytics or enterp
 
 ## Disable, switch or retire monitoring
 
-To disable collection, change `UPSHIFT_OBSERVABILITY_ENABLED` to `'false'` in the selected Compose file for **both** server and worker, then redeploy. A same-named Coolify variable alone does not override the literal `'true'` in the supplied overlay. Alternatively return to `docker-compose.yml` while preserving the resource's persistent volumes. Remove Alloy after confirming export has stopped.
+To disable collection, set `UPSHIFT_OBSERVABILITY_ENABLED=false` in the application's Coolify environment variables and redeploy. The monitoring Compose applies it to both server and worker; collection defaults to enabled only when using that monitoring Compose. Regenerate any Cloud variant produced before this variable was supported. Alternatively return to `docker-compose.yml` while preserving the resource's persistent volumes. Remove Alloy after confirming export has stopped.
 
 To switch destinations, deploy the new monitoring backend first, change to the other guide's collector configuration and credentials, then verify all three signals before revoking the old token. This switches new writes; it does not migrate historical data. Retain old query access until the agreed history expires.
 
