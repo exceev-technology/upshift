@@ -6,6 +6,8 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 
+import { applyReplacements } from './patch-replacements.mjs';
+
 import { SERVER_PRIVACY_PATCHES } from './server-privacy-patches.mjs';
 
 const sourceRoot =
@@ -16,18 +18,10 @@ const patchedSource = (suffix) => {
   const patch = SERVER_PRIVACY_PATCHES.find(({ file }) =>
     file.endsWith(suffix),
   );
-  let source = readFileSync(path.join(sourceRoot, patch.file), 'utf8');
-
-  for (const { from, to, count = 1 } of patch.replacements) {
-    assert.equal(
-      source.split(from).length - 1,
-      count,
-      `${patch.file}: ${from}`,
-    );
-    source = source.split(from).join(to);
-  }
-
-  return source;
+  const source = readFileSync(path.join(sourceRoot, patch.file), 'utf8');
+  const result = applyReplacements(source, patch.replacements);
+  assert.deepEqual(result.failures, [], patch.file);
+  return result.content;
 };
 
 const withoutImports = (source) =>

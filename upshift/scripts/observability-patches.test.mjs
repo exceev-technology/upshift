@@ -5,6 +5,8 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { applyReplacements } from './patch-replacements.mjs';
+
 import {
   OBSERVABILITY_PATCHES,
   readObservabilityInstrumentation,
@@ -24,10 +26,9 @@ test('Dockerfile preload patch matches upstream exactly and is inherited by serv
       ),
       'utf8',
     );
-    for (const { from, to, count = 1 } of patch.replacements) {
-      assert.equal(source.split(from).length - 1, count);
-      source = source.split(from).join(to);
-    }
+    const result = applyReplacements(source, patch.replacements);
+    assert.deepEqual(result.failures, [], patch.file);
+    source = result.content;
     if (patch.file.endsWith('Dockerfile')) {
       assert.match(
         source,

@@ -6,6 +6,8 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 
+import { applyReplacements } from './patch-replacements.mjs';
+
 import { FRONTEND_PRIVACY_PATCHES } from './frontend-privacy-patches.mjs';
 
 const sourceRoot =
@@ -16,20 +18,10 @@ const patchedSource = (suffix) => {
   const patch = FRONTEND_PRIVACY_PATCHES.find(({ file }) =>
     file.endsWith(suffix),
   );
-  let source = readFileSync(path.join(sourceRoot, patch.file), 'utf8');
-  for (const { from, pattern, to, count = 1 } of patch.replacements) {
-    assert.equal(
-      pattern
-        ? [...source.matchAll(pattern)].length
-        : source.split(from).length - 1,
-      count,
-      `${patch.file}: ${from ?? pattern}`,
-    );
-    source = pattern
-      ? source.replace(pattern, to)
-      : source.split(from).join(to);
-  }
-  return source;
+  const source = readFileSync(path.join(sourceRoot, patch.file), 'utf8');
+  const result = applyReplacements(source, patch.replacements);
+  assert.deepEqual(result.failures, [], patch.file);
+  return result.content;
 };
 
 const withoutImports = (source) =>

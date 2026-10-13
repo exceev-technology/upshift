@@ -19,6 +19,7 @@ import {
   OBSERVABILITY_PATCHES,
   readObservabilityInstrumentation,
 } from './observability-patches.mjs';
+import { applyReplacements, countOccurrences } from './patch-replacements.mjs';
 import { SERVER_PRIVACY_PATCHES } from './server-privacy-patches.mjs';
 
 const UPSHIFT_DIRECTORY = path.resolve(
@@ -47,7 +48,6 @@ const PLATFORM_SUMMARY =
 const LAYER_MARKER_FILE_NAME = '.upshift-layer-applied';
 const ICONS_RELATIVE_DIRECTORY = 'packages/twenty-front/public/images/icons';
 const TEMPLATE_EXTENSIONS = new Set(['.ts', '.tsx', '.json', '.html', '.md']);
-const TWENTY_BRAND_WORD = /(?<![\w@./-])Twenty(?!\w|\.[a-z])/g;
 
 const FRONT = 'packages/twenty-front';
 const SERVER = 'packages/twenty-server/src';
@@ -972,8 +972,6 @@ const listFiles = (entryPath) => {
 const toRelative = (absolutePath, base) =>
   path.relative(base, absolutePath).split(path.sep).join('/');
 
-const countOccurrences = (content, needle) => content.split(needle).length - 1;
-
 const assertFreshCheckout = () => {
   if (twentyRoot === LAYER_REPOSITORY_ROOT && !process.env.CI) {
     console.error(
@@ -1055,58 +1053,17 @@ const applyPatches = () => {
     }
 
     const filePath = path.join(twentyRoot, patchedFile);
-    let content = readPlanned(filePath);
+    const content = readPlanned(filePath);
 
-    for (const replacement of patch.replacements) {
-      if (replacement.brandWord) {
-        const matches = content.match(TWENTY_BRAND_WORD) ?? [];
-        const minimum = replacement.minimum ?? 1;
-
-        if (matches.length < minimum) {
-          fail(
-            `${patchedFile}: expected at least ${minimum} "Twenty" mentions, found ${matches.length}`,
-          );
-          continue;
-        }
-
-        content = content.replace(TWENTY_BRAND_WORD, brand.name);
-        replacementCount += matches.length;
-        continue;
-      }
-
-      if (replacement.pattern) {
-        const matches = content.match(replacement.pattern) ?? [];
-
-        if (matches.length === 0) {
-          fail(`${patchedFile}: pattern ${replacement.pattern} not found`);
-          continue;
-        }
-
-        content = content.replace(replacement.pattern, fillTemplate(replacement.to));
-        replacementCount += matches.length;
-        continue;
-      }
-
-      const expectedCount = replacement.count ?? 1;
-      const actualCount = countOccurrences(content, replacement.from);
-
-      // Safe to skip: the reference census still fails on a Twenty link the patch no longer finds
-      if (actualCount === 0 && replacement.optional) {
-        continue;
-      }
-
-      if (actualCount !== expectedCount) {
-        fail(
-          `${patchedFile}: expected ${expectedCount} occurrence(s) of ${JSON.stringify(replacement.from.split('\n')[0])}, found ${actualCount}`,
-        );
-        continue;
-      }
-
-      content = content.split(replacement.from).join(fillTemplate(replacement.to));
-      replacementCount += actualCount;
-    }
-
-    planWrite(filePath, content);
+    const result = applyReplacements(
+      content,
+      patch.replacements,
+      fillTemplate,
+      brand.name,
+    );
+    result.failures.forEach((message) => fail(`${patchedFile}: ${message}`));
+    replacementCount += result.replacementCount;
+    planWrite(filePath, result.content);
   }
 
   return replacementCount;
