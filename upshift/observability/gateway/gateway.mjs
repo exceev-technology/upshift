@@ -129,7 +129,8 @@ export const createGateway = ({
       try {
         const chunks = [];
         let size = 0;
-        for await (const chunk of request) {
+        // Keep the upload readable so a size rejection can flush before remaining bytes are drained.
+        for await (const chunk of request.iterator({ destroyOnReturn: false })) {
           size += chunk.length;
           if (size > MAX_BODY_BYTES) {
             reject(413, 'body_size');

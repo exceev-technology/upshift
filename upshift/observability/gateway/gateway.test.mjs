@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
+import { request as httpRequest } from 'node:http';
 import { gzipSync } from 'node:zlib';
 import test from 'node:test';
 import { hashToken, parseTenants, datasourceConfiguration } from './config.mjs';
@@ -45,6 +46,7 @@ const payload = {
 };
 const fixture = async (context) => {
   const calls = [];
+  const requests = [];
   let snapshot = {
     measuredAt: Date.now(),
     usedRatio: 0.2,
@@ -61,6 +63,7 @@ const fixture = async (context) => {
       return new Response('{}');
     },
   });
+  server.on('request', (request) => requests.push(request));
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
   context.after(
@@ -87,6 +90,7 @@ const fixture = async (context) => {
     });
   return {
     calls,
+    requests,
     send,
     url,
     setSnapshot: (value) => {
@@ -200,6 +204,42 @@ test('gzip expands within a strict bound and rate counts uncompressed bytes acro
   const padded = JSON.stringify({ ...payload, ignored: 'x'.repeat(650000) });
   assert.equal((await gateway.send(padded)).status, 200);
   assert.equal((await gateway.send(padded)).status, 429);
+});
+
+test('incremental oversized uploads receive 413 and release in-flight capacity', async (context) => {
+  const gateway = await fixture(context);
+  const uploads = [];
+  context.after(() => uploads.forEach((upload) => upload.destroy()));
+
+  for (let index = 0; index < 4; index++) {
+    const upload = httpRequest(`${gateway.url}/v1/logs`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${TOKEN}`,
+        'content-type': 'application/json',
+        'transfer-encoding': 'chunked',
+      },
+    });
+    uploads.push(upload);
+    upload.write(Buffer.alloc(512 * 1024, ' '));
+    await new Promise((resolve) => setImmediate(resolve));
+    upload.write(Buffer.alloc(512 * 1024 + 1, ' '));
+
+    const [response] = await once(upload, 'response', {
+      signal: AbortSignal.timeout(3000),
+    });
+    response.resume();
+    await once(response, 'end');
+    assert.equal(response.statusCode, 413);
+    assert.equal(gateway.requests.at(-1).destroyed, false);
+    upload.end(Buffer.alloc(512, ' '));
+    await once(upload, 'finish');
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    assert.equal(upload.socket.destroyed, false);
+  }
+
+  assert.equal((await gateway.send()).status, 200);
+  assert.equal(gateway.calls.length, 1);
 });
 
 test('storage accounting paginates and attributes Loki indexes plus all three signal buckets', async () => {
