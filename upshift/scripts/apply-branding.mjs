@@ -303,27 +303,6 @@ const PATCHES = [
     ],
   },
   {
-    file: `${FRONT}/src/modules/settings/admin-panel/hooks/useSettingsAdminTabs.ts`,
-    replacements: [
-      {
-        from: [
-          '    ...(!isBillingEnabled',
-          '      ? [',
-          '          {',
-          '            id: SETTINGS_ADMIN_TABS.ORGANIZATION,',
-          '            title: t`Organization`,',
-          '            Icon: IconKey,',
-          '            disabled: !canAccessFullAdminPanel && !canImpersonate,',
-          '          },',
-          '        ]',
-          '      : []),',
-          '',
-        ].join('\n'),
-        to: '',
-      },
-    ],
-  },
-  {
     file: 'packages/twenty-shared/src/constants/DocumentationBaseUrl.ts',
     replacements: [{ from: "'https://docs.twenty.com'", to: "'{{docsUrl}}'" }],
   },
