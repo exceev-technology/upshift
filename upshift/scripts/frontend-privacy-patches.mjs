@@ -21,6 +21,22 @@ export const FRONTEND_PRIVACY_PATCHES = [
         from: '  const isBillingEnabled = billing?.isBillingEnabled;\n',
         to: '',
       },
+      {
+        from: [
+          '    ...(!isBillingEnabled',
+          '      ? [',
+          '          {',
+          '            id: SETTINGS_ADMIN_TABS.ORGANIZATION,',
+          '            title: t`Organization`,',
+          '            Icon: IconKey,',
+          '            disabled: !canAccessFullAdminPanel && !canImpersonate,',
+          '          },',
+          '        ]',
+          '      : []),',
+          '',
+        ].join('\n'),
+        to: '',
+      },
     ],
   },
   {

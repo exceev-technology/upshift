@@ -31,6 +31,34 @@ test('every frontend privacy patch matches upstream exactly', () => {
   for (const { file } of FRONTEND_PRIVACY_PATCHES) patchedSource(file);
 });
 
+test('admin tabs omit Organization and leave no dangling references', () => {
+  const source = withoutImports(patchedSource('/useSettingsAdminTabs.ts'))
+    .replace('export const ', 'const ');
+  const tabs = Object.fromEntries(
+    ['GENERAL', 'APPS', 'AI', 'CONFIG_VARIABLES', 'HEALTH_STATUS', 'ORGANIZATION']
+      .map((tab) => [tab, tab]),
+  );
+  const useSettingsAdminTabs = vm.runInNewContext(
+    stripTypeScriptTypes(`${source}\nuseSettingsAdminTabs;`),
+    {
+      SETTINGS_ADMIN_TABS: tabs,
+      currentUserState: 'currentUser',
+      useAtomStateValue: () => ({ canAccessFullAdminPanel: true, canImpersonate: false }),
+      t: (strings, ...values) => String.raw({ raw: strings }, ...values),
+      IconApps: 'IconApps',
+      IconHeart: 'IconHeart',
+      IconSettings2: 'IconSettings2',
+      IconSparkles: 'IconSparkles',
+      IconVariable: 'IconVariable',
+    },
+  );
+  // Array.from keeps the comparison in this realm; vm arrays carry a foreign prototype.
+  assert.deepEqual(
+    Array.from(useSettingsAdminTabs(), ({ id }) => id),
+    ['GENERAL', 'APPS', 'AI', 'CONFIG_VARIABLES', 'HEALTH_STATUS'],
+  );
+});
+
 test('direct Organization tab access cannot render activation or checkout', () => {
   const source = withoutImports(patchedSource('/SettingsAdminTabContent.tsx'))
     .replace('export const ', 'const ')
