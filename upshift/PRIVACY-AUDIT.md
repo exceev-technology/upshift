@@ -13,7 +13,7 @@ the unpatched monorepo alone does not describe the shipped image.
 | Browser pageviews | Anonymous and authenticated visits set a session cookie and submit pageviews to the instance even with analytics disabled | Remove both tracking mounts and disable the server analytics mutation |
 | Sentry | Environment variables can enable backend errors, traces, profiles and AI input/output capture; saved frontend DSNs can enable browser replay | Block initialization on both sides, return an empty frontend DSN and use console exceptions |
 | Remote metrics | Environment variables can enable OTLP exports independently of the telemetry setting | Disable the remote exporter; retain local console and Prometheus metrics |
-| Enterprise API | Licence refresh and seat reporting send instance identifiers, administrator email and usage counts despite telemetry being off | Reject all six remote operations before collecting metadata or making requests |
+| Enterprise API | Licence refresh and seat reporting send instance identifiers, administrator email and usage counts despite telemetry being off | Block all six remote operations before metadata/network access; portal/checkout return null, activation rejects before persisting a key, and self-hosted purchase/activation UI is removed |
 | Release smoke test | Its baseline ignored connections made during startup | Validate the sink before starting the app and inspect the entire subsequent log |
 
 Company enrichment, Twenty-hosted logos, prefilled avatars and the default help

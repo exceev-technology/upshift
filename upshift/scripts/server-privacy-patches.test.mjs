@@ -210,7 +210,10 @@ test('enterprise requests fail before collecting metadata or contacting the lice
     },
   );
   const service = new EnterprisePlanService();
-  service.twentyConfigService = { get: () => 'configured-enterprise-value' };
+  service.twentyConfigService = {
+    get: () => 'configured-enterprise-value',
+    set: () => assert.fail('Enterprise key was persisted before rejection'),
+  };
   service.cachedKeyPayload = { sub: 'existing-valid-license' };
   service.refreshKeyPayload = () => {};
   service.getLicenseInfo = async () => ({ isValid: true });
@@ -219,13 +222,15 @@ test('enterprise requests fail before collecting metadata or contacting the lice
   service.getOrCreateServerId = () =>
     assert.fail('A server identifier was collected');
 
+  assert.equal(await service.getPortalUrl('/settings'), null);
+  assert.equal(await service.getCheckoutUrl('monthly', 1), null);
+
   for (const method of [
     'refreshValidityToken',
     'reportSeats',
     'releaseServerBinding',
     'getSubscriptionStatus',
-    'getPortalUrl',
-    'getCheckoutUrl',
+    'setEnterpriseKey',
   ]) {
     await assert.rejects(
       service[method](),

@@ -5,6 +5,18 @@ export const SERVER_PRIVACY_PATCHES = [
     file: `${SERVER}/engine/core-modules/enterprise/services/enterprise-plan.service.ts`,
     replacements: [
       {
+        from: '  async setEnterpriseKey(enterpriseKey: string): Promise<void> {',
+        to: "  async setEnterpriseKey(enterpriseKey: string): Promise<void> {\n    if (UPSHIFT_ENTERPRISE_NETWORK_DISABLED) {\n      throw new Error('Enterprise network requests are disabled in Upshift');\n    }\n",
+      },
+      {
+        from: '  async getPortalUrl(returnUrl?: string): Promise<string | null> {',
+        to: '  async getPortalUrl(returnUrl?: string): Promise<string | null> {\n    if (UPSHIFT_ENTERPRISE_NETWORK_DISABLED) {\n      return null;\n    }\n',
+      },
+      {
+        from: "  async getCheckoutUrl(\n    billingInterval: 'monthly' | 'yearly' = 'monthly',\n    seatCount: number,\n  ): Promise<string | null> {",
+        to: "  async getCheckoutUrl(\n    billingInterval: 'monthly' | 'yearly' = 'monthly',\n    seatCount: number,\n  ): Promise<string | null> {\n    if (UPSHIFT_ENTERPRISE_NETWORK_DISABLED) {\n      return null;\n    }\n",
+      },
+      {
         from: '@Injectable()\nexport class EnterprisePlanService',
         to: [
           'const UPSHIFT_ENTERPRISE_NETWORK_DISABLED: boolean = true;',
