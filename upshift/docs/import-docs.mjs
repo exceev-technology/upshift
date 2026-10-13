@@ -50,7 +50,10 @@ export const TWENTY_DOCS_ROOT = path.join(
   'packages/twenty-docs',
 );
 
-export const buildSite = (twentyDocsRoot) => {
+export const buildSite = (
+  twentyDocsRoot,
+  { appRoot = LAYER_REPOSITORY_ROOT, releaseVersion } = {},
+) => {
   const readTwenty = (relativePath) =>
     readFileSync(path.join(twentyDocsRoot, relativePath));
   const twentyDocsConfig = JSON.parse(readTwenty('docs.json').toString());
@@ -162,7 +165,7 @@ export const buildSite = (twentyDocsRoot) => {
   const readBranding = (fileName) =>
     readFileSync(path.join(BRANDING_ROOT, fileName));
   const readApp = (relativePath) =>
-    readFileSync(path.join(LAYER_REPOSITORY_ROOT, relativePath), 'utf8');
+    readFileSync(path.join(appRoot, relativePath), 'utf8');
   const appLanguages = [
     ...readApp(APP_DOCUMENTATION_LANGUAGES).matchAll(/'([a-z]{2})'/g),
   ].map(([, code]) => code);
@@ -175,14 +178,18 @@ export const buildSite = (twentyDocsRoot) => {
     );
   }
 
-  const [, releaseVersion] =
+  const [, sourceVersion] =
     readApp(APP_RELEASE_VERSION).match(
       /TWENTY_CURRENT_VERSION = '(\d+\.\d+\.\d+)'/,
     ) ?? [];
 
-  if (releaseVersion === undefined) {
+  if (sourceVersion === undefined) {
     problems.push(
       `cannot read the release version from ${APP_RELEASE_VERSION}`,
+    );
+  } else if (releaseVersion !== undefined && releaseVersion !== sourceVersion) {
+    problems.push(
+      `the docs are built for Upshift v${releaseVersion} but the sources carry ${sourceVersion}`,
     );
   }
 
@@ -200,7 +207,7 @@ export const buildSite = (twentyDocsRoot) => {
   files.set('favicon.svg', readBranding('logo.svg'));
   files.set(
     'docs.json',
-    `${JSON.stringify(buildDocsConfig(twentyDocsConfig, navigation, redirects, releaseVersion), null, 2)}\n`,
+    `${JSON.stringify(buildDocsConfig(twentyDocsConfig, navigation, redirects, sourceVersion), null, 2)}\n`,
   );
 
   problems.push(...auditSite(files, sitePages));
@@ -233,24 +240,6 @@ const listSiteFiles = (directory, prefix = '') =>
         })
     : [];
 
-export const findDrift = (files, siteRoot) => {
-  const existing = new Set(listSiteFiles(siteRoot));
-
-  const changed = [...files]
-    .filter(
-      ([relativePath, content]) =>
-        !existing.has(relativePath) ||
-        !readFileSync(path.join(siteRoot, relativePath)).equals(
-          Buffer.from(content),
-        ),
-    )
-    .map(([relativePath]) => relativePath);
-
-  const extra = [...existing].filter((relativePath) => !files.has(relativePath));
-
-  return { changed, extra };
-};
-
 const writeSite = (files, siteRoot) => {
   rmSync(siteRoot, { recursive: true, force: true });
 
@@ -262,8 +251,30 @@ const writeSite = (files, siteRoot) => {
   }
 };
 
+export const parseArguments = (argv) => {
+  const valueOf = (flag) => {
+    const index = argv.indexOf(flag);
+
+    return index === -1 ? undefined : argv[index + 1];
+  };
+
+  return {
+    twentyRoot: valueOf('--root'),
+    releaseVersion: valueOf('--version'),
+    check: argv.includes('--check'),
+  };
+};
+
 const main = () => {
-  const { files, problems, summary } = buildSite(TWENTY_DOCS_ROOT);
+  const { twentyRoot, releaseVersion, check } = parseArguments(
+    process.argv.slice(2),
+  );
+  const appRoot =
+    twentyRoot === undefined ? LAYER_REPOSITORY_ROOT : path.resolve(twentyRoot);
+  const { files, problems, summary } = buildSite(
+    path.join(appRoot, 'packages/twenty-docs'),
+    { appRoot, releaseVersion },
+  );
 
   if (problems.length > 0) {
     console.error(
@@ -272,25 +283,16 @@ const main = () => {
     process.exit(1);
   }
 
-  if (process.argv.includes('--check')) {
-    const { changed, extra } = findDrift(files, SITE_ROOT);
+  const built = `${summary.pages} pages, ${summary.images} images, ${summary.snippets} snippets, ${summary.redirects} redirects`;
 
-    if (changed.length > 0 || extra.length > 0) {
-      console.error(
-        `upshift/docs/site is out of date (${changed.length} changed or missing, ${extra.length} extra). Run node upshift/docs/import-docs.mjs and commit the result.`,
-      );
-      process.exit(1);
-    }
-
-    console.log('upshift/docs/site matches packages/twenty-docs.');
+  if (check) {
+    console.log(`The docs import works: ${built}.`);
 
     return;
   }
 
   writeSite(files, SITE_ROOT);
-  console.log(
-    `Wrote upshift/docs/site: ${summary.pages} pages, ${summary.images} images, ${summary.snippets} snippets, ${summary.redirects} redirects.`,
-  );
+  console.log(`Wrote upshift/docs/site: ${built}.`);
 };
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

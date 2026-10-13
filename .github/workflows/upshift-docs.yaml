@@ -1,0 +1,122 @@
+name: Upshift Docs
+
+on:
+  push:
+    branches: [upshift-main]
+    paths:
+      - 'upshift/docs/**'
+      - 'upshift/branding/**'
+      - '.github/workflows/upshift-docs.yaml'
+  pull_request:
+    branches: [upshift-main]
+    paths:
+      - 'upshift/docs/**'
+      - 'upshift/branding/**'
+      - '.github/workflows/upshift-docs.yaml'
+  workflow_run:
+    workflows: [Upshift Release]
+    types: [completed]
+    branches: [upshift-main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upshift-docs-${{ github.event_name == 'pull_request' && github.ref || 'publish' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  docs:
+    # A failed release keeps the docs of the previous one
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the Upshift layer
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Find the latest Upshift release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+
+          if ! [[ "$tag" =~ ^upshift/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::The latest GitHub Release is not an Upshift version: '$tag'"
+            exit 1
+          fi
+
+          version="${tag#upshift/}"
+          echo "Upshift release: $version, built on Twenty twenty/$version"
+          {
+            echo "version=$version"
+            echo "app-version=${version#v}"
+            echo "twenty-tag=twenty/$version"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check out the Twenty sources of Upshift ${{ steps.release.outputs.version }}
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          repository: twentyhq/twenty
+          ref: refs/tags/${{ steps.release.outputs.twenty-tag }}
+          path: .upshift-docs/twenty
+          sparse-checkout: |
+            packages/twenty-docs
+            packages/twenty-shared/src/constants
+            packages/twenty-server/src/engine/core-modules/upgrade/constants
+          filter: blob:none
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+
+      - name: Test the docs importer
+        run: node --test upshift/docs/test/*.test.mjs
+
+      - name: Build the docs of Upshift ${{ steps.release.outputs.version }}
+        env:
+          APP_VERSION: ${{ steps.release.outputs.app-version }}
+        run: node upshift/docs/import-docs.mjs --root .upshift-docs/twenty --version "$APP_VERSION"
+
+      # Mintlify deploys the docs-site branch; pull requests only prove the build
+      - name: Publish the docs-site branch
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          site="$GITHUB_WORKSPACE/upshift/docs/site"
+          remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+          mkdir -p "$RUNNER_TEMP/docs-site"
+          cd "$RUNNER_TEMP/docs-site"
+          git init -q
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          if git fetch -q --depth 1 "$remote" docs-site 2>/dev/null; then
+            git checkout -q -b docs-site FETCH_HEAD
+            git rm -r -q .
+          else
+            git checkout -q --orphan docs-site
+          fi
+
+          cp -R "$site"/. .
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "The docs-site branch already carries Upshift $VERSION from this layer."
+            exit 0
+          fi
+
+          git commit -q -m "Docs of Upshift $VERSION from layer ${GITHUB_SHA::10}"
+          git push -q "$remote" HEAD:docs-site
+          echo "Published the docs of Upshift $VERSION to the docs-site branch."

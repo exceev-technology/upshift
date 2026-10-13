@@ -21,8 +21,9 @@ upshift/
     .env.example
   docs/
     rules.mjs           what is published and how it is rebranded
-    import-docs.mjs     builds docs/site from packages/twenty-docs
-    site/               generated Mintlify site, deployed to docs.upshiftcloud.com
+    import-docs.mjs     builds docs/site from a Twenty checkout
+    site/               generated Mintlify site, not committed: the Upshift Docs workflow
+                        builds it from the latest Upshift release and publishes the docs-site branch
 ```
 
 ## How a release is built
@@ -102,18 +103,20 @@ docker compose up -d --remove-orphans
 
 - `docs/rules.mjs` says what is published and how it is rebranded: the Getting Started and User Guide tabs in French (the default, served at the root) and English (under `/en/`), without Twenty's billing, legal, cloud migration and partner pages, with Twenty's links and addresses pointed at Upshift. Pages those tabs link to but that Twenty keeps out of its navigation are published too, without a navigation entry. French links to a page Twenty has not translated yet go to its English version. Upshift covers the whole chain from first contact to reporting, so the rules also reword prose that calls Upshift or its data "CRM"; "CRM" stays only for other products, migrations and the prospecting step.
 - `docs/overrides/` holds pages written for Upshift, such as "Pourquoi Upshift" (`getting-started/introduction.mdx`, and its English version under `en/`), which replace Twenty's version of the same page, and the React snippets those pages import from `snippets/`, such as the interactive process map (`snippets/process-map.jsx`, styled in `docs/upshift.css`).
-- `docs/import-docs.mjs` applies the rules and overrides and writes `docs/site/`, the folder Mintlify deploys from `upshift-main`. The navigation carries a single version, `vX.Y.Z` from the server's `TWENTY_CURRENT_VERSION`, so readers see which release the docs describe. It moves with each Twenty bump when the site is regenerated. Never edit `docs/site/` by hand or in the Mintlify web editor: the next import replaces it. Change the rules or add an override instead.
+- `docs/import-docs.mjs` applies the rules and overrides to a Twenty checkout and writes `docs/site/`. `--root <checkout>` says which Twenty sources to read (this repository by default), `--version X.Y.Z` names the Upshift release the site documents and fails when the checkout carries another version, and `--check` builds without writing. The navigation carries a single version, `vX.Y.Z` from the server's `TWENTY_CURRENT_VERSION` of that checkout, so readers see which release the docs describe.
+
+The site is not committed. The [Upshift Docs](../.github/workflows/upshift-docs.yaml) workflow builds it from the latest Upshift release: it takes the newest `upshift/vX.Y.Z` GitHub Release, checks out Twenty at the matching `twenty/vX.Y.Z` tag, applies the rules and overrides of `upshift-main`, and publishes the result to the `docs-site` branch, which Mintlify deploys to docs.upshiftcloud.com. It runs after every Upshift Release run, on every push to `upshift-main` that touches `docs/` or `branding/`, and on demand. Pull requests that touch those folders run the same build without publishing. Never edit the `docs-site` branch by hand or in the Mintlify web editor: the next run replaces it. Change the rules or add an override instead.
 
 ```bash
 node upshift/docs/import-docs.mjs
 ```
 
-The import fails when a sentence a rule expects has changed in Twenty's docs, when an excluded section no longer matches any Twenty page (so a moved legal or billing page cannot slip through), when a page still references a Twenty address or links to a page that is not published, when a page presents Upshift as a CRM (add a term rule, or an allowed context in `CRM_ALLOWED_CONTEXTS`), or when an override no longer matches a published page or no page imports an override snippet. Update the rule's text or `count` in `rules.mjs` and run it again. The Upshift Branding Check runs the importer's tests and fails while `docs/site/` differs from what the import produces.
+The import fails when a sentence a rule expects has changed in Twenty's docs, when an excluded section no longer matches any Twenty page (so a moved legal or billing page cannot slip through), when a page still references a Twenty address or links to a page that is not published, when a page presents Upshift as a CRM (add a term rule, or an allowed context in `CRM_ALLOWED_CONTEXTS`), or when an override no longer matches a published page or no page imports an override snippet. Update the rule's text or `count` in `rules.mjs` and run it again. The Upshift Branding Check runs the importer's tests and a `--check` build against this branch's Twenty docs, so a Twenty change that breaks a rule shows up before the next release. The Upshift Docs workflow runs the build against the released docs.
 
-To preview the site locally:
+To preview the site locally, build it from this checkout, then serve it:
 
 ```bash
-cd upshift/docs/site && npx --yes mintlify@4.2.956 dev
+node upshift/docs/import-docs.mjs && cd upshift/docs/site && npx --yes mintlify@4.2.956 dev
 ```
 
 ## Syncing Twenty into upshift-main
@@ -132,7 +135,7 @@ git switch main && git pull --ff-only
 git switch -c sync/twenty-$(date +%Y-%m-%d) upshift-main && git merge main
 ```
 
-Then refresh the docs in the same branch with `node upshift/docs/import-docs.mjs` and commit `upshift/docs/site` if it changed.
+Then run `node upshift/docs/import-docs.mjs --check` in the same branch: it fails when Twenty's docs changed in a way the rules no longer match.
 
 Open a PR into `upshift-main`. The merge has no conflicts because Upshift only adds files. The [Upshift Branding Check](../.github/workflows/upshift-branding-check.yaml) workflow applies the layer to the PR and to the latest Twenty release, so you learn about broken patch points before the next release.
 
@@ -140,7 +143,7 @@ Open a PR into `upshift-main`. The merge has no conflicts because Upshift only a
 
 ## GitHub Actions
 
-Only `upshift-release.yaml` and `upshift-branding-check.yaml` run. Twenty's own workflows test, deploy and translate Twenty itself (several need Twenty's private secrets), so they are disabled in the repository settings. When a sync brings a new Twenty workflow, the `disable-twenty-workflows` job of the branding check disables it on the next push to `upshift-main`. It can run once on that same push before being disabled.
+Only `upshift-release.yaml`, `upshift-branding-check.yaml` and `upshift-docs.yaml` run. Twenty's own workflows test, deploy and translate Twenty itself (several need Twenty's private secrets), so they are disabled in the repository settings. When a sync brings a new Twenty workflow, the `disable-twenty-workflows` job of the branding check disables it on the next push to `upshift-main`. It can run once on that same push before being disabled.
 
 To turn one of Twenty's workflows back on:
 

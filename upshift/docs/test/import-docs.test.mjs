@@ -4,7 +4,11 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, it } from 'node:test';
 
-import { TWENTY_DOCS_ROOT, buildSite, findDrift } from '../import-docs.mjs';
+import {
+  TWENTY_DOCS_ROOT,
+  buildSite,
+  parseArguments,
+} from '../import-docs.mjs';
 
 describe('buildSite on packages/twenty-docs', () => {
   const { files, problems } = buildSite(TWENTY_DOCS_ROOT);
@@ -180,23 +184,64 @@ describe('buildSite on packages/twenty-docs', () => {
   });
 });
 
-describe('findDrift', () => {
-  it('reports edited, missing and extra files and ignores dotfiles', () => {
-    const siteRoot = mkdtempSync(path.join(tmpdir(), 'upshift-docs-'));
+describe('buildSite on the sources of an Upshift release', () => {
+  const appRoot = mkdtempSync(path.join(tmpdir(), 'upshift-docs-release-'));
+  const writeApp = (relativePath, content) => {
+    mkdirSync(path.join(appRoot, path.dirname(relativePath)), {
+      recursive: true,
+    });
+    writeFileSync(path.join(appRoot, relativePath), content);
+  };
 
-    mkdirSync(path.join(siteRoot, 'user-guide'));
-    writeFileSync(path.join(siteRoot, 'user-guide/a.mdx'), 'edited in the Mintlify editor');
-    writeFileSync(path.join(siteRoot, 'extra.mdx'), 'not generated');
-    writeFileSync(path.join(siteRoot, '.DS_Store'), '');
+  writeApp(
+    'packages/twenty-shared/src/constants/DocumentationSupportedLanguages.ts',
+    "export const DOCUMENTATION_SUPPORTED_LANGUAGES = ['en', 'fr'] as const;\n",
+  );
+  writeApp(
+    'packages/twenty-shared/src/constants/DocumentationDefaultLanguage.ts',
+    "export const DOCUMENTATION_DEFAULT_LANGUAGE = 'en';\n",
+  );
+  writeApp(
+    'packages/twenty-server/src/engine/core-modules/upgrade/constants/twenty-current-version.constant.ts',
+    "export const TWENTY_CURRENT_VERSION = '9.9.9' as const;\n",
+  );
 
-    const files = new Map([
-      ['user-guide/a.mdx', 'generated'],
-      ['user-guide/b.mdx', 'generated'],
+  it('labels the docs with the version of the checkout it reads', () => {
+    const { files, problems } = buildSite(TWENTY_DOCS_ROOT, { appRoot });
+    const docsConfig = JSON.parse(files.get('docs.json'));
+
+    assert.deepEqual(problems, []);
+    assert.equal(
+      docsConfig.navigation.languages[0].versions[0].version,
+      'v9.9.9',
+    );
+  });
+
+  it('refuses to label the docs with an Upshift release the sources do not carry', () => {
+    const { problems } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '2.46.0',
+    });
+
+    assert.deepEqual(problems, [
+      'the docs are built for Upshift v2.46.0 but the sources carry 9.9.9',
     ]);
+  });
+});
 
-    assert.deepEqual(findDrift(files, siteRoot), {
-      changed: ['user-guide/a.mdx', 'user-guide/b.mdx'],
-      extra: ['extra.mdx'],
+describe('parseArguments', () => {
+  it('reads the Twenty checkout, the Upshift release and the check flag', () => {
+    assert.deepEqual(
+      parseArguments(['--root', 'twenty', '--version', '2.46.0', '--check']),
+      { twentyRoot: 'twenty', releaseVersion: '2.46.0', check: true },
+    );
+  });
+
+  it('defaults to this checkout, no release and a full write', () => {
+    assert.deepEqual(parseArguments([]), {
+      twentyRoot: undefined,
+      releaseVersion: undefined,
+      check: false,
     });
   });
 });
