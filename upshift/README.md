@@ -23,7 +23,7 @@ upshift/
     rules.mjs           what is published and how it is rebranded
     import-docs.mjs     builds docs/site from a Twenty checkout
     site/               generated Mintlify site, not committed: the Upshift Docs workflow
-                        builds it from the latest Upshift release and publishes the docs branch
+                        builds it from the latest Upshift release and publishes the docs-site branch
 ```
 
 ## How a release is built
@@ -105,7 +105,7 @@ docker compose up -d --remove-orphans
 - `docs/overrides/` holds pages written for Upshift, such as "Pourquoi Upshift" (`getting-started/introduction.mdx`, and its English version under `en/`), which replace Twenty's version of the same page, and the React snippets those pages import from `snippets/`, such as the interactive process map (`snippets/process-map.jsx`, styled in `docs/upshift.css`).
 - `docs/import-docs.mjs` applies the rules and overrides to a Twenty checkout and writes `docs/site/`. `--root <checkout>` says which Twenty sources to read (this repository by default), `--version X.Y.Z` names the Upshift release the site documents and fails when the checkout carries another version, and `--check` builds without writing. The navigation carries a single version, `vX.Y.Z` from the server's `TWENTY_CURRENT_VERSION` of that checkout, so readers see which release the docs describe.
 
-The site is not committed. The [Upshift Docs](../.github/workflows/upshift-docs.yaml) workflow builds it from the latest Upshift release: it takes the newest `upshift/vX.Y.Z` GitHub Release, checks out Twenty at the matching `twenty/vX.Y.Z` tag, applies the rules and overrides of `upshift-main`, and publishes the result to the `docs` branch, which Mintlify deploys to docs.upshiftcloud.com. It runs after every Upshift Release run, on every push to `upshift-main` that touches `docs/` or `branding/`, and on demand. Pull requests that touch those folders run the same build without publishing. Never edit the `docs` branch by hand or in the Mintlify web editor: the next run replaces it. Change the rules or add an override instead.
+The site is not committed. The [Upshift Docs](../.github/workflows/upshift-docs.yaml) workflow builds it from the latest Upshift release: it takes the newest `upshift/vX.Y.Z` GitHub Release, checks out Twenty at the matching `twenty/vX.Y.Z` tag, applies the rules and overrides of `upshift-main`, and publishes the result to the `docs-site` branch, which Mintlify deploys to docs.upshiftcloud.com. It runs after every Upshift Release run, on every push to `upshift-main` that touches `docs/` or `branding/`, and on demand. Pull requests that touch those folders run the same build without publishing. Never edit the `docs-site` branch by hand or in the Mintlify web editor: the next run replaces it. Change the rules or add an override instead.
 
 ```bash
 node upshift/docs/import-docs.mjs

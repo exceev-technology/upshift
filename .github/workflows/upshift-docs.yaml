@@ -86,8 +86,8 @@ jobs:
           APP_VERSION: ${{ steps.release.outputs.app-version }}
         run: node upshift/docs/import-docs.mjs --root .upshift-docs/twenty --version "$APP_VERSION"
 
-      # Mintlify deploys the docs branch; pull requests only prove the build
-      - name: Publish the docs branch
+      # Mintlify deploys the docs-site branch; pull requests only prove the build
+      - name: Publish the docs-site branch
         if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -96,17 +96,17 @@ jobs:
           site="$GITHUB_WORKSPACE/upshift/docs/site"
           remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 
-          mkdir -p "$RUNNER_TEMP/docs-branch"
-          cd "$RUNNER_TEMP/docs-branch"
+          mkdir -p "$RUNNER_TEMP/docs-site"
+          cd "$RUNNER_TEMP/docs-site"
           git init -q
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
-          if git fetch -q --depth 1 "$remote" docs 2>/dev/null; then
-            git checkout -q -b docs FETCH_HEAD
+          if git fetch -q --depth 1 "$remote" docs-site 2>/dev/null; then
+            git checkout -q -b docs-site FETCH_HEAD
             git rm -r -q .
           else
-            git checkout -q --orphan docs
+            git checkout -q --orphan docs-site
           fi
 
           cp -R "$site"/. .
@@ -118,5 +118,5 @@ jobs:
           fi
 
           git commit -q -m "Docs of Upshift $VERSION from layer ${GITHUB_SHA::10}"
-          git push -q "$remote" HEAD:docs
-          echo "Published the docs of Upshift $VERSION to the docs branch."
+          git push -q "$remote" HEAD:docs-site
+          echo "Published the docs of Upshift $VERSION to the docs-site branch."
