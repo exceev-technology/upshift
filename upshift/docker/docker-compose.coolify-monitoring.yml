@@ -31,10 +31,10 @@
       "volumes": [
         {
           "bind": {
-            "create_host_path": true
+            "create_host_path": false
           },
           "read_only": true,
-          "source": "../observability/client/config.alloy",
+          "source": "./alloy/config.alloy",
           "target": "/etc/alloy/config.alloy",
           "type": "bind"
         }

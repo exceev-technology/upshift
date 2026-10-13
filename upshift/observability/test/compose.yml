@@ -13,7 +13,7 @@ services:
     environment:
       UPSHIFT_MONITORING_URL: http://gateway:8080
       UPSHIFT_MONITORING_TOKEN: ${TEST_TOKEN:?}
-    volumes: ['./client/config.alloy:/etc/alloy/config.alloy:ro']
+    volumes: ['../docker/alloy/config.alloy:/etc/alloy/config.alloy:ro']
     networks: [storage]
   runner:
     build: ./gateway

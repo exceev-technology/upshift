@@ -33,6 +33,11 @@ services:
       UPSHIFT_MONITORING_URL: ${UPSHIFT_MONITORING_URL:?}
       UPSHIFT_MONITORING_TOKEN: ${UPSHIFT_MONITORING_TOKEN:?}
     volumes:
-      - ../observability/client/config.alloy:/etc/alloy/config.alloy:ro
+      - type: bind
+        source: ./alloy/config.alloy
+        target: /etc/alloy/config.alloy
+        read_only: true
+        bind:
+          create_host_path: false
     mem_limit: 256m
     restart: unless-stopped

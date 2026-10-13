@@ -44,7 +44,7 @@ node --input-type=module <<'NODE'
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 
-let collector = readFileSync('upshift/observability/client/config.alloy', 'utf8');
+let collector = readFileSync('upshift/docker/alloy/config.alloy', 'utf8');
 const replaceOnce = (before, after) => {
   assert.equal(collector.split(before).length, 2, `Review changed collector: ${before}`);
   collector = collector.replace(before, after);
@@ -61,7 +61,7 @@ otelcol.auth.basic "grafana_cloud" {
   password = sys.env("GRAFANA_CLOUD_OTLP_TOKEN")
 }
 `;
-writeFileSync('upshift/observability/client/config.grafana-cloud.alloy', collector);
+writeFileSync('upshift/docker/alloy/config.grafana-cloud.alloy', collector);
 
 const compose = JSON.parse(readFileSync('upshift/docker/docker-compose.coolify-monitoring.yml', 'utf8'));
 const alloy = compose.services.alloy;
@@ -77,9 +77,10 @@ alloy.command = [
 ];
 alloy.volumes = [{
   type: 'bind',
-  source: '../observability/client/config.grafana-cloud.alloy',
+  source: './alloy/config.grafana-cloud.alloy',
   target: '/etc/alloy/config.alloy',
   read_only: true,
+  bind: { create_host_path: false },
 }];
 writeFileSync('upshift/docker/docker-compose.coolify-grafana-cloud.yml', JSON.stringify(compose, null, 2) + '\n');
 NODE
@@ -94,7 +95,7 @@ docker run --rm --network none \
   -e GRAFANA_CLOUD_OTLP_ENDPOINT=https://example.invalid/otlp \
   -e GRAFANA_CLOUD_OTLP_USERNAME=123456 \
   -e GRAFANA_CLOUD_OTLP_TOKEN=validation-only \
-  -v "$PWD/upshift/observability/client/config.grafana-cloud.alloy:/etc/alloy/config.alloy:ro" \
+  -v "$PWD/upshift/docker/alloy/config.grafana-cloud.alloy:/etc/alloy/config.alloy:ro" \
   grafana/alloy:v1.11.3 validate /etc/alloy/config.alloy
 docker compose -f upshift/docker/docker-compose.coolify-grafana-cloud.yml \
   config --no-interpolate --no-env-resolution --quiet

@@ -39,7 +39,7 @@ Instrumentation is disabled unless explicitly enabled and configured with a loca
 | --- | --- |
 | `compose.yml` | Central services, persistent volumes, private backend network |
 | `config/*.yml` | Retention, backend limits, infrastructure scraping and alerts |
-| `client/config.alloy` | Client filtering, batching and bounded export queue |
+| `../docker/alloy/config.alloy` | Client filtering, batching and bounded export queue; kept inside the Coolify application base directory |
 | `../docker/docker-compose.coolify-monitoring.yml` | Complete client Compose definition for Coolify, generated from the base and overlay |
 | `../docker/docker-compose.monitoring.yml` | Optional overlay for ordinary Compose |
 | `gateway/config.mjs` | Tenant credential generator and datasource provisioning |
