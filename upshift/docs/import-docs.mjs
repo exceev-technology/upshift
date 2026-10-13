@@ -42,6 +42,8 @@ const APP_DOCUMENTATION_LANGUAGES =
   'packages/twenty-shared/src/constants/DocumentationSupportedLanguages.ts';
 const APP_DOCUMENTATION_DEFAULT_LANGUAGE =
   'packages/twenty-shared/src/constants/DocumentationDefaultLanguage.ts';
+const APP_RELEASE_VERSION =
+  'packages/twenty-server/src/engine/core-modules/upgrade/constants/twenty-current-version.constant.ts';
 
 export const TWENTY_DOCS_ROOT = path.join(
   LAYER_REPOSITORY_ROOT,
@@ -173,6 +175,17 @@ export const buildSite = (twentyDocsRoot) => {
     );
   }
 
+  const [, releaseVersion] =
+    readApp(APP_RELEASE_VERSION).match(
+      /TWENTY_CURRENT_VERSION = '(\d+\.\d+\.\d+)'/,
+    ) ?? [];
+
+  if (releaseVersion === undefined) {
+    problems.push(
+      `cannot read the release version from ${APP_RELEASE_VERSION}`,
+    );
+  }
+
   const redirects = [
     ...filterRedirects(twentyDocsConfig.redirects, publishedPages),
     ...buildLocaleRedirects(appLanguages, appDefaultLanguage),
@@ -187,7 +200,7 @@ export const buildSite = (twentyDocsRoot) => {
   files.set('favicon.svg', readBranding('logo.svg'));
   files.set(
     'docs.json',
-    `${JSON.stringify(buildDocsConfig(twentyDocsConfig, navigation, redirects), null, 2)}\n`,
+    `${JSON.stringify(buildDocsConfig(twentyDocsConfig, navigation, redirects, releaseVersion), null, 2)}\n`,
   );
 
   problems.push(...auditSite(files, sitePages));
