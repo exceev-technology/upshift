@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   OBSERVABILITY_PATCHES,
-  installObservabilityInstrumentation,
+  readObservabilityInstrumentation,
 } from './observability-patches.mjs';
 
 const REPOSITORY_ROOT = path.resolve(
@@ -50,22 +50,17 @@ test('Dockerfile preload patch matches upstream exactly and is inherited by serv
   }
 });
 
-test('installer packages only the reviewed runtime files without altering upstream dependencies', (context) => {
+test('instrumentation preparation reads only reviewed files without writing to the checkout', (context) => {
   const checkout = mkdtempSync(
     path.join(os.tmpdir(), 'upshift-observability-'),
   );
   context.after(() => rmSync(checkout, { recursive: true, force: true }));
-  installObservabilityInstrumentation(checkout);
+  const files = readObservabilityInstrumentation(checkout);
+  assert.equal(files.length, 2);
   for (const file of ['preload.mjs', 'telemetry.mjs']) {
+    const target = path.join(checkout, 'packages/twenty-server/upshift-observability', file);
     assert.equal(
-      readFileSync(
-        path.join(
-          checkout,
-          'packages/twenty-server/upshift-observability',
-          file,
-        ),
-        'utf8',
-      ),
+      files.find(({ filePath }) => filePath === target).content.toString(),
       readFileSync(
         path.join(
           REPOSITORY_ROOT,
@@ -75,5 +70,15 @@ test('installer packages only the reviewed runtime files without altering upstre
         'utf8',
       ),
     );
+    assert.equal(existsSync(target), false);
   }
+});
+
+test('missing instrumentation source fails preparation without a partial installation', (context) => {
+  const directory = mkdtempSync(path.join(os.tmpdir(), 'upshift-missing-instrumentation-'));
+  context.after(() => rmSync(directory, { recursive: true, force: true }));
+  writeFileSync(path.join(directory, 'preload.mjs'), 'fixture');
+  const checkout = path.join(directory, 'checkout');
+  assert.throws(() => readObservabilityInstrumentation(checkout, directory), /ENOENT/);
+  assert.equal(existsSync(checkout), false);
 });

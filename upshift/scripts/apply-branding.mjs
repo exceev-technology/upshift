@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
   existsSync,
+  mkdirSync,
   readFileSync,
   readdirSync,
   statSync,
@@ -16,7 +17,7 @@ import { PLATFORM_WORDING_REPLACEMENTS } from './catalog-wording.mjs';
 import { FRONTEND_PRIVACY_PATCHES } from './frontend-privacy-patches.mjs';
 import {
   OBSERVABILITY_PATCHES,
-  installObservabilityInstrumentation,
+  readObservabilityInstrumentation,
 } from './observability-patches.mjs';
 import { SERVER_PRIVACY_PATCHES } from './server-privacy-patches.mjs';
 
@@ -924,6 +925,7 @@ const readPlanned = (filePath) => {
 
 const commitPlannedWrites = () => {
   for (const [filePath, content] of plannedWrites) {
+    mkdirSync(path.dirname(filePath), { recursive: true });
     writeFileSync(filePath, content);
   }
 };
@@ -1227,10 +1229,16 @@ const overlayCount = applyOverlays();
 const replacementCount = applyPatches();
 installCatalogHooks();
 disableYarnTelemetry();
+try {
+  for (const { filePath, content } of readObservabilityInstrumentation(twentyRoot)) {
+    planWrite(filePath, content);
+  }
+} catch (error) {
+  fail(`Could not prepare observability instrumentation: ${error.message}`);
+}
 exitOnFailures('preparation (nothing was written)');
 
 commitPlannedWrites();
-installObservabilityInstrumentation(twentyRoot);
 writeFileSync(
   path.join(twentyRoot, LAYER_MARKER_FILE_NAME),
   `${new Date().toISOString()}\n`,

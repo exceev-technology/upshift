@@ -1,4 +1,4 @@
-import { copyFileSync, mkdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -37,16 +37,16 @@ export const OBSERVABILITY_PATCHES = [
   },
 ];
 
-export const installObservabilityInstrumentation = (twentyRoot) => {
+export const readObservabilityInstrumentation = (
+  twentyRoot,
+  sourceDirectory = INSTRUMENTATION_DIRECTORY,
+) => {
   const targetDirectory = path.join(
     twentyRoot,
     'packages/twenty-server/upshift-observability',
   );
-  mkdirSync(targetDirectory, { recursive: true });
-  for (const file of INSTRUMENTATION_FILES) {
-    copyFileSync(
-      path.join(INSTRUMENTATION_DIRECTORY, file),
-      path.join(targetDirectory, file),
-    );
-  }
+  return INSTRUMENTATION_FILES.map((file) => ({
+    filePath: path.join(targetDirectory, file),
+    content: readFileSync(path.join(sourceDirectory, file)),
+  }));
 };
