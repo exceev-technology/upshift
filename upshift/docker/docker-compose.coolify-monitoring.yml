@@ -5,7 +5,7 @@
   "services": {
     "alloy": {
       "command": [
-        "case \"$$UPSHIFT_MONITORING_URL\" in https://*) ;; *) echo 'Monitoring requires an HTTPS gateway URL' >&2; exit 1;; esac\nexec /bin/alloy run --disable-reporting --server.http.listen-addr=127.0.0.1:12345 /etc/alloy/config.alloy\n"
+        "UPSHIFT_MONITORING_URL=$${UPSHIFT_MONITORING_URL%/}\ncase \"$$UPSHIFT_MONITORING_URL\" in https://?*) ;; *) echo 'Monitoring requires an HTTPS gateway origin' >&2; exit 1;; esac\ncase \"$${UPSHIFT_MONITORING_URL#https://}\" in\n  */*|*\\?*|*\\#*|*@*|*\\\\*|*[[:space:]]*|:*) echo 'Monitoring gateway URL must contain only an HTTPS host and optional port' >&2; exit 1;;\nesac\nexport UPSHIFT_MONITORING_URL\nexec /bin/alloy run --disable-reporting --server.http.listen-addr=127.0.0.1:12345 /etc/alloy/config.alloy\n"
       ],
       "entrypoint": [
         "/bin/sh",
