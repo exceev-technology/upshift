@@ -1,0 +1,124 @@
+logging {
+  level = "warn"
+}
+
+otelcol.receiver.otlp "upshift" {
+  http {
+    endpoint = "0.0.0.0:4318"
+    max_request_body_size = "1MiB"
+  }
+  output {
+    logs = [otelcol.processor.memory_limiter.upshift.input]
+    traces = [otelcol.processor.memory_limiter.upshift.input]
+    metrics = [otelcol.processor.memory_limiter.upshift.input]
+  }
+}
+
+otelcol.processor.memory_limiter "upshift" {
+  check_interval = "1s"
+  limit = "128MiB"
+  spike_limit = "32MiB"
+  output {
+    logs = [otelcol.processor.filter.upshift.input]
+    traces = [otelcol.processor.filter.upshift.input]
+    metrics = [otelcol.processor.filter.upshift.input]
+  }
+}
+
+otelcol.processor.filter "upshift" {
+  error_mode = "propagate"
+  logs {
+    log_record = [
+      `resource.attributes["upshift.observability.schema"] != "1"`,
+      `instrumentation_scope.name != "upshift.observability"`,
+      `body != "http_request_completed"`,
+    ]
+  }
+  traces {
+    span = [
+      `resource.attributes["upshift.observability.schema"] != "1"`,
+      `instrumentation_scope.name != "upshift.observability"`,
+    ]
+    spanevent = ["true"]
+  }
+  metrics {
+    metric = [
+      `resource.attributes["upshift.observability.schema"] != "1"`,
+      `instrumentation_scope.name != "upshift.observability"`,
+      `not IsMatch(name, "^upshift_(http_requests|http_request_duration_seconds|process_memory_bytes|process_uptime_seconds|telemetry_dropped_events)$")`,
+    ]
+  }
+  output {
+    logs = [otelcol.processor.transform.upshift.input]
+    traces = [otelcol.processor.transform.upshift.input]
+    metrics = [otelcol.processor.transform.upshift.input]
+  }
+}
+
+otelcol.processor.transform "upshift" {
+  error_mode = "propagate"
+  log_statements {
+    context = "log"
+    statements = [
+      `keep_keys(resource.attributes, ["service.name", "deployment.environment.name", "upshift.observability.schema"])`,
+      `keep_keys(attributes, ["http.request.method", "http.route", "http.response.status_code", "upshift.duration_ms", "error.type"])`,
+      `set(body, "http_request_completed")`,
+      `keep_keys(instrumentation_scope.attributes, [])`,
+    ]
+  }
+  trace_statements {
+    context = "span"
+    statements = [
+      `keep_keys(resource.attributes, ["service.name", "deployment.environment.name", "upshift.observability.schema"])`,
+      `keep_keys(attributes, ["http.request.method", "http.route", "http.response.status_code", "upshift.duration_ms", "error.type"])`,
+      `set(name, "http_request")`,
+      `set(status.message, "")`,
+      `keep_keys(instrumentation_scope.attributes, [])`,
+    ]
+  }
+  metric_statements {
+    context = "datapoint"
+    statements = [
+      `keep_keys(resource.attributes, ["service.name", "deployment.environment.name", "upshift.observability.schema"])`,
+      `keep_keys(attributes, ["http.request.method", "http.route", "http.response.status_class"])`,
+      `keep_keys(instrumentation_scope.attributes, [])`,
+    ]
+  }
+  output {
+    logs = [otelcol.processor.batch.upshift.input]
+    traces = [otelcol.processor.batch.upshift.input]
+    metrics = [otelcol.processor.batch.upshift.input]
+  }
+}
+
+otelcol.processor.batch "upshift" {
+  timeout = "5s"
+  send_batch_size = 64
+  send_batch_max_size = 64
+  output {
+    logs = [otelcol.exporter.otlphttp.central.input]
+    traces = [otelcol.exporter.otlphttp.central.input]
+    metrics = [otelcol.exporter.otlphttp.central.input]
+  }
+}
+
+otelcol.exporter.otlphttp "central" {
+  encoding = "json"
+  client {
+    endpoint = sys.env("UPSHIFT_MONITORING_URL")
+    headers = { "Authorization" = "Bearer " + sys.env("UPSHIFT_MONITORING_TOKEN") }
+    compression = "gzip"
+    timeout = "10s"
+  }
+  retry_on_failure {
+    enabled = true
+    initial_interval = "5s"
+    max_interval = "30s"
+    max_elapsed_time = "60s"
+  }
+  sending_queue {
+    enabled = true
+    num_consumers = 2
+    queue_size = 16
+  }
+}

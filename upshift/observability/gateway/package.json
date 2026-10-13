@@ -1,0 +1,16 @@
+{
+  "name": "upshift-monitoring-gateway",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test *.test.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "3.1149.0"
+  }
+}

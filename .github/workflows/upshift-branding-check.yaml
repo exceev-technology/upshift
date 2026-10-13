@@ -41,11 +41,38 @@ jobs:
           path: .upshift-check/twenty-release
           persist-credentials: false
 
+      - name: Test privacy guards against this branch
+        run: node --test upshift/scripts/*.test.mjs
+
+      - name: Test privacy guards against the latest Twenty release
+        run: node --test upshift/scripts/*.test.mjs
+        env:
+          UPSHIFT_PRIVACY_SOURCE_ROOT: ${{ github.workspace }}/.upshift-check/twenty-release
+
       - name: Apply the layer to the latest Twenty release and check its translations
         run: node upshift/scripts/apply-branding.mjs --root .upshift-check/twenty-release --check-catalogs
 
       - name: Apply the layer to this branch
         run: node upshift/scripts/apply-branding.mjs --root .
+
+  monitoring:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out this branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+      - name: Test monitoring privacy and gateway limits
+        run: node --test upshift/observability/instrumentation/*.test.mjs upshift/observability/gateway/*.test.mjs
+      - name: Check the generated Coolify Compose file
+        run: node upshift/scripts/render-monitoring-compose.mjs --check
+      - name: Exercise the complete monitoring stack
+        run: node upshift/observability/test/smoke.mjs
 
   docs:
     runs-on: ubuntu-latest

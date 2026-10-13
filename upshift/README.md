@@ -195,6 +195,10 @@ Every failure names the file and what was expected.
 | Call | Default in Twenty | In Upshift |
 | --- | --- | --- |
 | Sign-up telemetry to twenty-telemetry.com (user email, name, workspace, server URL) | On | Removed in code, cannot be re-enabled from env or admin panel |
+| Anonymous and authenticated browser pageviews | Browser collects and submits to the instance | Tracking components unmounted; direct analytics mutations acknowledge without storing events |
+| Sentry errors, traces, profiles, AI inputs/outputs and browser session replay | Off unless configured | Server initialization and browser component disabled; exception logging uses the console |
+| OpenTelemetry metric exports | Off unless configured | Remote exporter disabled; local console and Prometheus metrics remain available |
+| Enterprise licence validation, seat reports, checkout, portal, status and release calls to Twenty | Conditional on licence configuration or admin actions | Requests rejected before collecting instance metadata or contacting Twenty |
 | Company logos from twenty-icons.com (browser and server) | On | URL builder returns nothing, workspace logo inference removed |
 | Company enrichment from twenty-companies.com during email and calendar sync | On | Removed, falls back to the name derived from the domain |
 | AI help-center search through twenty-help-search.com | On | Disabled unless you configure your own Mintlify key |
@@ -204,10 +208,22 @@ Every failure names the file and what was expected.
 
 Left in place on purpose:
 
-- Enterprise licence calls to twenty.com. They only happen after an explicit admin action: setting `ENTERPRISE_KEY`, or clicking through the enterprise checkout in the admin panel.
 - The admin panel reads Twenty's public Docker Hub tags to show the latest version (Upshift versions match them).
-- Sentry, support chat, captcha and Cal.com stay off unless configured.
+- Support chat, captcha and Cal.com stay off unless configured.
 - Third-party services used by features: npm/unpkg for the app marketplace, models.dev for the AI model list, the TradingView widget on the sample dashboard.
+
+These reporting restrictions are enforced in the build layer, including when environment variables or saved database settings enable reporting. Local audit logs and usage accounting are preserved. Enterprise network operations fail with an explicit error; local licence verification and expiration rules are unchanged, so remote activation and renewal are unavailable.
+
+The privacy tests run against both the branch source and the upstream release before applying the layer:
+
+```bash
+node --test upshift/scripts/*.test.mjs
+UPSHIFT_PRIVACY_SOURCE_ROOT=/path/to/fresh/twenty node --test upshift/scripts/*.test.mjs
+```
+
+The release smoke test deliberately enables telemetry, analytics, Sentry and remote metrics against a local connection sink. Its control request runs before the application starts; after clearing only that control request, the test checks connections throughout startup and signup/signin. This tests the listed destinations and API flows; it is not a browser network test or a firewall for user-installed apps, workflows, external URLs or configured integrations.
+
+Changing these sources does not update an existing registry image. After merging the changes, run **Upshift Release** with `twenty-tag=twenty/v2.46.0` and `force=true` to rebuild that release. Verify the successful build's source revision and digest before deploying, and pin the resulting digest rather than relying on the movable `v2.46` alias. Until that rebuild passes, the existing image does not contain these additional privacy guards.
 
 ## What users see
 
@@ -222,3 +238,7 @@ Still named Twenty on purpose, because they are real identifiers:
 - The app developer commands `npx create-twenty-app` and `yarn twenty ...` (published npm packages; the example folder is renamed `my-upshift-app`).
 - Webhook signature headers `X-Twenty-Webhook-Signature`, `-Timestamp`, `-Nonce` (API contract).
 - Internal package paths, logs and environment variable names inside the container.
+
+## Optional client monitoring
+
+Start with the [client installation guide](observability/CLIENT-INSTALLATION.md), then choose [client-owned Grafana Cloud](observability/GRAFANA-CLOUD.md) or [a dedicated on-premises Grafana stack](observability/ON-PREMISE.md). Both use Coolify, client-scoped Infisical secrets and a local Alloy collector. The Cloud guide includes a recipe for its separate authentication and deployment files; the on-premises stack includes per-client retained-data budgets and infrastructure alerts. Collection is opt-in and filters operational records. Twenty reporting stays blocked. Publish a rebuilt Upshift image before enabling instrumentation. See the [self-hosted operator runbooks](observability/README.md) for backend maintenance.

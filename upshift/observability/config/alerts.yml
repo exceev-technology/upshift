@@ -1,0 +1,52 @@
+groups:
+  - name: upshift-monitoring
+    rules:
+      - alert: MonitoringDiskWarning
+        expr: upshift_monitoring_storage_used_ratio > 0.70
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: Monitoring storage filesystem is above 70%
+          description: Review growth and available capacity. See upshift/observability/README.md, Disk pressure runbook.
+      - alert: MonitoringDiskCritical
+        expr: upshift_monitoring_storage_used_ratio > 0.85
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: Monitoring storage filesystem is above 85%; ingestion stops at 90%
+          description: Add capacity or reduce collection immediately. Never delete backend files manually.
+      - alert: ClientMonitoringBudgetWarning
+        expr: sum by (client) (upshift_monitoring_tenant_retained_bytes) / on(client) upshift_monitoring_tenant_budget_bytes > 0.70
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: Client retained monitoring data is above 70% of its soft budget
+          description: Reduce success sampling and assess retention before the budget cutoff.
+      - alert: ClientMonitoringBudgetCritical
+        expr: sum by (client) (upshift_monitoring_tenant_retained_bytes) / on(client) upshift_monitoring_tenant_budget_bytes > 0.85
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: Client retained monitoring data is above 85% of its soft budget
+          description: Ingestion pauses at 100% until normal retention frees attributed object storage.
+      - alert: MonitoringInventoryStale
+        expr: upshift_monitoring_storage_measurement_age_seconds > 120
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: Monitoring cannot measure storage; ingestion closes after 180 seconds
+          description: Check SeaweedFS, gateway S3 credentials and storage permissions.
+      - alert: MonitoringServiceDown
+        expr: up{job=~"upshift-monitoring|monitoring-backends"} == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: A monitoring service is unavailable
+          description: Check the affected Coolify container health and local logs.
+      - alert: MonitoringIngestionRejected
+        expr: sum by (client, outcome) (increase(upshift_monitoring_requests_total{outcome!="accepted"}[5m])) > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: Client monitoring data is being rejected
+          description: Check the outcome label, disk, tenant budget and backend readiness.

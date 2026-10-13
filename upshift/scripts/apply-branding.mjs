@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
   existsSync,
+  mkdirSync,
   readFileSync,
   readdirSync,
   statSync,
@@ -13,6 +14,13 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 import { PLATFORM_WORDING_REPLACEMENTS } from './catalog-wording.mjs';
+import { FRONTEND_PRIVACY_PATCHES } from './frontend-privacy-patches.mjs';
+import {
+  OBSERVABILITY_PATCHES,
+  readObservabilityInstrumentation,
+} from './observability-patches.mjs';
+import { applyReplacements, countOccurrences } from './patch-replacements.mjs';
+import { SERVER_PRIVACY_PATCHES } from './server-privacy-patches.mjs';
 
 const UPSHIFT_DIRECTORY = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -40,7 +48,6 @@ const PLATFORM_SUMMARY =
 const LAYER_MARKER_FILE_NAME = '.upshift-layer-applied';
 const ICONS_RELATIVE_DIRECTORY = 'packages/twenty-front/public/images/icons';
 const TEMPLATE_EXTENSIONS = new Set(['.ts', '.tsx', '.json', '.html', '.md']);
-const TWENTY_BRAND_WORD = /(?<![\w@./-])Twenty(?!\w|\.[a-z])/g;
 
 const FRONT = 'packages/twenty-front';
 const SERVER = 'packages/twenty-server/src';
@@ -54,6 +61,9 @@ const CODE_OVERLAY_UPSTREAM_SHA256 = {
 };
 
 const PATCHES = [
+  ...FRONTEND_PRIVACY_PATCHES,
+  ...SERVER_PRIVACY_PATCHES,
+  ...OBSERVABILITY_PATCHES,
   {
     file: `${FRONT}/index.html`,
     replacements: [
@@ -289,27 +299,6 @@ const PATCHES = [
       {
         pattern: /(\nmsgid "Follow us on X"\nmsgstr "[^"\n]*"\n)/g,
         to: '$1\n#: src/pages/settings/community/SettingsCommunity.tsx\nmsgid "Follow us on LinkedIn"\nmsgstr "Suivez-nous sur LinkedIn"\n',
-      },
-    ],
-  },
-  {
-    file: `${FRONT}/src/modules/settings/admin-panel/hooks/useSettingsAdminTabs.ts`,
-    replacements: [
-      {
-        from: [
-          '    ...(!isBillingEnabled',
-          '      ? [',
-          '          {',
-          '            id: SETTINGS_ADMIN_TABS.ORGANIZATION,',
-          '            title: t`Organization`,',
-          '            Icon: IconKey,',
-          '            disabled: !canAccessFullAdminPanel && !canImpersonate,',
-          '          },',
-          '        ]',
-          '      : []),',
-          '',
-        ].join('\n'),
-        to: '',
       },
     ],
   },
@@ -793,6 +782,20 @@ const BARREL_EXPORT = 'constant re-export only';
 // Every remaining reference to Twenty-owned hosts or links; anything new fails the build until reviewed
 const REFERENCE_CENSUS = [
   {
+    needle: 'TrackPageViewEffect',
+    allowed: {
+      [`${FRONT}/src/modules/analytics/components/TrackPageViewEffect.tsx`]:
+        'unmounted component; any new caller must be reviewed',
+    },
+  },
+  {
+    needle: 'SentryInitEffect',
+    allowed: {
+      [`${FRONT}/src/modules/error-handler/components/SentryInitEffect.tsx`]:
+        'unmounted component; any new caller must be reviewed',
+    },
+  },
+  {
     needle: 'twenty.com',
     allowed: {
       [`${FRONT}/src/pages/settings/applications/utils/getCustomApplicationDescription.ts`]:
@@ -810,7 +813,7 @@ const REFERENCE_CENSUS = [
       [`${SERVER}/engine/core-modules/dpa/config/dpa-region-config.constant.ts`]: UNREACHABLE_DPA,
       [`${SERVER}/engine/core-modules/dpa/constants/dpa-template.constant.ts`]: UNREACHABLE_DPA,
       [`${SERVER}/engine/core-modules/twenty-config/config-variables.ts`]:
-        'ENTERPRISE_API_URL, only used with a Twenty enterprise key',
+        'enterprise network requests are blocked before this URL is read',
     },
   },
   {
@@ -901,6 +904,7 @@ const readPlanned = (filePath) => {
 
 const commitPlannedWrites = () => {
   for (const [filePath, content] of plannedWrites) {
+    mkdirSync(path.dirname(filePath), { recursive: true });
     writeFileSync(filePath, content);
   }
 };
@@ -946,8 +950,6 @@ const listFiles = (entryPath) => {
 
 const toRelative = (absolutePath, base) =>
   path.relative(base, absolutePath).split(path.sep).join('/');
-
-const countOccurrences = (content, needle) => content.split(needle).length - 1;
 
 const assertFreshCheckout = () => {
   if (twentyRoot === LAYER_REPOSITORY_ROOT && !process.env.CI) {
@@ -1030,58 +1032,17 @@ const applyPatches = () => {
     }
 
     const filePath = path.join(twentyRoot, patchedFile);
-    let content = readPlanned(filePath);
+    const content = readPlanned(filePath);
 
-    for (const replacement of patch.replacements) {
-      if (replacement.brandWord) {
-        const matches = content.match(TWENTY_BRAND_WORD) ?? [];
-        const minimum = replacement.minimum ?? 1;
-
-        if (matches.length < minimum) {
-          fail(
-            `${patchedFile}: expected at least ${minimum} "Twenty" mentions, found ${matches.length}`,
-          );
-          continue;
-        }
-
-        content = content.replace(TWENTY_BRAND_WORD, brand.name);
-        replacementCount += matches.length;
-        continue;
-      }
-
-      if (replacement.pattern) {
-        const matches = content.match(replacement.pattern) ?? [];
-
-        if (matches.length === 0) {
-          fail(`${patchedFile}: pattern ${replacement.pattern} not found`);
-          continue;
-        }
-
-        content = content.replace(replacement.pattern, fillTemplate(replacement.to));
-        replacementCount += matches.length;
-        continue;
-      }
-
-      const expectedCount = replacement.count ?? 1;
-      const actualCount = countOccurrences(content, replacement.from);
-
-      // Safe to skip: the reference census still fails on a Twenty link the patch no longer finds
-      if (actualCount === 0 && replacement.optional) {
-        continue;
-      }
-
-      if (actualCount !== expectedCount) {
-        fail(
-          `${patchedFile}: expected ${expectedCount} occurrence(s) of ${JSON.stringify(replacement.from.split('\n')[0])}, found ${actualCount}`,
-        );
-        continue;
-      }
-
-      content = content.split(replacement.from).join(fillTemplate(replacement.to));
-      replacementCount += actualCount;
-    }
-
-    planWrite(filePath, content);
+    const result = applyReplacements(
+      content,
+      patch.replacements,
+      fillTemplate,
+      brand.name,
+    );
+    result.failures.forEach((message) => fail(`${patchedFile}: ${message}`));
+    replacementCount += result.replacementCount;
+    planWrite(filePath, result.content);
   }
 
   return replacementCount;
@@ -1204,6 +1165,13 @@ const overlayCount = applyOverlays();
 const replacementCount = applyPatches();
 installCatalogHooks();
 disableYarnTelemetry();
+try {
+  for (const { filePath, content } of readObservabilityInstrumentation(twentyRoot)) {
+    planWrite(filePath, content);
+  }
+} catch (error) {
+  fail(`Could not prepare observability instrumentation: ${error.message}`);
+}
 exitOnFailures('preparation (nothing was written)');
 
 commitPlannedWrites();

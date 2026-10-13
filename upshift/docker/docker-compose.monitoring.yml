@@ -1,0 +1,48 @@
+x-logging: &bounded-logs
+  driver: json-file
+  options:
+    max-size: '10m'
+    max-file: '3'
+
+services:
+  upshift:
+    logging: *bounded-logs
+    environment:
+      UPSHIFT_OBSERVABILITY_ENABLED: ${UPSHIFT_OBSERVABILITY_ENABLED:-true}
+      UPSHIFT_OTLP_ENDPOINT: http://alloy:4318
+      UPSHIFT_OBSERVABILITY_SERVICE: server
+      UPSHIFT_OBSERVABILITY_ENVIRONMENT: ${UPSHIFT_OBSERVABILITY_ENVIRONMENT:-production}
+      UPSHIFT_TRACE_SAMPLE_RATE: ${UPSHIFT_TRACE_SAMPLE_RATE:-0.1}
+  worker:
+    logging: *bounded-logs
+    environment:
+      UPSHIFT_OBSERVABILITY_ENABLED: ${UPSHIFT_OBSERVABILITY_ENABLED:-true}
+      UPSHIFT_OTLP_ENDPOINT: http://alloy:4318
+      UPSHIFT_OBSERVABILITY_SERVICE: worker
+      UPSHIFT_OBSERVABILITY_ENVIRONMENT: ${UPSHIFT_OBSERVABILITY_ENVIRONMENT:-production}
+      UPSHIFT_TRACE_SAMPLE_RATE: ${UPSHIFT_TRACE_SAMPLE_RATE:-0.1}
+  alloy:
+    logging: *bounded-logs
+    image: grafana/alloy:v1.11.3
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - |
+        UPSHIFT_MONITORING_URL=$${UPSHIFT_MONITORING_URL%/}
+        case "$$UPSHIFT_MONITORING_URL" in https://?*) ;; *) echo 'Monitoring requires an HTTPS gateway origin' >&2; exit 1;; esac
+        case "$${UPSHIFT_MONITORING_URL#https://}" in
+          */*|*\?*|*\#*|*@*|*\\*|*[[:space:]]*|:*) echo 'Monitoring gateway URL must contain only an HTTPS host and optional port' >&2; exit 1;;
+        esac
+        export UPSHIFT_MONITORING_URL
+        exec /bin/alloy run --disable-reporting --server.http.listen-addr=127.0.0.1:12345 /etc/alloy/config.alloy
+    environment:
+      UPSHIFT_MONITORING_URL: ${UPSHIFT_MONITORING_URL:?}
+      UPSHIFT_MONITORING_TOKEN: ${UPSHIFT_MONITORING_TOKEN:?}
+    volumes:
+      - type: bind
+        source: ./alloy/config.alloy
+        target: /etc/alloy/config.alloy
+        read_only: true
+        bind:
+          create_host_path: false
+    mem_limit: 256m
+    restart: unless-stopped

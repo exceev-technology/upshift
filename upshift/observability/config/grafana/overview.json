@@ -1,0 +1,181 @@
+{
+  "uid": "upshift-monitoring",
+  "title": "Upshift monitoring budgets",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Storage filesystem used",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "monitoring-infrastructure"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "upshift_monitoring_storage_used_ratio",
+          "refId": "A",
+          "legendFormat": "{{client}} {{signal}} {{outcome}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "title": "Retained bytes by client and signal",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "monitoring-infrastructure"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "upshift_monitoring_tenant_retained_bytes",
+          "refId": "A",
+          "legendFormat": "{{client}} {{signal}} {{outcome}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "title": "Client budget used",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "monitoring-infrastructure"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum by (client) (upshift_monitoring_tenant_retained_bytes) / on(client) upshift_monitoring_tenant_budget_bytes",
+          "refId": "A",
+          "legendFormat": "{{client}} {{signal}} {{outcome}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "title": "Ingestion outcomes",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "monitoring-infrastructure"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum by (client, outcome) (rate(upshift_monitoring_requests_total[5m]))",
+          "refId": "A",
+          "legendFormat": "{{client}} {{signal}} {{outcome}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "title": "Storage scan age",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "monitoring-infrastructure"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "upshift_monitoring_storage_measurement_age_seconds",
+          "refId": "A",
+          "legendFormat": "{{client}} {{signal}} {{outcome}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "title": "Unattributed object bytes",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "monitoring-infrastructure"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "upshift_monitoring_unattributed_bytes",
+          "refId": "A",
+          "legendFormat": "{{client}} {{signal}} {{outcome}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      }
+    }
+  ]
+}

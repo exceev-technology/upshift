@@ -215,20 +215,18 @@ const checkSignUpAndSignIn = async () => {
 await waitForHealth();
 check('server healthy', true);
 
-const connectionsBeforeTest = readSinkConnections().length;
-
 await runStage('branding', checkBranding);
 await runStage('sign-up and sign-in', checkSignUpAndSignIn);
 
 if (sinkLogPath) {
   await sleep(PRIVACY_SETTLE_MS);
 
-  const newConnections = readSinkConnections().slice(connectionsBeforeTest);
+  const connections = readSinkConnections();
 
   check(
-    'no connection to Twenty-owned hosts after sign-up and sign-in',
-    newConnections.length === 0,
-    newConnections.join('; '),
+    'no connection to Twenty-owned hosts from startup through sign-up and sign-in',
+    connections.length === 0,
+    connections.join('; '),
   );
 }
 

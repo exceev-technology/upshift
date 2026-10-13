@@ -1,0 +1,24 @@
+rule_files: [/etc/prometheus/alerts.yml]
+evaluation_interval: 1m
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'upshift_monitoring_tenant_retained_bytes{client="client-a",signal="logs",job="upshift-monitoring",instance="gateway:9090"}'
+        values: '900+0x20'
+      - series: 'upshift_monitoring_tenant_budget_bytes{client="client-a",job="upshift-monitoring",instance="gateway:9090"}'
+        values: '1000+0x20'
+      - series: 'upshift_monitoring_storage_used_ratio{job="upshift-monitoring",instance="gateway:9090"}'
+        values: '0.86+0x20'
+    promql_expr_test:
+      - expr: 'count(ALERTS{alertname="ClientMonitoringBudgetWarning",alertstate="firing"})'
+        eval_time: 15m
+        exp_samples: [{ labels: '{}', value: 1 }]
+      - expr: 'count(ALERTS{alertname="ClientMonitoringBudgetCritical",alertstate="firing"})'
+        eval_time: 15m
+        exp_samples: [{ labels: '{}', value: 1 }]
+      - expr: 'count(ALERTS{alertname="MonitoringDiskWarning",alertstate="firing"})'
+        eval_time: 15m
+        exp_samples: [{ labels: '{}', value: 1 }]
+      - expr: 'count(ALERTS{alertname="MonitoringDiskCritical",alertstate="firing"})'
+        eval_time: 15m
+        exp_samples: [{ labels: '{}', value: 1 }]
