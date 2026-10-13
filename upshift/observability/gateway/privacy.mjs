@@ -25,8 +25,11 @@ const METRICS = new Map([
   ['upshift_process_memory_bytes', 'gauge'],
   ['upshift_process_uptime_seconds', 'gauge'],
 ]);
-const array = (value) =>
-  Array.isArray(value) && value.length <= 1024 ? value : [];
+const array = (value) => {
+  if (!Array.isArray(value)) return [];
+  if (value.length > 1024) throw new Error('OTLP array exceeds the record limit');
+  return value;
+};
 const unsigned = (value) =>
   /^\d{1,20}$/.test(String(value)) ? String(value) : '0';
 const number = (value) =>

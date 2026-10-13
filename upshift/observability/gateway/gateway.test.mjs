@@ -242,6 +242,32 @@ test('incremental oversized uploads receive 413 and release in-flight capacity',
   assert.equal(gateway.calls.length, 1);
 });
 
+test('oversized OTLP record and datapoint arrays are rejected instead of acknowledged', async (context) => {
+  const gateway = await fixture(context);
+  for (const length of [1024, 1025]) {
+    const logs = structuredClone(payload);
+    const records = logs.resourceLogs[0].scopeLogs[0].logRecords;
+    logs.resourceLogs[0].scopeLogs[0].logRecords = Array(length).fill(records[0]);
+    const metrics = {
+      resourceMetrics: [{
+        resource,
+        scopeMetrics: [{
+          scope: { name: 'upshift.observability' },
+          metrics: [{
+            name: 'upshift_process_memory_bytes',
+            gauge: { dataPoints: Array(length).fill({ timeUnixNano: '1', asDouble: 1 }) },
+          }],
+        }],
+      }],
+    };
+    for (const [signal, body] of [['logs', logs], ['metrics', metrics]]) {
+      const response = await gateway.send(JSON.stringify(body), {}, `/v1/${signal}`);
+      assert.equal(response.status, length === 1024 ? 200 : 400);
+    }
+  }
+  assert.equal(gateway.calls.length, 2);
+});
+
 test('storage accounting paginates and attributes Loki indexes plus all three signal buckets', async () => {
   const calls = [];
   const snapshot = await measureStorage({
