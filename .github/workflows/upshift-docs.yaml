@@ -113,7 +113,7 @@ jobs:
           git add -A
 
           if git diff --cached --quiet; then
-            echo "The docs branch already carries Upshift $VERSION from this layer."
+            echo "The docs-site branch already carries Upshift $VERSION from this layer."
             exit 0
           fi
 
