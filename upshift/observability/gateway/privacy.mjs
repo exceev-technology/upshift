@@ -21,6 +21,7 @@ const ROUTES = new Set([
 const ENVIRONMENTS = new Set(['development', 'staging', 'production', 'test']);
 const METRICS = new Map([
   ['upshift_http_requests', 'sum'],
+  ['upshift_telemetry_dropped_events', 'sum'],
   ['upshift_http_request_duration_seconds', 'histogram'],
   ['upshift_process_memory_bytes', 'gauge'],
   ['upshift_process_uptime_seconds', 'gauge'],

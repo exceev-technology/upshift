@@ -88,6 +88,10 @@ await waitFor('Mimir stored cumulative request metrics', async () =>
   ),
 );
 assert.equal((await query(metricUrl, 'client-b')).data.result.length, 0);
+await waitFor('Mimir stored application telemetry loss counter', async () =>
+  (await query('http://mimir:9009/prometheus/api/v1/query?query=upshift_telemetry_dropped_events'))
+    .data.result.some(({ value }) => Number(value[1]) === 0),
+);
 console.log('PASS all three backends isolate client-b from client-a');
 for (const path of ['/metrics', '/api/search', '/loki/api/v1/query'])
   assert.equal((await fetch(`http://gateway:8080${path}`)).status, 404);

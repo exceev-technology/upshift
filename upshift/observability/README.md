@@ -25,6 +25,7 @@ flowchart LR
 - Server HTTP completion logs with a constant message, method, coarse route bucket, status, duration and locally generated trace/span IDs.
 - One real server request span per sampled request. Successful requests default to 10% sampling; HTTP errors are kept subject to bounded queues and ingestion limits. Successful health and metric requests are omitted.
 - Cumulative request counts and duration histograms, process RSS and uptime for server/worker. Metrics count all eligible requests, independently of sampling.
+- `upshift_telemetry_dropped_events` counts sampled request events lost to the application queue limit or failed log/trace exports, once per affected request. It resets with the process and adds no request-level dimensions. The operations dashboard shows its five-minute increase. Loss after Alloy accepts a batch is outside this counter; inspect collector logs and gateway rejection metrics too.
 
 No request/response bodies, raw URLs, query strings, headers, cookies, SQL parameters, AI prompts/output, free-form exception messages, email addresses or user IDs are exported by this instrumentation. It does not collect raw Docker/stdout logs. Resource dimensions are service and environment; method, coarse route and status class are bounded metric dimensions. Trace IDs are fields, never metric labels or Loki index labels. Tenant identity comes from the gateway credential, not a caller label.
 

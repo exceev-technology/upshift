@@ -103,11 +103,11 @@ const exportPayload = (endpoint, signal, payload) =>
   new Promise((resolve) => {
     const body = JSON.stringify(payload);
     let settled = false;
-    const finish = (retryable) => {
+    const finish = (success, retryable = false) => {
       if (settled) return;
       settled = true;
       clearTimeout(deadline);
-      resolve(retryable);
+      resolve({ success, retryable });
     };
     const request = http.request(
       `${endpoint}/v1/${signal}`,
@@ -121,16 +121,19 @@ const exportPayload = (endpoint, signal, payload) =>
       (response) => {
         const statusCode = response.statusCode ?? 500;
         response.destroy();
-        finish([429, 502, 503, 504].includes(statusCode));
+        finish(
+          statusCode >= 200 && statusCode < 300,
+          [429, 502, 503, 504].includes(statusCode),
+        );
       },
     );
     const deadline = setTimeout(() => {
       request.destroy();
-      finish(true);
+      finish(false, true);
     }, EXPORT_TIMEOUT_MS);
     deadline.unref();
     request.on('socket', (socket) => socket.unref());
-    request.on('error', () => finish(true));
+    request.on('error', () => finish(false, true));
     request.end(body);
   });
 
@@ -146,23 +149,26 @@ export const createRequestTelemetry = (configuration) => {
   const requestMetrics = new Map();
   const metricsStartTime = String(unixNanoseconds());
   let exporting = false;
+  let metricsRequested = false;
   let closed = false;
   let activeFlush = Promise.resolve();
   let droppedEvents = 0;
 
   const exportBatch = async (signal, payload) => {
     for (let attempt = 0; attempt < MAX_ATTEMPTS && !closed; attempt++) {
-      const retryable = await exportPayload(
+      const result = await exportPayload(
         configuration.endpoint,
         signal,
         payload,
       );
-      if (!retryable || attempt === MAX_ATTEMPTS - 1) return;
+      if (result.success) return true;
+      if (!result.retryable || attempt === MAX_ATTEMPTS - 1) return false;
       await new Promise((resolve) => {
         const retryTimer = setTimeout(resolve, RETRY_DELAYS_MS[attempt]);
         retryTimer.unref();
       });
     }
+    return false;
   };
 
   const metricsPayload = () => {
@@ -207,6 +213,21 @@ export const createRequestTelemetry = (configuration) => {
                   },
                 },
                 {
+                  name: 'upshift_telemetry_dropped_events',
+                  unit: '{event}',
+                  sum: {
+                    aggregationTemporality: 2,
+                    isMonotonic: true,
+                    dataPoints: [
+                      {
+                        startTimeUnixNano: metricsStartTime,
+                        timeUnixNano,
+                        asInt: String(droppedEvents),
+                      },
+                    ],
+                  },
+                },
+                {
                   name: 'upshift_process_memory_bytes',
                   unit: 'By',
                   gauge: {
@@ -234,43 +255,53 @@ export const createRequestTelemetry = (configuration) => {
   };
 
   const flush = (includeMetrics = true) => {
-    if (exporting || closed || (pendingEvents.length === 0 && !includeMetrics))
+    metricsRequested ||= includeMetrics;
+    if (exporting || closed || (pendingEvents.length === 0 && !metricsRequested))
       return activeFlush;
     exporting = true;
-    const events = pendingEvents.splice(0, MAX_BATCH_EVENTS);
-    activeFlush = Promise.all([
-      ...(events.length === 0
-        ? []
-        : [
-            exportBatch('traces', {
-              resourceSpans: [
-                {
-                  resource,
-                  scopeSpans: [
-                    {
-                      scope: INSTRUMENTATION_SCOPE,
-                      spans: events.map(({ span }) => span),
-                    },
-                  ],
-                },
-              ],
-            }),
-            exportBatch('logs', {
-              resourceLogs: [
-                {
-                  resource,
-                  scopeLogs: [
-                    {
-                      scope: INSTRUMENTATION_SCOPE,
-                      logRecords: events.map(({ log }) => log),
-                    },
-                  ],
-                },
-              ],
-            }),
-          ]),
-      ...(includeMetrics ? [exportBatch('metrics', metricsPayload())] : []),
-    ]).finally(() => {
+    const batchCount = Math.ceil(pendingEvents.length / MAX_BATCH_EVENTS);
+    activeFlush = (async () => {
+      // Cap work per flush so sustained traffic cannot keep this loop running indefinitely.
+      for (let batch = 0; batch < batchCount && !closed; batch++) {
+        const events = pendingEvents.splice(0, MAX_BATCH_EVENTS);
+        const [tracesExported, logsExported] = await Promise.all([
+          exportBatch('traces', {
+            resourceSpans: [
+              {
+                resource,
+                scopeSpans: [
+                  {
+                    scope: INSTRUMENTATION_SCOPE,
+                    spans: events.map(({ span }) => span),
+                  },
+                ],
+              },
+            ],
+          }),
+          exportBatch('logs', {
+            resourceLogs: [
+              {
+                resource,
+                scopeLogs: [
+                  {
+                    scope: INSTRUMENTATION_SCOPE,
+                    logRecords: events.map(({ log }) => log),
+                  },
+                ],
+              },
+            ],
+          }),
+        ]);
+        if (!tracesExported || !logsExported) {
+          droppedEvents += events.length;
+          break;
+        }
+      }
+      if (metricsRequested && !closed) {
+        metricsRequested = false;
+        await exportBatch('metrics', metricsPayload());
+      }
+    })().finally(() => {
       exporting = false;
     });
     return activeFlush;

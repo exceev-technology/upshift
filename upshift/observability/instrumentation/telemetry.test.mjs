@@ -26,7 +26,11 @@ const receiver = async (context, statusCode = 200) => {
         signal: request.url,
         body: JSON.parse(Buffer.concat(chunks).toString()),
       });
-      response.writeHead(statusCode).end('{}');
+      response
+        .writeHead(
+          typeof statusCode === 'function' ? statusCode(request.url) : statusCode,
+        )
+        .end('{}');
     });
   });
   server.listen(0, '127.0.0.1');
@@ -262,7 +266,60 @@ test('disabled preload performs no export and preserves normal application respo
   assert.equal(collector.payloads.length, 0);
 });
 
-test('collector failure has a bounded queue, batches and retries', async (context) => {
+test('one flush drains a full burst in bounded batches', async (context) => {
+  const collector = await receiver(context);
+  const telemetry = createRequestTelemetry({
+    endpoint: collector.endpoint,
+    environmentName: 'test',
+    serviceName: 'upshift-server',
+    sampleRate: 1,
+  });
+  context.after(telemetry.close);
+  for (let index = 0; index < 256; index++)
+    telemetry.begin({ method: 'POST', url: '/graphql' })(500);
+
+  await telemetry.flush();
+
+  assert.equal(telemetry.queueStatus().pendingEvents, 0);
+  assert.equal(telemetry.queueStatus().droppedEvents, 0);
+  assert.equal(records(collector.payloads, 'traces').length, 256);
+  assert.equal(records(collector.payloads, 'logs').length, 256);
+  assert.equal(
+    collector.payloads.filter(({ signal }) => signal === '/v1/traces').length,
+    8,
+  );
+  assert.equal(
+    collector.payloads.filter(({ signal }) => signal === '/v1/metrics').length,
+    1,
+  );
+  assert.ok(
+    collector.payloads
+      .filter(({ signal }) => signal === '/v1/traces')
+      .every(
+        ({ body }) => body.resourceSpans[0].scopeSpans[0].spans.length === 32,
+      ),
+  );
+});
+
+test('metrics requested during an active event flush are still exported', async (context) => {
+  const collector = await receiver(context);
+  const telemetry = createRequestTelemetry({
+    endpoint: collector.endpoint,
+    environmentName: 'test',
+    serviceName: 'upshift-server',
+    sampleRate: 1,
+  });
+  context.after(telemetry.close);
+  telemetry.begin({ method: 'GET', url: '/graphql' })(200);
+  const eventsFlush = telemetry.flush(false);
+  await telemetry.flush(true);
+  await eventsFlush;
+  assert.ok(records(collector.payloads, 'metrics').some(
+    ({ name }) => name === 'upshift_telemetry_dropped_events',
+  ));
+});
+
+test('collector failure keeps the remaining queue and reports queue and export losses', async (context) => {
   const collector = await receiver(context, 503);
   const telemetry = createRequestTelemetry({
     endpoint: collector.endpoint,
@@ -279,6 +336,8 @@ test('collector failure has a bounded queue, batches and retries', async (contex
   assert.equal(telemetry.queueStatus().droppedEvents, 144);
   assert.equal(telemetry.queueStatus().metricSeries, 1);
   await telemetry.flush();
+  assert.equal(telemetry.queueStatus().pendingEvents, 224);
+  assert.equal(telemetry.queueStatus().droppedEvents, 176);
   assert.equal(
     collector.payloads.filter(({ signal }) => signal === '/v1/traces').length,
     3,
@@ -298,4 +357,36 @@ test('collector failure has a bounded queue, batches and retries', async (contex
         ({ body }) => body.resourceSpans[0].scopeSpans[0].spans.length === 32,
       ),
   );
+  const dropped = records(collector.payloads, 'metrics').find(
+    ({ name }) => name === 'upshift_telemetry_dropped_events',
+  );
+  assert.equal(dropped.sum.isMonotonic, true);
+  assert.equal(dropped.sum.aggregationTemporality, 2);
+  assert.equal(dropped.sum.dataPoints[0].asInt, '176');
+});
+
+test('losing one signal counts each affected request once', async (context) => {
+  const collector = await receiver(context, (signal) =>
+    signal === '/v1/logs' ? 400 : 200,
+  );
+  const telemetry = createRequestTelemetry({
+    endpoint: collector.endpoint,
+    environmentName: 'test',
+    serviceName: 'upshift-server',
+    sampleRate: 1,
+  });
+  context.after(telemetry.close);
+  for (let index = 0; index < 64; index++)
+    telemetry.begin({ method: 'GET', url: '/graphql' })(200);
+
+  await telemetry.flush();
+
+  assert.equal(telemetry.queueStatus().pendingEvents, 32);
+  assert.equal(telemetry.queueStatus().droppedEvents, 32);
+  assert.equal(records(collector.payloads, 'traces').length, 32);
+  assert.equal(records(collector.payloads, 'logs').length, 32);
+  const dropped = records(collector.payloads, 'metrics').find(
+    ({ name }) => name === 'upshift_telemetry_dropped_events',
+  );
+  assert.equal(dropped.sum.dataPoints[0].asInt, '32');
 });

@@ -45,7 +45,7 @@ otelcol.processor.filter "upshift" {
     metric = [
       `resource.attributes["upshift.observability.schema"] != "1"`,
       `instrumentation_scope.name != "upshift.observability"`,
-      `not IsMatch(name, "^upshift_(http_requests|http_request_duration_seconds|process_memory_bytes|process_uptime_seconds)$")`,
+      `not IsMatch(name, "^upshift_(http_requests|http_request_duration_seconds|process_memory_bytes|process_uptime_seconds|telemetry_dropped_events)$")`,
     ]
   }
   output {

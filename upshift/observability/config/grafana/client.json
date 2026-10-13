@@ -189,6 +189,34 @@
           "refId": "A"
         }
       ]
+    },
+    {
+      "id": 7,
+      "title": "Dropped request telemetry in the last 5 minutes",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${metrics}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum by (job) (increase(upshift_telemetry_dropped_events[5m]))",
+          "refId": "A",
+          "legendFormat": "{{job}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      }
     }
   ]
 }
