@@ -70,6 +70,7 @@ describe('buildDocsConfig', () => {
       { language: ENGLISH, tabs: englishTabs },
     ],
     redirects,
+    '2.47.0',
   );
 
   it('brands the Mintlify config and points it at docs.upshiftcloud.com', () => {
@@ -85,14 +86,27 @@ describe('buildDocsConfig', () => {
 
     assert.equal(french.language, 'fr');
     assert.equal(french.default, true);
-    assert.deepEqual(french.tabs, frenchTabs);
+    assert.deepEqual(french.versions[0].tabs, frenchTabs);
     assert.equal(french.navbar.primary.label, 'Nous contacter');
     assert.equal(config.navbar.primary.label, 'Nous contacter');
 
     assert.equal(english.language, 'en');
     assert.equal(english.default, undefined);
-    assert.deepEqual(english.tabs, englishTabs);
+    assert.deepEqual(english.versions[0].tabs, englishTabs);
     assert.equal(english.navbar.primary.label, 'Contact us');
+  });
+
+  it('shows the release the docs describe as their only version, in each language', () => {
+    const [french, english] = config.navigation.languages;
+
+    assert.deepEqual(french.versions, [
+      { version: 'v2.47.0', default: true, tabs: frenchTabs },
+    ]);
+    assert.deepEqual(english.versions, [
+      { version: 'v2.47.0', default: true, tabs: englishTabs },
+    ]);
+    assert.equal(french.tabs, undefined);
+    assert.equal(english.tabs, undefined);
   });
 
   it('uses the upshiftcloud.com accent and the Upshift wordmark', () => {

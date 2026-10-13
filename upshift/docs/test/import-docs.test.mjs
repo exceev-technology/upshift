@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, it } from 'node:test';
@@ -19,14 +19,34 @@ describe('buildSite on packages/twenty-docs', () => {
 
     assert.equal(french.language, 'fr');
     assert.equal(french.default, true);
-    assert.equal(french.tabs.length, 2);
+    assert.equal(french.versions[0].tabs.length, 2);
     assert.equal(english.language, 'en');
     assert.deepEqual(
-      english.tabs.map(({ tab }) => tab),
+      english.versions[0].tabs.map(({ tab }) => tab),
       ['Getting Started', 'User Guide'],
     );
     assert.ok(files.has('getting-started/introduction.mdx'));
     assert.ok(files.has('en/getting-started/introduction.mdx'));
+  });
+
+  it('labels the docs with the release version the checkout ships', () => {
+    const [, appVersion] = readFileSync(
+      path.join(
+        TWENTY_DOCS_ROOT,
+        '../twenty-server/src/engine/core-modules/upgrade/constants/twenty-current-version.constant.ts',
+      ),
+      'utf8',
+    ).match(/TWENTY_CURRENT_VERSION = '(\d+\.\d+\.\d+)'/);
+
+    for (const { versions } of docsConfig.navigation.languages) {
+      assert.deepEqual(
+        versions.map(({ version, default: isDefault }) => ({
+          version,
+          default: isDefault,
+        })),
+        [{ version: `v${appVersion}`, default: true }],
+      );
+    }
   });
 
   it('publishes no Developers, UI library, billing or legal page in any language', () => {

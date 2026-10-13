@@ -388,7 +388,12 @@ const buildFooter = (labels, tabs) => ({
   ],
 });
 
-export const buildDocsConfig = (twentyDocsConfig, navigation, redirects) => {
+export const buildDocsConfig = (
+  twentyDocsConfig,
+  navigation,
+  redirects,
+  releaseVersion,
+) => {
   const defaultNavigation = navigation.find(({ language }) => language.isDefault);
 
   return {
@@ -408,7 +413,7 @@ export const buildDocsConfig = (twentyDocsConfig, navigation, redirects) => {
         ...(language.isDefault ? { default: true } : {}),
         navbar: buildNavbar(language.labels),
         footer: buildFooter(language.labels, tabs),
-        tabs,
+        versions: [{ version: `v${releaseVersion}`, default: true, tabs }],
       })),
     },
     footer: buildFooter(
