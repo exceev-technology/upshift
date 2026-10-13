@@ -91,7 +91,7 @@ jobs:
       - name: Test the docs importer
         run: node --test upshift/docs/test/*.test.mjs
 
-      - name: Check the docs site matches Twenty's docs
+      - name: Check the docs import against this branch's Twenty docs
         run: node upshift/docs/import-docs.mjs --check
 
   disable-twenty-workflows:
