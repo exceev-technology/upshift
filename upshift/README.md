@@ -32,6 +32,7 @@ upshift/
 2. Run `node upshift/scripts/apply-branding.mjs --root <checkout>`. It:
    - copies `branding/overlay/` over the checkout,
    - applies exact-match source patches (each patch expects a precise number of matches, so a moved string fails loudly instead of being skipped),
+   - makes the image own its version: the build writes `APP_VERSION` to `/app/upshift-version` and the entrypoint exports it for the server and the worker, so an `APP_VERSION` left in a deployment's environment is ignored (and logged) instead of reporting an older release,
    - installs a translation hook that runs right after `lingui compile` and replaces "Twenty" with the brand name in every language,
    - turns off Yarn telemetry,
    - runs a reference census: any shipped file that references a Twenty-owned host or link outside the reviewed list (`REFERENCE_CENSUS`, each entry says why it is allowed) fails the build.
