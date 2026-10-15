@@ -21,6 +21,7 @@ import {
 } from './observability-patches.mjs';
 import { applyReplacements, countOccurrences } from './patch-replacements.mjs';
 import { SERVER_PRIVACY_PATCHES } from './server-privacy-patches.mjs';
+import { VERSION_PATCHES } from './version-patches.mjs';
 
 const UPSHIFT_DIRECTORY = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -64,6 +65,7 @@ const PATCHES = [
   ...FRONTEND_PRIVACY_PATCHES,
   ...SERVER_PRIVACY_PATCHES,
   ...OBSERVABILITY_PATCHES,
+  ...VERSION_PATCHES,
   {
     file: `${FRONT}/index.html`,
     replacements: [
