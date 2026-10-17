@@ -35,7 +35,10 @@ const SNIPPET_IMPORT = /from\s+['"]\/(snippets\/[^'"]+)['"]/g;
 const CRM_WORD = /\bCRMs?\b/;
 const FRONTMATTER = /^---\n[\s\S]*?\n---\n/;
 const HEADING_LINE = /^#{1,6}\s+(.+?)\s*$/gm;
-const FRAGMENT_LINK = /(\]\(|href=")((?:\/[^)"#\s]*)?)#([^)"\s]+)/g;
+const COMPONENT_TITLE = /\btitle="([^"]+)"/g;
+const ID_ATTRIBUTE = /\bid="([^"]+)"/g;
+const MARKDOWN_ANCHOR_LINK = /\[([^\]]*)\]\(((?:\/[^)#\s]*)?)#([^)\s]+)\)/g;
+const HREF_ANCHOR = /\bhref="((?:\/[^"#\s]*)?)#([^"\s]+)"/g;
 const PUBLIC_FLAG = /^public: true$/m;
 
 export const renamePage = (page) => page.replaceAll('twenty', 'upshift');
@@ -362,41 +365,72 @@ const headingAnchor = (heading) =>
     .trim()
     .replace(/\s/g, '-');
 
+const decodeFragment = (fragment) => {
+  try {
+    return decodeURIComponent(fragment);
+  } catch {
+    return fragment;
+  }
+};
+
 // Renaming the brand in a heading changes its anchor, so links to the old
-// anchor follow it. Anchors that still match a heading are left alone.
-export const followRenamedAnchors = (files) => {
+// anchor follow it. Twenty's translations keep the English anchors of
+// translated headings; links to an anchor their page does not have drop it
+// and open the page, or become plain text on the same page.
+export const repairAnchors = (files) => {
   const brandSlug = BRAND_NAME.toLowerCase();
   const pages = [...files.keys()].filter((filePath) => filePath.endsWith('.mdx'));
   const anchors = new Map(
-    pages.map((filePath) => [
-      filePath.replace(/\.mdx$/, ''),
-      new Set(
-        [...files.get(filePath).toString().matchAll(HEADING_LINE)].map(
-          ([, heading]) => headingAnchor(heading),
-        ),
-      ),
-    ]),
+    pages.map((filePath) => {
+      const text = files.get(filePath).toString();
+
+      return [
+        filePath.replace(/\.mdx$/, ''),
+        new Set([
+          ...[...text.matchAll(HEADING_LINE), ...text.matchAll(COMPONENT_TITLE)].map(
+            ([, heading]) => headingAnchor(heading),
+          ),
+          ...[...text.matchAll(ID_ATTRIBUTE)].map(([, id]) => id),
+        ]),
+      ];
+    }),
   );
 
   for (const filePath of pages) {
     const page = filePath.replace(/\.mdx$/, '');
+    const repair = (target, fragment) => {
+      const targetAnchors = anchors.get(
+        target === '' ? page : target.replace(/^\/|\/$/g, ''),
+      );
+      const anchor = decodeFragment(fragment);
+
+      if (targetAnchors === undefined || targetAnchors.has(anchor)) {
+        return `#${fragment}`;
+      }
+
+      const renamed = anchor.replaceAll('twenty', brandSlug);
+
+      return targetAnchors.has(renamed) ? `#${renamed}` : '';
+    };
 
     files.set(
       filePath,
       files
         .get(filePath)
         .toString()
-        .replace(FRAGMENT_LINK, (link, opening, target, fragment) => {
-          const targetAnchors = anchors.get(
-            target === '' ? page : target.replace(/^\/|\/$/g, ''),
-          );
-          const renamed = fragment.replaceAll('twenty', brandSlug);
+        .replace(MARKDOWN_ANCHOR_LINK, (link, text, target, fragment) => {
+          const anchor = repair(target, fragment);
 
-          return targetAnchors !== undefined &&
-            !targetAnchors.has(fragment) &&
-            targetAnchors.has(renamed)
-            ? `${opening}${target}#${renamed}`
-            : link;
+          return target === '' && anchor === ''
+            ? text
+            : `[${text}](${target}${anchor})`;
+        })
+        .replace(HREF_ANCHOR, (attribute, target, fragment) => {
+          const anchor = repair(target, fragment);
+
+          return target === '' && anchor === ''
+            ? attribute
+            : `href="${target}${anchor}"`;
         }),
     );
   }

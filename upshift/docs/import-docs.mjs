@@ -24,7 +24,6 @@ import {
   buildLocaleRedirects,
   collectAssets,
   filterNavigation,
-  followRenamedAnchors,
   filterRedirects,
   findUnmatchedExclusions,
   isExcluded,
@@ -33,6 +32,7 @@ import {
   markPublic,
   publicTabs,
   rebrandPage,
+  repairAnchors,
   replaceTerms,
   sitePath,
 } from './transform.mjs';
@@ -179,7 +179,7 @@ export const buildSite = (
     }
   }
 
-  followRenamedAnchors(files);
+  repairAnchors(files);
 
   const { snippets } = collectAssets([...files.values()]);
 

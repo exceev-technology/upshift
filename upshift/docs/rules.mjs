@@ -271,6 +271,23 @@ export const PHRASE_REPLACEMENTS = {
       to: `[contacter l'équipe ${BRAND_NAME}](${CONTACT_LINK})`,
       count: 1,
     },
+    // Twenty's French translation turned the brand into "vingt", package
+    // names included.
+    {
+      from: '`vingt-ui/input` et `vingt-ui/display`',
+      to: '`twenty-ui/input` et `twenty-ui/display`',
+      count: 1,
+    },
+    {
+      from: '`vingt-sdk/front-component`',
+      to: '`twenty-sdk/front-component`',
+      count: 1,
+    },
+    {
+      from: '; vingt résolvent les identifiants',
+      to: `; ${BRAND_NAME} résout les identifiants`,
+      count: 1,
+    },
     // The scaffolded CI workflows call reusable actions from Twenty's
     // repository; the pages describe what they do without naming it.
     {
