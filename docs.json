@@ -433,6 +433,107 @@
                     "public": true
                   }
                 ]
+              },
+              {
+                "tab": "Développeurs",
+                "groups": [
+                  {
+                    "group": "Vue d'ensemble",
+                    "pages": [
+                      "developers/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Applications",
+                    "pages": [
+                      {
+                        "group": "Prise en main",
+                        "pages": [
+                          "developers/extend/apps/getting-started/quick-start",
+                          "developers/extend/apps/getting-started/concepts",
+                          "developers/extend/apps/getting-started/project-structure",
+                          "developers/extend/apps/getting-started/local-server",
+                          "developers/extend/apps/getting-started/scaffolding",
+                          "developers/extend/apps/getting-started/troubleshooting"
+                        ]
+                      },
+                      {
+                        "group": "Tutoriel",
+                        "pages": [
+                          "developers/extend/apps/tutorials/document-generator/overview",
+                          "developers/extend/apps/tutorials/document-generator/data-model",
+                          "developers/extend/apps/tutorials/document-generator/generating-documents",
+                          "developers/extend/apps/tutorials/document-generator/http-routes",
+                          "developers/extend/apps/tutorials/document-generator/building-the-ui",
+                          "developers/extend/apps/tutorials/document-generator/ai-agent",
+                          "developers/extend/apps/tutorials/document-generator/publishing"
+                        ]
+                      },
+                      {
+                        "group": "Configuration",
+                        "pages": [
+                          "developers/extend/apps/config/overview",
+                          "developers/extend/apps/config/application",
+                          "developers/extend/apps/config/roles",
+                          "developers/extend/apps/config/install-hooks",
+                          "developers/extend/apps/config/public-assets"
+                        ]
+                      },
+                      {
+                        "group": "Données",
+                        "pages": [
+                          "developers/extend/apps/data/overview",
+                          "developers/extend/apps/data/objects",
+                          "developers/extend/apps/data/extending-objects",
+                          "developers/extend/apps/data/system-fields",
+                          "developers/extend/apps/data/relations",
+                          "developers/extend/apps/data/timeline-activity-types"
+                        ]
+                      },
+                      {
+                        "group": "Logique",
+                        "pages": [
+                          "developers/extend/apps/logic/overview",
+                          "developers/extend/apps/logic/logic-functions",
+                          "developers/extend/apps/logic/key-value-store",
+                          "developers/extend/apps/logic/background-jobs",
+                          "developers/extend/apps/logic/skills-and-agents",
+                          "developers/extend/apps/logic/connections"
+                        ]
+                      },
+                      {
+                        "group": "Disposition",
+                        "pages": [
+                          "developers/extend/apps/layout/overview",
+                          "developers/extend/apps/layout/views",
+                          "developers/extend/apps/layout/navigation-menu-items",
+                          "developers/extend/apps/layout/page-layouts",
+                          "developers/extend/apps/layout/front-components",
+                          "developers/extend/apps/layout/command-menu-items"
+                        ]
+                      },
+                      {
+                        "group": "Opérations",
+                        "pages": [
+                          "developers/extend/apps/operations/overview",
+                          "developers/extend/apps/operations/cli",
+                          "developers/extend/apps/operations/sync-and-recovery",
+                          "developers/extend/apps/operations/testing",
+                          "developers/extend/apps/operations/translations",
+                          "developers/extend/apps/operations/publishing"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "API",
+                    "pages": [
+                      "developers/extend/api",
+                      "developers/extend/webhooks",
+                      "developers/extend/oauth"
+                    ]
+                  }
+                ]
               }
             ]
           }
@@ -859,6 +960,110 @@
                     "public": true
                   }
                 ]
+              },
+              {
+                "tab": "Developers",
+                "groups": [
+                  {
+                    "group": "Overview",
+                    "pages": [
+                      "en/developers/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Apps",
+                    "pages": [
+                      {
+                        "group": "Getting Started",
+                        "pages": [
+                          "en/developers/extend/apps/getting-started/quick-start",
+                          "en/developers/extend/apps/getting-started/concepts",
+                          "en/developers/extend/apps/getting-started/project-structure",
+                          "en/developers/extend/apps/getting-started/local-server",
+                          "en/developers/extend/apps/getting-started/scaffolding",
+                          "en/developers/extend/apps/getting-started/good-practices",
+                          "en/developers/extend/apps/getting-started/troubleshooting"
+                        ]
+                      },
+                      {
+                        "group": "Tutorial",
+                        "pages": [
+                          "en/developers/extend/apps/tutorials/document-generator/overview",
+                          "en/developers/extend/apps/tutorials/document-generator/data-model",
+                          "en/developers/extend/apps/tutorials/document-generator/generating-documents",
+                          "en/developers/extend/apps/tutorials/document-generator/http-routes",
+                          "en/developers/extend/apps/tutorials/document-generator/building-the-ui",
+                          "en/developers/extend/apps/tutorials/document-generator/ai-agent",
+                          "en/developers/extend/apps/tutorials/document-generator/publishing"
+                        ]
+                      },
+                      {
+                        "group": "Config",
+                        "pages": [
+                          "en/developers/extend/apps/config/overview",
+                          "en/developers/extend/apps/config/application",
+                          "en/developers/extend/apps/config/roles",
+                          "en/developers/extend/apps/config/install-hooks",
+                          "en/developers/extend/apps/config/public-assets"
+                        ]
+                      },
+                      {
+                        "group": "Data",
+                        "pages": [
+                          "en/developers/extend/apps/data/overview",
+                          "en/developers/extend/apps/data/objects",
+                          "en/developers/extend/apps/data/extending-objects",
+                          "en/developers/extend/apps/data/system-fields",
+                          "en/developers/extend/apps/data/relations",
+                          "en/developers/extend/apps/data/timeline-activity-types"
+                        ]
+                      },
+                      {
+                        "group": "Logic",
+                        "pages": [
+                          "en/developers/extend/apps/logic/overview",
+                          "en/developers/extend/apps/logic/logic-functions",
+                          "en/developers/extend/apps/logic/key-value-store",
+                          "en/developers/extend/apps/logic/background-jobs",
+                          "en/developers/extend/apps/logic/skills-and-agents",
+                          "en/developers/extend/apps/logic/connections",
+                          "en/developers/extend/apps/logic/messaging-channels",
+                          "en/developers/extend/apps/logic/credits"
+                        ]
+                      },
+                      {
+                        "group": "Layout",
+                        "pages": [
+                          "en/developers/extend/apps/layout/overview",
+                          "en/developers/extend/apps/layout/views",
+                          "en/developers/extend/apps/layout/navigation-menu-items",
+                          "en/developers/extend/apps/layout/page-layouts",
+                          "en/developers/extend/apps/layout/front-components",
+                          "en/developers/extend/apps/layout/command-menu-items"
+                        ]
+                      },
+                      {
+                        "group": "Operations",
+                        "pages": [
+                          "en/developers/extend/apps/operations/overview",
+                          "en/developers/extend/apps/operations/cli",
+                          "en/developers/extend/apps/operations/sync-and-recovery",
+                          "en/developers/extend/apps/operations/testing",
+                          "en/developers/extend/apps/operations/translations",
+                          "en/developers/extend/apps/operations/publishing"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "API",
+                    "pages": [
+                      "en/developers/extend/api",
+                      "en/developers/extend/webhooks",
+                      "en/developers/extend/oauth"
+                    ]
+                  }
+                ]
               }
             ]
           }
@@ -937,6 +1142,206 @@
     ]
   },
   "redirects": [
+    {
+      "source": "/developers/extend/apps/getting-started",
+      "destination": "/developers/extend/apps/getting-started/quick-start"
+    },
+    {
+      "source": "/en/developers/extend/apps/getting-started",
+      "destination": "/en/developers/extend/apps/getting-started/quick-start"
+    },
+    {
+      "source": "/developers/extend/apps/building",
+      "destination": "/developers/extend/apps/getting-started/concepts"
+    },
+    {
+      "source": "/en/developers/extend/apps/building",
+      "destination": "/en/developers/extend/apps/getting-started/concepts"
+    },
+    {
+      "source": "/developers/extend/apps/data-model",
+      "destination": "/developers/extend/apps/data/overview"
+    },
+    {
+      "source": "/en/developers/extend/apps/data-model",
+      "destination": "/en/developers/extend/apps/data/overview"
+    },
+    {
+      "source": "/developers/extend/apps/data/data-model",
+      "destination": "/developers/extend/apps/data/overview"
+    },
+    {
+      "source": "/en/developers/extend/apps/data/data-model",
+      "destination": "/en/developers/extend/apps/data/overview"
+    },
+    {
+      "source": "/developers/extend/apps/data/application",
+      "destination": "/developers/extend/apps/config/application"
+    },
+    {
+      "source": "/en/developers/extend/apps/data/application",
+      "destination": "/en/developers/extend/apps/config/application"
+    },
+    {
+      "source": "/developers/extend/apps/data/roles",
+      "destination": "/developers/extend/apps/config/roles"
+    },
+    {
+      "source": "/en/developers/extend/apps/data/roles",
+      "destination": "/en/developers/extend/apps/config/roles"
+    },
+    {
+      "source": "/developers/extend/apps/cli-and-testing",
+      "destination": "/developers/extend/apps/operations/overview"
+    },
+    {
+      "source": "/en/developers/extend/apps/cli-and-testing",
+      "destination": "/en/developers/extend/apps/operations/overview"
+    },
+    {
+      "source": "/developers/extend/apps/publishing",
+      "destination": "/developers/extend/apps/operations/publishing"
+    },
+    {
+      "source": "/en/developers/extend/apps/publishing",
+      "destination": "/en/developers/extend/apps/operations/publishing"
+    },
+    {
+      "source": "/developers/extend/apps/logic-functions",
+      "destination": "/developers/extend/apps/logic/logic-functions"
+    },
+    {
+      "source": "/en/developers/extend/apps/logic-functions",
+      "destination": "/en/developers/extend/apps/logic/logic-functions"
+    },
+    {
+      "source": "/developers/extend/apps/skills-and-agents",
+      "destination": "/developers/extend/apps/logic/skills-and-agents"
+    },
+    {
+      "source": "/en/developers/extend/apps/skills-and-agents",
+      "destination": "/en/developers/extend/apps/logic/skills-and-agents"
+    },
+    {
+      "source": "/developers/extend/apps/front-components",
+      "destination": "/developers/extend/apps/layout/front-components"
+    },
+    {
+      "source": "/en/developers/extend/apps/front-components",
+      "destination": "/en/developers/extend/apps/layout/front-components"
+    },
+    {
+      "source": "/developers/extend/apps/layout",
+      "destination": "/developers/extend/apps/layout/overview"
+    },
+    {
+      "source": "/en/developers/extend/apps/layout",
+      "destination": "/en/developers/extend/apps/layout/overview"
+    },
+    {
+      "source": "/developers/extend/apps/layout/views-and-pages",
+      "destination": "/developers/extend/apps/layout/overview"
+    },
+    {
+      "source": "/en/developers/extend/apps/layout/views-and-pages",
+      "destination": "/en/developers/extend/apps/layout/overview"
+    },
+    {
+      "source": "/developers/extend/apps/translations/overview",
+      "destination": "/developers/extend/apps/operations/translations"
+    },
+    {
+      "source": "/en/developers/extend/apps/translations/overview",
+      "destination": "/en/developers/extend/apps/operations/translations"
+    },
+    {
+      "source": "/developers/extend/apps/logic/good-practices",
+      "destination": "/en/developers/extend/apps/getting-started/good-practices"
+    },
+    {
+      "source": "/en/developers/extend/apps/logic/good-practices",
+      "destination": "/en/developers/extend/apps/getting-started/good-practices"
+    },
+    {
+      "source": "/developers/extend/capabilities/api",
+      "destination": "/developers/extend/api"
+    },
+    {
+      "source": "/en/developers/extend/capabilities/api",
+      "destination": "/en/developers/extend/api"
+    },
+    {
+      "source": "/developers/extend/capabilities/apis",
+      "destination": "/developers/extend/api"
+    },
+    {
+      "source": "/en/developers/extend/capabilities/apis",
+      "destination": "/en/developers/extend/api"
+    },
+    {
+      "source": "/developers/extend/capabilities/webhooks",
+      "destination": "/developers/extend/webhooks"
+    },
+    {
+      "source": "/en/developers/extend/capabilities/webhooks",
+      "destination": "/en/developers/extend/webhooks"
+    },
+    {
+      "source": "/developers/extend/capabilities/apps",
+      "destination": "/developers/extend/apps/getting-started/quick-start"
+    },
+    {
+      "source": "/en/developers/extend/capabilities/apps",
+      "destination": "/en/developers/extend/apps/getting-started/quick-start"
+    },
+    {
+      "source": "/developers/api-and-webhooks",
+      "destination": "/developers/extend/api"
+    },
+    {
+      "source": "/en/developers/api-and-webhooks",
+      "destination": "/en/developers/extend/api"
+    },
+    {
+      "source": "/developers/api-and-webhooks/apis-overview",
+      "destination": "/developers/extend/api"
+    },
+    {
+      "source": "/en/developers/api-and-webhooks/apis-overview",
+      "destination": "/en/developers/extend/api"
+    },
+    {
+      "source": "/developers/api-and-webhooks/api",
+      "destination": "/developers/extend/api"
+    },
+    {
+      "source": "/en/developers/api-and-webhooks/api",
+      "destination": "/en/developers/extend/api"
+    },
+    {
+      "source": "/developers/api-and-webhooks/api-keys",
+      "destination": "/developers/extend/api"
+    },
+    {
+      "source": "/en/developers/api-and-webhooks/api-keys",
+      "destination": "/en/developers/extend/api"
+    },
+    {
+      "source": "/developers/api-and-webhooks/webhooks",
+      "destination": "/developers/extend/webhooks"
+    },
+    {
+      "source": "/en/developers/api-and-webhooks/webhooks",
+      "destination": "/en/developers/extend/webhooks"
+    },
+    {
+      "source": "/developers/api-and-webhooks/integrations",
+      "destination": "/developers/extend/api"
+    },
+    {
+      "source": "/en/developers/api-and-webhooks/integrations",
+      "destination": "/en/developers/extend/api"
+    },
     {
       "source": "/user-guide/data-model/objects",
       "destination": "/user-guide/data-model/capabilities/objects"
