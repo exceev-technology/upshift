@@ -103,6 +103,19 @@ describe('buildSite on packages/twenty-docs', () => {
     assert.deepEqual(mentions, []);
   });
 
+  it('points the tutorial app manifest at a published page, in each language', () => {
+    for (const filePath of [
+      'developers/extend/apps/tutorials/document-generator/publishing.mdx',
+      'en/developers/extend/apps/tutorials/document-generator/publishing.mdx',
+    ]) {
+      const [, page] = files
+        .get(filePath)
+        .match(/websiteUrl: 'https:\/\/docs\.upshiftcloud\.com\/([^']+)'/);
+
+      assert.ok(files.has(`${page}.mdx`), `${filePath} -> ${page}`);
+    }
+  });
+
   it('serves the app links to the developer docs', () => {
     assert.ok(
       docsConfig.redirects.some(
