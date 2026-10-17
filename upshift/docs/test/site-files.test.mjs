@@ -96,12 +96,14 @@ describe('buildDocsConfig', () => {
     assert.equal(french.default, true);
     assert.deepEqual(french.versions[0].tabs, frenchTabs);
     assert.equal(french.navbar.primary.label, 'Nous contacter');
+    assert.equal(french.navbar.primary.href, 'https://upshiftcloud.com');
     assert.equal(config.navbar.primary.label, 'Nous contacter');
 
     assert.equal(english.language, 'en');
     assert.equal(english.default, undefined);
     assert.deepEqual(english.versions[0].tabs, englishTabs);
     assert.equal(english.navbar.primary.label, 'Contact us');
+    assert.equal(english.navbar.primary.href, 'https://upshiftcloud.com');
   });
 
   it('shows the release the docs describe as their only version, in each language', () => {
@@ -164,6 +166,19 @@ describe('buildDocsConfig', () => {
       { label: 'Watch the demo', href: 'https://upshiftcloud.com/demo' },
       { label: 'Book a demo', href: bookingUrl },
     ]);
+  });
+
+  it('sends Contact us in the footer to upshiftcloud.com', () => {
+    const [french, english] = config.navigation.languages;
+
+    assert.deepEqual(french.footer.links[2].items.at(-1), {
+      label: 'Nous contacter',
+      href: 'https://upshiftcloud.com',
+    });
+    assert.deepEqual(english.footer.links[2].items.at(-1), {
+      label: 'Contact us',
+      href: 'https://upshiftcloud.com',
+    });
   });
 
   it('links the footer to each public tab in its own language', () => {
