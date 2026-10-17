@@ -126,7 +126,8 @@
                       "getting-started/introduction",
                       "getting-started/key-features",
                       "getting-started/quickstart"
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Concepts clés",
@@ -139,7 +140,8 @@
                       "getting-started/core-concepts/apps",
                       "getting-started/core-concepts/dashboards",
                       "getting-started/core-concepts/glossary"
-                    ]
+                    ],
+                    "public": true
                   }
                 ]
               },
@@ -150,7 +152,8 @@
                     "group": "Vue d'ensemble",
                     "pages": [
                       "user-guide/introduction"
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Modèle de données",
@@ -176,7 +179,8 @@
                           "user-guide/data-model/how-tos/data-model-faq"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Migration de données",
@@ -207,7 +211,8 @@
                           "user-guide/data-migration/how-tos/migrating-from-other-crms"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Calendrier et e-mails",
@@ -232,7 +237,8 @@
                           "user-guide/calendar-emails/how-tos/i-dont-see-emails-on-records"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Flux de travail",
@@ -294,7 +300,8 @@
                           }
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "IA",
@@ -315,7 +322,8 @@
                           "user-guide/ai/how-tos/ai-faq"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Disposition",
@@ -352,7 +360,8 @@
                           "user-guide/views-pipelines/how-tos/track-time-in-stage"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Tableaux de bord",
@@ -374,7 +383,8 @@
                           "user-guide/dashboards/how-tos/widget-faq"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Autorisations et accès",
@@ -394,7 +404,8 @@
                           "user-guide/permissions-access/how-tos/permissions-faq"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Paramètres",
@@ -418,7 +429,8 @@
                           "user-guide/settings/how-tos/settings-faq"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   }
                 ]
               }
@@ -519,7 +531,8 @@
                       "en/getting-started/introduction",
                       "en/getting-started/key-features",
                       "en/getting-started/quickstart"
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Core Concepts",
@@ -532,7 +545,8 @@
                       "en/getting-started/core-concepts/apps",
                       "en/getting-started/core-concepts/dashboards",
                       "en/getting-started/core-concepts/glossary"
-                    ]
+                    ],
+                    "public": true
                   }
                 ]
               },
@@ -543,7 +557,8 @@
                     "group": "Overview",
                     "pages": [
                       "en/user-guide/introduction"
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Data Model",
@@ -569,7 +584,8 @@
                           "en/user-guide/data-model/how-tos/data-model-faq"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Data Migration",
@@ -600,7 +616,8 @@
                           "en/user-guide/data-migration/how-tos/migrating-from-other-crms"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Calendar & Emails",
@@ -628,7 +645,8 @@
                           "en/user-guide/calendar-emails/how-tos/i-dont-see-emails-on-records"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Email Campaigns",
@@ -645,7 +663,8 @@
                           "en/user-guide/email-campaigns/how-tos/manage-unsubscribes-and-topics"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Workflows",
@@ -707,7 +726,8 @@
                           }
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "AI",
@@ -728,7 +748,8 @@
                           "en/user-guide/ai/how-tos/ai-faq"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Layout",
@@ -765,7 +786,8 @@
                           "en/user-guide/views-pipelines/how-tos/track-time-in-stage"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Dashboards",
@@ -787,7 +809,8 @@
                           "en/user-guide/dashboards/how-tos/widget-faq"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Permissions & Access",
@@ -807,7 +830,8 @@
                           "en/user-guide/permissions-access/how-tos/permissions-faq"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   },
                   {
                     "group": "Settings",
@@ -831,7 +855,8 @@
                           "en/user-guide/settings/how-tos/settings-faq"
                         ]
                       }
-                    ]
+                    ],
+                    "public": true
                   }
                 ]
               }
