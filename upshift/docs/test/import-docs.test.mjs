@@ -85,6 +85,19 @@ describe('buildSite on packages/twenty-docs', () => {
     );
   });
 
+  it('shows signed-out readers the navigation of every tab but Developers', () => {
+    for (const { versions } of docsConfig.navigation.languages) {
+      const [gettingStarted, userGuide, developers] = versions[0].tabs;
+
+      for (const { groups } of [gettingStarted, userGuide]) {
+        assert.ok(groups.length > 0);
+        assert.ok(groups.every((group) => group.public === true));
+      }
+
+      assert.ok(developers.groups.every((group) => group.public === undefined));
+    }
+  });
+
   it('keeps the Developers tab out of the footer', () => {
     for (const { footer } of docsConfig.navigation.languages) {
       assert.doesNotMatch(JSON.stringify(footer), /developers/);
