@@ -248,6 +248,7 @@ export const buildSite = (
   files.set('logo-light.svg', readBranding('wordmark.svg'));
   files.set('logo-dark.svg', readBranding('wordmark-dark.svg'));
   files.set('favicon.svg', readBranding('logo.svg'));
+  files.set('booking.js', readFileSync(path.join(DOCS_ROOT, 'booking.js')));
   files.set(
     'docs.json',
     `${JSON.stringify(buildDocsConfig(twentyDocsConfig, publishedNavigation, redirects, sourceVersion), null, 2)}\n`,

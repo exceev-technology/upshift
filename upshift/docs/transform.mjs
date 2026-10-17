@@ -461,7 +461,7 @@ export const collectAssets = (sources) => {
 };
 
 const buildNavbar = (labels) => ({
-  primary: { type: 'button', label: labels.contactUs, href: WEBSITE_URL },
+  primary: { type: 'button', label: labels.contactUs, href: DEMO_URL },
 });
 
 const buildFooter = (labels, tabs) => ({
@@ -486,7 +486,7 @@ const buildFooter = (labels, tabs) => ({
       header: labels.company,
       items: [
         { label: COMPANY_NAME, href: COMPANY_URL },
-        { label: labels.contactUs, href: WEBSITE_URL },
+        { label: labels.contactUs, href: DEMO_URL },
       ],
     },
     {
