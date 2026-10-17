@@ -490,6 +490,8 @@ export const URL_REPLACEMENTS = [
   [/https:\/\/github\.com\/twentyhq\/twenty\/issues/g, CONTACT_LINK],
   [/https:\/\/www\.twenty\.com\/terms/g, TERMS_URL],
   [/twenty\.example\.com/g, EXAMPLE_SERVER_HOST],
+  [/your-twenty-server\.com/g, EXAMPLE_SERVER_HOST],
+  [/your-twenty-server/g, `your-${brand.slug}-server`],
   // The app names its scaffolding example the same way (apply-branding.mjs).
   [/my-twenty-app/g, `my-${brand.slug}-app`],
   [/My twenty app/g, `My ${brand.slug} app`],
