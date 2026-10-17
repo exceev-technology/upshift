@@ -122,7 +122,10 @@ const PATCHES = [
     ],
   },
   {
-    file: `${FRONT}/src/modules/settings/mcp-and-apis/constants/McpSetup.ts`,
+    file: [
+      `${FRONT}/src/modules/settings/mcp/constants/McpSetup.ts`,
+      `${FRONT}/src/modules/settings/mcp-and-apis/constants/McpSetup.ts`,
+    ],
     replacements: [
       { from: "displayName: 'Twenty',", to: "displayName: '{{name}}'," },
       { from: "name: 'twenty',", to: "name: '{{slug}}'," },
@@ -133,7 +136,10 @@ const PATCHES = [
     ],
   },
   {
-    file: `${FRONT}/src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx`,
+    file: [
+      `${FRONT}/src/modules/settings/mcp/utils/buildMcpSetupCategories.tsx`,
+      `${FRONT}/src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx`,
+    ],
     replacements: [
       {
         from: [
@@ -205,6 +211,32 @@ const PATCHES = [
         ].join('\n'),
         to: '',
       },
+      // One layout per Twenty version (v2.48 dropped StyledCardLink); the census fails on
+      // the twenty.com links if neither matches
+      {
+        from: [
+          '        <Section.Root>',
+          '          <Section.Header',
+          '            title={t`Partners`}',
+          '            description={t`Hire a partner to help you implement and customize Twenty.`}',
+          '          />',
+          '          <SettingsCard',
+          '            href="https://twenty.com/partners/list"',
+          '            Icon={',
+          '              <IconBriefcase',
+          '                size={theme.icon.size.md}',
+          '                stroke={theme.icon.stroke.sm}',
+          '              />',
+          '            }',
+          '            title={t`Browse partners`}',
+          '          />',
+          '        </Section.Root>',
+          '',
+          '',
+        ].join('\n'),
+        to: '',
+        optional: true,
+      },
       {
         from: [
           '        <Section.Root>',
@@ -232,6 +264,24 @@ const PATCHES = [
           '',
         ].join('\n'),
         to: '',
+        optional: true,
+      },
+      {
+        from: [
+          '            <SettingsCard',
+          '              href="https://twenty.com/releases"',
+          '              Icon={',
+          '                <IconTransform',
+          '                  size={theme.icon.size.md}',
+          '                  stroke={theme.icon.stroke.sm}',
+          '                />',
+          '              }',
+          '              title={t`Read changelog`}',
+          '            />',
+          '',
+        ].join('\n'),
+        to: '',
+        optional: true,
       },
       {
         from: [
@@ -253,6 +303,7 @@ const PATCHES = [
           '',
         ].join('\n'),
         to: '',
+        optional: true,
       },
       // Self-hosted servers usually expose no beta feature, which would leave an empty section
       {
@@ -322,12 +373,16 @@ const PATCHES = [
     ],
   },
   {
-    file: `${FRONT}/src/pages/settings/applications/tabs/SettingsApplicationsDeveloperTab.tsx`,
+    file: [
+      `${FRONT}/src/pages/settings/developers/tabs/SettingsDevelopersAppsTab.tsx`,
+      `${FRONT}/src/pages/settings/applications/tabs/SettingsApplicationsDeveloperTab.tsx`,
+    ],
     replacements: [
       {
         from: "'npx create-twenty-app@latest my-twenty-app'",
         to: "'npx create-twenty-app@latest my-{{slug}}-app'",
       },
+      { from: "'cd my-twenty-app'", to: "'cd my-{{slug}}-app'" },
     ],
   },
   {
@@ -348,11 +403,16 @@ const PATCHES = [
     replacements: [{ brandWord: true, minimum: 2 }],
   },
   {
-    file: `${FRONT}/src/modules/settings/mcp-and-apis/utils/mcpSetup.ts`,
+    file: [
+      `${FRONT}/src/modules/settings/mcp/utils/mcpSetup.ts`,
+      `${FRONT}/src/modules/settings/mcp-and-apis/utils/mcpSetup.ts`,
+    ],
     replacements: [
+      // Translated since Twenty v2.48, where the catalog hook rebrands it
       {
         from: "'Access your Twenty workspace through MCP'",
         to: "'Access your {{name}} workspace through MCP'",
+        optional: true,
       },
     ],
   },
@@ -695,13 +755,19 @@ const PATCHES = [
         from: 'src="https://app.twenty.com/images/icons/windows11/Square150x150Logo.scale-100.png"',
         to: 'src="{{publicAssetsBaseUrl}}/logo-email.png"',
       },
-      { from: 'alt="Twenty logo"', to: 'alt="{{name}} logo"' },
+      // Translated since Twenty v2.48, where the catalog hook rebrands it
+      { from: 'alt="Twenty logo"', to: 'alt="{{name}} logo"', optional: true },
     ],
   },
   {
     file: `${EMAILS}/components/BaseHead.tsx`,
     replacements: [
-      { from: '<title>Twenty email</title>', to: '<title>{{name}} email</title>' },
+      // Translated since Twenty v2.48, where the catalog hook rebrands it
+      {
+        from: '<title>Twenty email</title>',
+        to: '<title>{{name}} email</title>',
+        optional: true,
+      },
     ],
   },
   {
