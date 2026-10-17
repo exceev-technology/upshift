@@ -4,7 +4,6 @@ import {
   CODE_BRAND_WORD,
   COMPANY_NAME,
   COMPANY_URL,
-  CONTACT_LINK,
   CRM_ALLOWED_CONTEXTS,
   DEMO_PAGE_URL,
   DEMO_URL,
@@ -462,7 +461,7 @@ export const collectAssets = (sources) => {
 };
 
 const buildNavbar = (labels) => ({
-  primary: { type: 'button', label: labels.contactUs, href: CONTACT_LINK },
+  primary: { type: 'button', label: labels.contactUs, href: WEBSITE_URL },
 });
 
 const buildFooter = (labels, tabs) => ({
@@ -487,7 +486,7 @@ const buildFooter = (labels, tabs) => ({
       header: labels.company,
       items: [
         { label: COMPANY_NAME, href: COMPANY_URL },
-        { label: labels.contactUs, href: CONTACT_LINK },
+        { label: labels.contactUs, href: WEBSITE_URL },
       ],
     },
     {
