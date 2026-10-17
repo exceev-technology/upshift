@@ -11,6 +11,8 @@ import {
 } from '../transform.mjs';
 
 const [FRENCH, ENGLISH] = LANGUAGES;
+const bookingUrl =
+  'https://calcom.exceev.com/team/exceev-technology/upshift-intro';
 
 describe('collectAssets', () => {
   it('finds images in markdown, attributes and frontmatter, and imported snippets', () => {
@@ -96,14 +98,14 @@ describe('buildDocsConfig', () => {
     assert.equal(french.default, true);
     assert.deepEqual(french.versions[0].tabs, frenchTabs);
     assert.equal(french.navbar.primary.label, 'Nous contacter');
-    assert.equal(french.navbar.primary.href, 'https://upshiftcloud.com');
+    assert.equal(french.navbar.primary.href, bookingUrl);
     assert.equal(config.navbar.primary.label, 'Nous contacter');
 
     assert.equal(english.language, 'en');
     assert.equal(english.default, undefined);
     assert.deepEqual(english.versions[0].tabs, englishTabs);
     assert.equal(english.navbar.primary.label, 'Contact us');
-    assert.equal(english.navbar.primary.href, 'https://upshiftcloud.com');
+    assert.equal(english.navbar.primary.href, bookingUrl);
   });
 
   it('shows the release the docs describe as their only version, in each language', () => {
@@ -153,9 +155,6 @@ describe('buildDocsConfig', () => {
 
   it('links the product column to the website, the demo page and the demo booking', () => {
     const [french, english] = config.navigation.languages;
-    const bookingUrl =
-      'https://calcom.exceev.com/team/exceev-technology/upshift-intro';
-
     assert.deepEqual(french.footer.links[0].items, [
       { label: 'Site web', href: 'https://upshiftcloud.com' },
       { label: 'Voir la démo', href: 'https://upshiftcloud.com/demo' },
@@ -168,16 +167,16 @@ describe('buildDocsConfig', () => {
     ]);
   });
 
-  it('sends Contact us in the footer to upshiftcloud.com', () => {
+  it('sends Contact us in the footer to the intro booking', () => {
     const [french, english] = config.navigation.languages;
 
     assert.deepEqual(french.footer.links[2].items.at(-1), {
       label: 'Nous contacter',
-      href: 'https://upshiftcloud.com',
+      href: bookingUrl,
     });
     assert.deepEqual(english.footer.links[2].items.at(-1), {
       label: 'Contact us',
-      href: 'https://upshiftcloud.com',
+      href: bookingUrl,
     });
   });
 
