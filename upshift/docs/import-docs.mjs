@@ -24,6 +24,7 @@ import {
   buildLocaleRedirects,
   collectAssets,
   filterNavigation,
+  followRenamedAnchors,
   filterRedirects,
   findUnmatchedExclusions,
   isExcluded,
@@ -177,6 +178,8 @@ export const buildSite = (
       files.set(`${page}.mdx`, markPublic(files.get(`${page}.mdx`)));
     }
   }
+
+  followRenamedAnchors(files);
 
   const { snippets } = collectAssets([...files.values()]);
 

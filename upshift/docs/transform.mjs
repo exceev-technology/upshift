@@ -34,6 +34,8 @@ const IMAGE_REFERENCE = /\/images\/[^\s)"'`]+/g;
 const SNIPPET_IMPORT = /from\s+['"]\/(snippets\/[^'"]+)['"]/g;
 const CRM_WORD = /\bCRMs?\b/;
 const FRONTMATTER = /^---\n[\s\S]*?\n---\n/;
+const HEADING_LINE = /^#{1,6}\s+(.+?)\s*$/gm;
+const FRAGMENT_LINK = /(\]\(|href=")((?:\/[^)"#\s]*)?)#([^)"\s]+)/g;
 const PUBLIC_FLAG = /^public: true$/m;
 
 export const renamePage = (page) => page.replaceAll('twenty', 'upshift');
@@ -349,6 +351,55 @@ export const rebrandPage = (source, publishedPages, brandWord) => {
       segment.replace(index % 2 === 1 ? CODE_BRAND_WORD : brandWord, BRAND_NAME),
     )
     .join('');
+};
+
+// The anchor Mintlify derives from a heading, like github-slugger.
+const headingAnchor = (heading) =>
+  heading
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\p{M}\s_-]/gu, '')
+    .trim()
+    .replace(/\s/g, '-');
+
+// Renaming the brand in a heading changes its anchor, so links to the old
+// anchor follow it. Anchors that still match a heading are left alone.
+export const followRenamedAnchors = (files) => {
+  const brandSlug = BRAND_NAME.toLowerCase();
+  const pages = [...files.keys()].filter((filePath) => filePath.endsWith('.mdx'));
+  const anchors = new Map(
+    pages.map((filePath) => [
+      filePath.replace(/\.mdx$/, ''),
+      new Set(
+        [...files.get(filePath).toString().matchAll(HEADING_LINE)].map(
+          ([, heading]) => headingAnchor(heading),
+        ),
+      ),
+    ]),
+  );
+
+  for (const filePath of pages) {
+    const page = filePath.replace(/\.mdx$/, '');
+
+    files.set(
+      filePath,
+      files
+        .get(filePath)
+        .toString()
+        .replace(FRAGMENT_LINK, (link, opening, target, fragment) => {
+          const targetAnchors = anchors.get(
+            target === '' ? page : target.replace(/^\/|\/$/g, ''),
+          );
+          const renamed = fragment.replaceAll('twenty', brandSlug);
+
+          return targetAnchors !== undefined &&
+            !targetAnchors.has(fragment) &&
+            targetAnchors.has(renamed)
+            ? `${opening}${target}#${renamed}`
+            : link;
+        }),
+    );
+  }
 };
 
 export const collectAssets = (sources) => {
