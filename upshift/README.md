@@ -116,7 +116,7 @@ The import fails when a sentence a rule expects has changed in Twenty's docs, wh
 
 ### Developer pages
 
-Mintlify hides every page whose frontmatter does not say `public: true` once the site's access is private. The importer adds `public: true` to every page except those of `PRIVATE_SECTIONS` (the Developers tab), so turning the login on only closes the developer pages. Public pages link to them; readers who follow those links are asked to sign in.
+Mintlify hides every page whose frontmatter does not say `public: true` once the site's access is private, and shows signed-out readers only the navigation groups marked `"public": true` in `docs.json`. The importer adds both to every page and group except those of `PRIVATE_SECTIONS` (the Developers tab), so turning the login on only closes the developer pages. Public pages link to them; readers who follow those links are asked to sign in.
 
 The Upshift Docs workflow publishes the developer pages only when the repository variable `UPSHIFT_DOCS_LOGIN` is `enabled`; until then it builds with `--public-only`. To open them to signed-in readers:
 
