@@ -45,6 +45,10 @@ describe('buildDocsConfig', () => {
       tab: "Guide de l'utilisateur",
       groups: [{ group: "Vue d'ensemble", pages: ['user-guide/introduction'] }],
     },
+    {
+      tab: 'Développeurs',
+      groups: [{ group: "Vue d'ensemble", pages: ['developers/introduction'] }],
+    },
   ];
   const englishTabs = [
     {
@@ -54,6 +58,10 @@ describe('buildDocsConfig', () => {
     {
       tab: 'User Guide',
       groups: [{ group: 'Overview', pages: ['en/user-guide/introduction'] }],
+    },
+    {
+      tab: 'Developers',
+      groups: [{ group: 'Overview', pages: ['en/developers/introduction'] }],
     },
   ];
   const redirects = [{ source: '/a', destination: '/b' }];
@@ -158,7 +166,7 @@ describe('buildDocsConfig', () => {
     ]);
   });
 
-  it('links the footer to each published tab in its own language', () => {
+  it('links the footer to each public tab in its own language', () => {
     const [french, english] = config.navigation.languages;
 
     assert.deepEqual(french.footer.links[1].items, [
@@ -197,7 +205,7 @@ describe('buildDocsConfig', () => {
 });
 
 describe('adaptCustomCss', () => {
-  it('drops Developers selectors and matches User Guide links in every language', () => {
+  it('matches the overview links of each tab in every language', () => {
     const css = [
       "div:has(> .sidebar-group a[href='/developers/introduction']),",
       "div:has(> .sidebar-group a[href='/user-guide/introduction']) {",
@@ -208,6 +216,7 @@ describe('adaptCustomCss', () => {
     assert.equal(
       adaptCustomCss(css),
       [
+        "div:has(> .sidebar-group a[href$='/developers/introduction']),",
         "div:has(> .sidebar-group a[href$='/user-guide/introduction']) {",
         '  display: none;',
         '}',
@@ -265,8 +274,14 @@ describe('applyOverrides', () => {
 describe('auditSite on CRM wording', () => {
   it('reports pages that present Upshift as a CRM, outside migration contexts', () => {
     const files = new Map([
-      ['en/a.mdx', 'Upshift is a full-featured CRM.\nMigrate from other CRMs.\n`CRM`'],
-      ['b.mdx', "Migration depuis d'autres CRM.\nContrairement aux CRM traditionnels."],
+      [
+        'en/a.mdx',
+        '---\npublic: true\n---\nUpshift is a full-featured CRM.\nMigrate from other CRMs.\n`CRM`',
+      ],
+      [
+        'b.mdx',
+        "---\npublic: true\n---\nMigration depuis d'autres CRM.\nContrairement aux CRM traditionnels.",
+      ],
     ]);
 
     assert.deepEqual(auditSite(files, ['en/a', 'b']), [
@@ -295,7 +310,7 @@ describe('auditSite', () => {
     const files = new Map([
       [
         'en/user-guide/a.mdx',
-        'Mail [us](mailto:contact@twenty.com), read [b](/en/user-guide/b) and see ![x](/images/missing.png).',
+        '---\npublic: true\n---\nMail [us](mailto:contact@twenty.com), read [b](/en/user-guide/b) and see ![x](/images/missing.png).',
       ],
       ['docs.json', '{"canonical":"https://docs.twenty.com"}'],
     ]);
@@ -307,5 +322,26 @@ describe('auditSite', () => {
       'en/user-guide/a.mdx links to /images/missing.png, which is not published',
       'docs.json still references twenty.com',
     ]);
+  });
+
+  it('reports public pages the docs login would hide and developer pages it would not', () => {
+    const files = new Map([
+      ['user-guide/a.mdx', '---\ntitle: A\n---\npublic: true\n'],
+      ['user-guide/b.mdx', '---\npublic: true\ntitle: B\n---\n'],
+      ['en/developers/c.mdx', '---\npublic: true\ntitle: C\n---\n'],
+      ['en/developers/d.mdx', '---\ntitle: D\n---\n'],
+    ]);
+
+    assert.deepEqual(
+      auditSite(
+        files,
+        ['user-guide/a', 'user-guide/b', 'en/developers/c', 'en/developers/d'],
+        new Set(['en/developers/c', 'en/developers/d']),
+      ),
+      [
+        'user-guide/a does not say public: true, so the docs login would hide it',
+        'en/developers/c says public: true, so it would not need the docs login',
+      ],
+    );
   });
 });

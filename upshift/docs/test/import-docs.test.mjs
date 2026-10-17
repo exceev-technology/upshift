@@ -18,16 +18,16 @@ describe('buildSite on packages/twenty-docs', () => {
     assert.deepEqual(problems, []);
   });
 
-  it('publishes French by default and English under /en/, two tabs each', () => {
+  it('publishes French by default and English under /en/, three tabs each', () => {
     const [french, english] = docsConfig.navigation.languages;
 
     assert.equal(french.language, 'fr');
     assert.equal(french.default, true);
-    assert.equal(french.versions[0].tabs.length, 2);
+    assert.equal(french.versions[0].tabs.length, 3);
     assert.equal(english.language, 'en');
     assert.deepEqual(
       english.versions[0].tabs.map(({ tab }) => tab),
-      ['Getting Started', 'User Guide'],
+      ['Getting Started', 'User Guide', 'Developers'],
     );
     assert.ok(files.has('getting-started/introduction.mdx'));
     assert.ok(files.has('en/getting-started/introduction.mdx'));
@@ -53,15 +53,79 @@ describe('buildSite on packages/twenty-docs', () => {
     }
   });
 
-  it('publishes no Developers, UI library, billing or legal page in any language', () => {
+  it('publishes no self-hosting, contributing, UI library, billing or legal page in any language', () => {
     const unwanted = [...files.keys()].filter(
       (filePath) =>
-        /^(en\/)?(developers|ui|user-guide\/billing|user-guide\/legal)\//.test(
+        /^(en\/)?(developers\/self-host|developers\/contribute|ui|user-guide\/billing|user-guide\/legal)\//.test(
           filePath,
         ) || filePath.startsWith('fr/'),
     );
 
     assert.deepEqual(unwanted, []);
+  });
+
+  it('puts the Developers pages behind the docs login and every other page in front of it', () => {
+    const pages = [...files.keys()].filter(
+      (filePath) => filePath.endsWith('.mdx') && !filePath.startsWith('snippets/'),
+    );
+    const isMarkedPublic = (filePath) =>
+      /^---\n(?:.*\n)*?public: true\n/.test(files.get(filePath));
+    const developerPages = pages.filter((filePath) =>
+      /^(en\/)?developers\//.test(filePath),
+    );
+
+    assert.ok(files.has('developers/introduction.mdx'));
+    assert.ok(files.has('en/developers/extend/apps/getting-started/quick-start.mdx'));
+    assert.deepEqual(developerPages.filter(isMarkedPublic), []);
+    assert.deepEqual(
+      pages.filter(
+        (filePath) => !developerPages.includes(filePath) && !isMarkedPublic(filePath),
+      ),
+      [],
+    );
+  });
+
+  it('keeps the Developers tab out of the footer', () => {
+    for (const { footer } of docsConfig.navigation.languages) {
+      assert.doesNotMatch(JSON.stringify(footer), /developers/);
+    }
+  });
+
+  it('never names Twenty in a page, code samples included, except the webhook headers', () => {
+    const mentions = [...files]
+      .filter(([filePath]) => /\.(mdx|jsx?)$/.test(filePath))
+      .flatMap(([filePath, content]) =>
+        [
+          ...content
+            .toString()
+            .matchAll(/.{0,40}((?<!X-)\bTwenty\b|\bVingt\b|\bvingt-).{0,40}/g),
+        ].map(([mention]) => `${filePath}: ${mention}`),
+      );
+
+    assert.deepEqual(mentions, []);
+  });
+
+  it('points the tutorial app manifest at a published page, in each language', () => {
+    for (const filePath of [
+      'developers/extend/apps/tutorials/document-generator/publishing.mdx',
+      'en/developers/extend/apps/tutorials/document-generator/publishing.mdx',
+    ]) {
+      const [, page] = files
+        .get(filePath)
+        .match(/websiteUrl: 'https:\/\/docs\.upshiftcloud\.com\/([^']+)'/);
+
+      assert.ok(files.has(`${page}.mdx`), `${filePath} -> ${page}`);
+    }
+  });
+
+  it('serves the app links to the developer docs', () => {
+    assert.ok(
+      docsConfig.redirects.some(
+        ({ source, destination }) =>
+          source === '/developers/extend/apps/getting-started' &&
+          destination === '/developers/extend/apps/getting-started/quick-start',
+      ),
+    );
   });
 
   it('never sends a French reader to an English page that exists in French', () => {
@@ -184,6 +248,30 @@ describe('buildSite on packages/twenty-docs', () => {
   });
 });
 
+describe('buildSite for a docs site without the login', () => {
+  const { files, problems } = buildSite(TWENTY_DOCS_ROOT, { publicOnly: true });
+  const docsConfig = JSON.parse(files.get('docs.json'));
+
+  it('leaves the Developers tab and its pages out, and still checks their rules', () => {
+    assert.deepEqual(problems, []);
+    assert.deepEqual(
+      [...files.keys()].filter((filePath) => /^(en\/)?developers\//.test(filePath)),
+      [],
+    );
+
+    for (const { versions } of docsConfig.navigation.languages) {
+      assert.equal(versions[0].tabs.length, 2);
+    }
+  });
+
+  it('turns links to developer pages back into text', () => {
+    assert.doesNotMatch(
+      [...files.values()].map(String).join('\n'),
+      /\]\(\/(en\/)?developers\/|href="\/(en\/)?developers\//,
+    );
+  });
+});
+
 describe('buildSite on the sources of an Upshift release', () => {
   const appRoot = mkdtempSync(path.join(tmpdir(), 'upshift-docs-release-'));
   const writeApp = (relativePath, content) => {
@@ -230,18 +318,31 @@ describe('buildSite on the sources of an Upshift release', () => {
 });
 
 describe('parseArguments', () => {
-  it('reads the Twenty checkout, the Upshift release and the check flag', () => {
+  it('reads the Twenty checkout, the Upshift release and the check and public-only flags', () => {
     assert.deepEqual(
-      parseArguments(['--root', 'twenty', '--version', '2.46.0', '--check']),
-      { twentyRoot: 'twenty', releaseVersion: '2.46.0', check: true },
+      parseArguments([
+        '--root',
+        'twenty',
+        '--version',
+        '2.46.0',
+        '--check',
+        '--public-only',
+      ]),
+      {
+        twentyRoot: 'twenty',
+        releaseVersion: '2.46.0',
+        check: true,
+        publicOnly: true,
+      },
     );
   });
 
-  it('defaults to this checkout, no release and a full write', () => {
+  it('defaults to this checkout, no release and a full write with the developer pages', () => {
     assert.deepEqual(parseArguments([]), {
       twentyRoot: undefined,
       releaseVersion: undefined,
       check: false,
+      publicOnly: false,
     });
   });
 });
