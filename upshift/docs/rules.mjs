@@ -119,6 +119,8 @@ const CONTACT_TEAM = `Contact the ${BRAND_NAME} team`;
 const FRENCH_CONTACT_TEAM = `Contactez l'équipe ${BRAND_NAME}`;
 const TWENTY_ISSUE_LINK =
   'https://github.com/twentyhq/twenty/issues/new/choose';
+const DOCUMENT_GENERATOR_TUTORIAL =
+  'developers/extend/apps/tutorials/document-generator/overview';
 
 // Code samples are renamed too (see CODE_BRAND_WORD); these diagram lines give
 // up a space so their right border stays aligned.
@@ -252,6 +254,11 @@ export const PHRASE_REPLACEMENTS = {
     {
       from: "  author: 'Twenty',\n",
       to: `  author: '${COMPANY_NAME}',\n`,
+      count: 1,
+    },
+    {
+      from: "  websiteUrl: 'https://docs.twenty.com/fr/developers/extend/apps',\n",
+      to: `  websiteUrl: '${DOCS_URL}/${DOCUMENT_GENERATOR_TUTORIAL}',\n`,
       count: 1,
     },
     {
@@ -403,6 +410,11 @@ export const PHRASE_REPLACEMENTS = {
       count: 1,
     },
     {
+      from: "  websiteUrl: 'https://docs.twenty.com/developers/extend/apps',\n",
+      to: `  websiteUrl: '${DOCS_URL}/en/${DOCUMENT_GENERATOR_TUTORIAL}',\n`,
+      count: 1,
+    },
+    {
       from: `contact us on [Discord](https://discord.gg/cx5n4Jzs57) or [open a GitHub issue](${TWENTY_ISSUE_LINK}).`,
       to: `[contact the ${BRAND_NAME} team](${CONTACT_LINK}).`,
       count: 1,
@@ -476,7 +488,6 @@ export const URL_REPLACEMENTS = [
     `${REPOSITORY_URL}/$1/main/`,
   ],
   [/https:\/\/github\.com\/twentyhq\/twenty\/issues/g, CONTACT_LINK],
-  [/https:\/\/docs\.twenty\.com/g, DOCS_URL],
   [/https:\/\/www\.twenty\.com\/terms/g, TERMS_URL],
   [/twenty\.example\.com/g, EXAMPLE_SERVER_HOST],
   // The app names its scaffolding example the same way (apply-branding.mjs).
