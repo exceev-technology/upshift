@@ -85,13 +85,20 @@ describe('filterNavigation', () => {
     assert.deepEqual(tabs, [
       {
         tab: 'Getting Started',
-        groups: [{ group: 'Welcome', pages: ['en/getting-started/introduction'] }],
+        groups: [
+          {
+            group: 'Welcome',
+            pages: ['en/getting-started/introduction'],
+            public: true,
+          },
+        ],
       },
       {
         tab: 'User Guide',
         groups: [
           {
             group: 'Workflows',
+            public: true,
             pages: [
               'en/user-guide/workflows/overview',
               {
@@ -122,7 +129,11 @@ describe('filterNavigation', () => {
       tabs.map(({ tab }) => tab),
       ['Prise en main', "Guide de l'utilisateur", 'Développeurs'],
     );
-    assert.deepEqual(tabs[1].groups[0].pages, ['user-guide/workflows/overview']);
+    assert.deepEqual(tabs[1].groups[0], {
+      group: 'Flux de travail',
+      pages: ['user-guide/workflows/overview'],
+      public: true,
+    });
     assert.deepEqual(tabs[2].groups, [
       { group: "Vue d'ensemble", pages: ['developers/introduction'] },
     ]);
