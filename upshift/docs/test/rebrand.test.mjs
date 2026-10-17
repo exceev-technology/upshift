@@ -23,13 +23,13 @@ const publishedPages = new Map([
 ]);
 
 describe('rebrandPage', () => {
-  it('renames Twenty in prose and leaves code, identifiers and file names alone', () => {
+  it('renames Twenty in prose and code samples, and leaves identifiers, file names and webhook headers alone', () => {
     const source = [
       "Twenty keeps your data. Twenty's views are fast.",
       '![Twenty inbox](/images/user-guide/emails/03-twenty-add-email-channel.png)',
-      'Check `user.isTwenty` before calling Twenty.',
+      'Check `user.isTwenty` before calling Twenty, then verify `X-Twenty-Webhook-Signature`.',
       '```json',
-      '{ "twenty": { "name": "Twenty" } }',
+      '{ "twenty": { "name": "Twenty" }, "TWENTY_API_URL": "x" }',
       '```',
     ].join('\n');
 
@@ -38,10 +38,27 @@ describe('rebrandPage', () => {
       [
         "Upshift keeps your data. Upshift's views are fast.",
         '![Upshift inbox](/images/user-guide/emails/03-twenty-add-email-channel.png)',
-        'Check `user.isTwenty` before calling Upshift.',
+        'Check `user.isTwenty` before calling Upshift, then verify `X-Twenty-Webhook-Signature`.',
         '```json',
-        '{ "twenty": { "name": "Twenty" } }',
+        '{ "twenty": { "name": "Upshift" }, "TWENTY_API_URL": "x" }',
         '```',
+      ].join('\n'),
+    );
+  });
+
+  it('points links to Twenty source code at the Upshift repository, and issues at the Upshift team', () => {
+    const source = [
+      '[example](https://github.com/twentyhq/twenty/blob/main/packages/twenty-apps/examples/hello-world/src/a.ts)',
+      '[app](https://github.com/twentyhq/twenty/tree/main/packages/twenty-apps/public/call-recorder)',
+      "issueReportUrl: 'https://github.com/twentyhq/twenty/issues',",
+    ].join('\n');
+
+    assert.equal(
+      rebrandPage(source, publishedPages, ENGLISH.brandWord),
+      [
+        '[example](https://github.com/exceev-technology/upshift/blob/main/packages/twenty-apps/examples/hello-world/src/a.ts)',
+        '[app](https://github.com/exceev-technology/upshift/tree/main/packages/twenty-apps/public/call-recorder)',
+        "issueReportUrl: 'mailto:contact@exceev.com',",
       ].join('\n'),
     );
   });
@@ -139,20 +156,20 @@ describe('replaceTerms', () => {
   it('stops calling Upshift a CRM in French, outside migrations and code', () => {
     assert.equal(
       replaceTerms(
-        "Importez vos données CRM, liées aux enregistrements CRM concernés, dans votre CRM. Migration depuis d'autres CRM. `données CRM`",
+        "Importez vos données CRM, liées aux enregistrements CRM concernés, dans votre CRM. Un enregistrement CRM remplit le modèle. Migration depuis d'autres CRM. `données CRM`",
         TERM_REPLACEMENTS.fr,
       ),
-      "Importez vos données, liées aux enregistrements concernés, dans Upshift. Migration depuis d'autres CRM. `données CRM`",
+      "Importez vos données, liées aux enregistrements concernés, dans Upshift. Un enregistrement remplit le modèle. Migration depuis d'autres CRM. `données CRM`",
     );
   });
 
   it('stops calling Upshift a CRM in English, outside migrations and code', () => {
     assert.equal(
       replaceTerms(
-        'Visualize your CRM data, linked to relevant CRM records in your CRM. Migrate from other CRMs. `CRM data`',
+        'Visualize your CRM data, linked to relevant CRM records in your CRM. A CRM record fills the template. Migrate from other CRMs. `CRM data`',
         TERM_REPLACEMENTS.en,
       ),
-      'Visualize your data, linked to relevant records in Upshift. Migrate from other CRMs. `CRM data`',
+      'Visualize your data, linked to relevant records in Upshift. A record fills the template. Migrate from other CRMs. `CRM data`',
     );
   });
 });

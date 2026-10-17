@@ -8,6 +8,7 @@ import {
   filterRedirects,
   findUnmatchedExclusions,
   listLinkedPages,
+  publicTabs,
   renamePage,
 } from '../transform.mjs';
 
@@ -61,6 +62,16 @@ const twentyDocsConfig = {
               },
             ],
           },
+          {
+            tab: 'Développeurs',
+            groups: [
+              { group: "Vue d'ensemble", pages: ['fr/developers/introduction'] },
+              {
+                group: 'Auto-hébergement',
+                pages: ['fr/developers/self-host/capabilities/docker-compose'],
+              },
+            ],
+          },
         ],
       },
     ],
@@ -68,7 +79,7 @@ const twentyDocsConfig = {
 };
 
 describe('filterNavigation', () => {
-  it('keeps the Getting Started and User Guide tabs without excluded pages', () => {
+  it('keeps the Getting Started, User Guide and Developers tabs without excluded pages', () => {
     const { tabs, pages } = filterNavigation(twentyDocsConfig, ENGLISH);
 
     assert.deepEqual(tabs, [
@@ -91,11 +102,16 @@ describe('filterNavigation', () => {
           },
         ],
       },
+      {
+        tab: 'Developers',
+        groups: [{ group: 'Overview', pages: ['en/developers/introduction'] }],
+      },
     ]);
     assert.deepEqual(pages, [
       'getting-started/introduction',
       'user-guide/workflows/overview',
       'user-guide/workflows/how-tos/generate-pdf-from-twenty',
+      'developers/introduction',
     ]);
   });
 
@@ -104,19 +120,42 @@ describe('filterNavigation', () => {
 
     assert.deepEqual(
       tabs.map(({ tab }) => tab),
-      ['Prise en main', "Guide de l'utilisateur"],
+      ['Prise en main', "Guide de l'utilisateur", 'Développeurs'],
     );
     assert.deepEqual(tabs[1].groups[0].pages, ['user-guide/workflows/overview']);
+    assert.deepEqual(tabs[2].groups, [
+      { group: "Vue d'ensemble", pages: ['developers/introduction'] },
+    ]);
     assert.deepEqual(pages, [
       'getting-started/introduction',
       'user-guide/workflows/overview',
+      'developers/introduction',
     ]);
   });
 
   it('reports the navigation pages it excludes', () => {
-    const { excludedPages } = filterNavigation(twentyDocsConfig, ENGLISH);
+    assert.deepEqual(filterNavigation(twentyDocsConfig, ENGLISH).excludedPages, [
+      'user-guide/billing/overview',
+    ]);
+    assert.deepEqual(filterNavigation(twentyDocsConfig, FRENCH).excludedPages, [
+      'developers/self-host/capabilities/docker-compose',
+    ]);
+  });
+});
 
-    assert.deepEqual(excludedPages, ['user-guide/billing/overview']);
+describe('publicTabs', () => {
+  it('leaves out the tabs of sections behind the docs login, in each language', () => {
+    const { tabs: englishTabs } = filterNavigation(twentyDocsConfig, ENGLISH);
+    const { tabs: frenchTabs } = filterNavigation(twentyDocsConfig, FRENCH);
+
+    assert.deepEqual(
+      publicTabs(ENGLISH, englishTabs).map(({ tab }) => tab),
+      ['Getting Started', 'User Guide'],
+    );
+    assert.deepEqual(
+      publicTabs(FRENCH, frenchTabs).map(({ tab }) => tab),
+      ['Prise en main', "Guide de l'utilisateur"],
+    );
   });
 
   it('fails when Twenty no longer has a tab for a kept section', () => {
@@ -193,15 +232,17 @@ describe('filterRedirects', () => {
 });
 
 describe('listLinkedPages', () => {
-  it('lists the Getting Started and User Guide pages a page links to, by language', () => {
+  it('lists the pages of published sections a page links to, by language', () => {
     const source = [
       '[Vues](/fr/user-guide/views-pipelines/overview#filtres)',
       '<Card href="/user-guide/layout/overview" />',
       '[API](/developers/extend/api) ![x](/images/a.png) [site](https://example.com)',
+      '[Button](/ui/primitives/input/button)',
     ].join('\n');
 
     assert.deepEqual(listLinkedPages(source), [
       { language: FRENCH, page: 'user-guide/views-pipelines/overview' },
+      { language: ENGLISH, page: 'developers/extend/api' },
       { language: ENGLISH, page: 'user-guide/layout/overview' },
     ]);
   });

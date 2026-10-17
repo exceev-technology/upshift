@@ -11,6 +11,7 @@ export const WEBSITE_URL = brand.websiteUrl;
 export const PRIVACY_POLICY_URL = brand.privacyPolicyUrl;
 export const TERMS_URL = brand.termsUrl;
 export const DOCS_URL = brand.docsUrl;
+export const REPOSITORY_URL = brand.repositoryUrl;
 export const TWENTY_SOURCE_URL = 'https://github.com/twentyhq/twenty';
 export const COMPANY_NAME = brand.companyName;
 export const COMPANY_URL = 'https://exceev.com';
@@ -31,7 +32,12 @@ export const BRAND_COLORS = {
   dark: '#1A1BB5',
 };
 
-export const KEPT_SECTIONS = ['getting-started', 'user-guide'];
+export const KEPT_SECTIONS = ['getting-started', 'user-guide', 'developers'];
+
+// Once the docs site's Access is set to Private in Mintlify, it asks readers to
+// sign in for every page whose frontmatter does not say `public: true`. Pages
+// of these sections are published without it; every other page gets it.
+export const PRIVATE_SECTIONS = ['developers'];
 
 // French is the default language, so it is served at the site root and English
 // under /en/. Twenty's French translation sometimes translates the brand name
@@ -89,7 +95,17 @@ export const EXCLUDED_PAGE_PREFIXES = [
   'user-guide/data-migration/how-tos/migrating-from-self-hosted-to-cloud',
   'user-guide/getting-started/capabilities/implementation-services',
   'user-guide/workflows/how-tos/need-more-help/professional-services',
+  // Upshift is deployed from its own image and compose file (see
+  // upshift/README.md), and changes to the platform itself go to Twenty.
+  'developers/self-host/',
+  'developers/contribute/',
+  // The UI library reference shows live previews from Twenty's Storybook.
+  'ui/',
 ];
+
+// Code samples name the brand in comments, strings and diagrams too. The
+// webhook signature headers keep Twenty's name: they are part of the API.
+export const CODE_BRAND_WORD = /(?<!X-)\bTwenty\b/g;
 
 // Twenty's sites and community channels.
 export const FORBIDDEN_IN_PAGES = ['twenty.com', 'twentyhq', 'discord.gg'];
@@ -101,6 +117,23 @@ export const LOCALE_FALLBACK = 'en';
 const EXAMPLE_SERVER_HOST = 'crm.yourcompany.com';
 const CONTACT_TEAM = `Contact the ${BRAND_NAME} team`;
 const FRENCH_CONTACT_TEAM = `Contactez l'équipe ${BRAND_NAME}`;
+const TWENTY_ISSUE_LINK =
+  'https://github.com/twentyhq/twenty/issues/new/choose';
+
+// Code samples are renamed too (see CODE_BRAND_WORD); these diagram lines give
+// up a space so their right border stays aligned.
+const DIAGRAM_RENAMES = [
+  {
+    from: '│   npm publish → appears in Twenty marketplace           │',
+    to: `│   npm publish → appears in ${BRAND_NAME} marketplace          │`,
+    count: 1,
+  },
+  {
+    from: '│ Twenty API (records)       │',
+    to: `│ ${BRAND_NAME} API (records)      │`,
+    count: 1,
+  },
+];
 
 // Each phrase must appear exactly `count` times across a language's published
 // pages, so a sentence Twenty rewords fails the import instead of going out
@@ -179,6 +212,86 @@ export const PHRASE_REPLACEMENTS = {
       to: `Contactez-nous à [${CONTACT_EMAIL}](${CONTACT_LINK}).`,
       count: 1,
     },
+    // Developer pages. Self-hosting and contributing are not published, and
+    // Twenty Cloud's API host and function domains do not exist for Upshift.
+    {
+      from: 'description: Créez des applications, utilisez l\'API, auto-hébergez ou contribuez à la base de code.\n---\n\nimport { CardTitle } from "/snippets/card-title.mdx"\n\n<CardGroup cols={3}>',
+      to: 'description: Créez des applications et utilisez l\'API.\n---\n\nimport { CardTitle } from "/snippets/card-title.mdx"\n\n<CardGroup cols={2}>',
+      count: 1,
+    },
+    {
+      from: '| Cloud         | `https://api.twenty.com/` |\n',
+      to: '',
+      count: 1,
+    },
+    {
+      from: '| **Cloud**        | `https://api.twenty.com` |\n',
+      to: '',
+      count: 1,
+    },
+    {
+      from: "). Sur Twenty Cloud, `RestApiClient`\nrésout le chemin via le domaine des fonctions de l'espace de travail.",
+      to: ').',
+      count: 1,
+    },
+    {
+      from: '> **Sur Twenty Cloud, les fonctions logiques déclenchées par HTTP sont servies sur un domaine dédié par espace de travail** à l’adresse `https://\\<your-workspace-subdomain>.withtwenty.com\\<path>`. ',
+      to: '> ',
+      count: 1,
+    },
+    {
+      from: 'Sur Twenty Cloud, les routes d’application sont servies sur un domaine dédié par espace de travail (`https://\\<your-workspace-subdomain>.withtwenty.com`, ou le domaine public principal de l’application lorsqu’il est configuré) afin que',
+      to: 'Les routes d’application peuvent être servies sur un domaine dédié afin que',
+      count: 1,
+    },
+    {
+      from: "      owner: 'twentyhq',\n      repo: 'twenty',\n",
+      to: "      owner: 'exceev-technology',\n      repo: 'upshift',\n",
+      count: 1,
+    },
+    {
+      from: "  author: 'Twenty',\n",
+      to: `  author: '${COMPANY_NAME}',\n`,
+      count: 1,
+    },
+    {
+      from: `[ouvrez un ticket](${TWENTY_ISSUE_LINK})`,
+      to: `[contactez l'équipe ${BRAND_NAME}](${CONTACT_LINK})`,
+      count: 1,
+    },
+    {
+      from: `[ouvrir un ticket](${TWENTY_ISSUE_LINK})`,
+      to: `[contacter l'équipe ${BRAND_NAME}](${CONTACT_LINK})`,
+      count: 1,
+    },
+    // The scaffolded CI workflows call reusable actions from Twenty's
+    // repository; the pages describe what they do without naming it.
+    {
+      from: ' à l’aide de l’action composite `twentyhq/twenty/.github/actions/spawn-twenty-app-dev-test@main`',
+      to: '',
+      count: 1,
+    },
+    {
+      from: '2. Exécute `twentyhq/twenty/.github/actions/deploy-twenty-app@main` — l’équivalent CI de',
+      to: '2. Exécute l’équivalent CI de',
+      count: 1,
+    },
+    {
+      from: '3. Exécute `twentyhq/twenty/.github/actions/install-twenty-app@main` afin que la version nouvellement déployée soit installée',
+      to: '3. Installe la version nouvellement déployée',
+      count: 1,
+    },
+    {
+      from: ' des actions dans le dépôt `twentyhq/twenty` sont',
+      to: ' des actions sont',
+      count: 1,
+    },
+    {
+      from: ' (via l’action `twentyhq/twenty/.github/actions/spawn-twenty-app-dev-test`)',
+      to: '',
+      count: 1,
+    },
+    ...DIAGRAM_RENAMES,
   ],
   en: [
     {
@@ -232,6 +345,124 @@ export const PHRASE_REPLACEMENTS = {
       to: `Contact us at [${CONTACT_EMAIL}](${CONTACT_LINK}).`,
       count: 1,
     },
+    // Developer pages. Self-hosting and contributing are not published, and
+    // Twenty Cloud's API host and function domains do not exist for Upshift.
+    {
+      from: 'description: Build apps, use the API, self-host, or contribute to the codebase.\n---\n\nimport { CardTitle } from "/snippets/card-title.mdx"\n\n<CardGroup cols={3}>',
+      to: 'description: Build apps and use the API.\n---\n\nimport { CardTitle } from "/snippets/card-title.mdx"\n\n<CardGroup cols={2}>',
+      count: 1,
+    },
+    {
+      from: '| Cloud | `https://api.twenty.com/` |\n',
+      to: '',
+      count: 1,
+    },
+    {
+      from: '| **Cloud** | `https://api.twenty.com` |\n',
+      to: '',
+      count: 1,
+    },
+    {
+      from: "). On Twenty Cloud, `RestApiClient`\nresolves the path through the workspace's functions domain.",
+      to: ').',
+      count: 1,
+    },
+    {
+      from: '> **On Twenty Cloud, HTTP-triggered logic functions are served on a dedicated per-workspace domain** at `https://<your-workspace-subdomain>.withtwenty.com<path>`. ',
+      to: '> ',
+      count: 1,
+    },
+    {
+      from: "On Twenty Cloud, app routes are served on a dedicated per-workspace domain (`https://<your-workspace-subdomain>.withtwenty.com`, or the application's primary public domain when one is configured) so that",
+      to: 'App routes can be served on a dedicated domain so that',
+      count: 1,
+    },
+    {
+      from: 'claiming on Twenty Cloud does not claim the app on a separate self-hosted server.',
+      to: 'claiming on one server does not claim the app on another.',
+      count: 1,
+    },
+    {
+      from: ' This configuration is already managed for you on Twenty Cloud.',
+      to: '',
+      count: 1,
+    },
+    {
+      from: ' — see\n[pricing](https://twenty.com/pricing).',
+      to: '.',
+      count: 1,
+    },
+    {
+      from: "      owner: 'twentyhq',\n      repo: 'twenty',\n",
+      to: "      owner: 'exceev-technology',\n      repo: 'upshift',\n",
+      count: 1,
+    },
+    {
+      from: "  author: 'Twenty',\n",
+      to: `  author: '${COMPANY_NAME}',\n`,
+      count: 1,
+    },
+    {
+      from: `contact us on [Discord](https://discord.gg/cx5n4Jzs57) or [open a GitHub issue](${TWENTY_ISSUE_LINK}).`,
+      to: `[contact the ${BRAND_NAME} team](${CONTACT_LINK}).`,
+      count: 1,
+    },
+    {
+      from: `[open an issue](${TWENTY_ISSUE_LINK})`,
+      to: `[contact the ${BRAND_NAME} team](${CONTACT_LINK})`,
+      count: 2,
+    },
+    // Twenty's agent skills are published from its own repository.
+    {
+      from: [
+        '## Build with AI agent skills',
+        '',
+        'Official Twenty [Agent Skills](https://skills.sh/) teach coding agents the full app workflow: scaffolding, entity development, sync and deploy operations, and marketplace publishing. They install into Claude Code, Codex, Cursor, Pi, and any other harness supported by the `skills` CLI, and work against any Twenty instance, including self-hosted custom domains and localhost.',
+        '',
+        '```bash filename="Terminal"',
+        '# List the available skills',
+        'npx skills add https://github.com/twentyhq/twenty/tree/agent-skills --list',
+        '',
+        '# Install the scaffolding and development skills',
+        'npx skills add https://github.com/twentyhq/twenty/tree/agent-skills --skill create-app',
+        'npx skills add https://github.com/twentyhq/twenty/tree/agent-skills --skill develop-app',
+        '```',
+        '',
+        'Each skill installs with its own reference docs. The `agent-skills` branch becomes available after the first successful publish from `main`; before that, follow the [local build instructions](https://github.com/twentyhq/twenty/tree/main/packages/twenty-agent-skills#local-development).',
+        '',
+        '',
+      ].join('\n'),
+      to: '',
+      count: 1,
+    },
+    // The scaffolded CI workflows call reusable actions from Twenty's
+    // repository; the pages describe what they do without naming it.
+    {
+      from: ' using the `twentyhq/twenty/.github/actions/spawn-twenty-app-dev-test@main` composite action',
+      to: '',
+      count: 1,
+    },
+    {
+      from: '2. Runs `twentyhq/twenty/.github/actions/deploy-twenty-app@main` — the CI equivalent of',
+      to: '2. Runs the CI equivalent of',
+      count: 1,
+    },
+    {
+      from: '3. Runs `twentyhq/twenty/.github/actions/install-twenty-app@main` so the newly deployed version is installed',
+      to: '3. Installs the newly deployed version',
+      count: 1,
+    },
+    {
+      from: ' in the `twentyhq/twenty` repo are',
+      to: ' are',
+      count: 1,
+    },
+    {
+      from: ' (via the `twentyhq/twenty/.github/actions/spawn-twenty-app-dev-test` action)',
+      to: '',
+      count: 1,
+    },
+    ...DIAGRAM_RENAMES,
   ],
 };
 
@@ -239,6 +470,18 @@ export const PHRASE_REPLACEMENTS = {
 // copy those URLs.
 export const URL_REPLACEMENTS = [
   [/https:\/\/twenty\.com\/partners[^\s)"']*/g, CONTACT_LINK],
+  // The main branch of the Upshift repository mirrors Twenty's.
+  [
+    /https:\/\/github\.com\/twentyhq\/twenty\/(blob|tree)\/main\//g,
+    `${REPOSITORY_URL}/$1/main/`,
+  ],
+  [/https:\/\/github\.com\/twentyhq\/twenty\/issues/g, CONTACT_LINK],
+  [/https:\/\/docs\.twenty\.com/g, DOCS_URL],
+  [/https:\/\/www\.twenty\.com\/terms/g, TERMS_URL],
+  [/twenty\.example\.com/g, EXAMPLE_SERVER_HOST],
+  // The app names its scaffolding example the same way (apply-branding.mjs).
+  [/my-twenty-app/g, `my-${brand.slug}-app`],
+  [/My twenty app/g, `My ${brand.slug} app`],
   [/contact@twenty\.com/g, CONTACT_EMAIL],
   [/https:\/\/app\.twenty\.com[^\s)"']*/g, WEBSITE_URL],
   [/app\.twenty\.com/g, new URL(WEBSITE_URL).host],
@@ -254,7 +497,7 @@ export const URL_REPLACEMENTS = [
 // reworded. Applied after the brand rename, outside code.
 export const TERM_REPLACEMENTS = {
   fr: [
-    [/\b(données|enregistrements|objets) CRM\b/g, '$1'],
+    [/\b(données|enregistrements?|objets) CRM\b/g, '$1'],
     [/\bexpérience CRM\b/g, 'expérience'],
     [/\bdirectement dans votre CRM\b/g, 'directement dans la plateforme'],
     [/\bque votre CRM reste\b/g, 'que vos données restent'],
@@ -268,7 +511,7 @@ export const TERM_REPLACEMENTS = {
     [/\ble CRM qui\b/g, 'la plateforme qui'],
   ],
   en: [
-    [/\bCRM (data|records|objects|experience|work)\b/g, '$1'],
+    [/\bCRM (data|records?|objects|experience|work)\b/g, '$1'],
     [/\bdirectly into your CRM\b/g, 'directly into the platform'],
     [/\b(in|into|to|within|through) your CRM\b/g, `$1 ${BRAND_NAME}`],
     [/\bto the CRM\b/g, `to ${BRAND_NAME}`],

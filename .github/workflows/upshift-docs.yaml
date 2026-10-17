@@ -81,10 +81,21 @@ jobs:
       - name: Test the docs importer
         run: node --test upshift/docs/test/*.test.mjs
 
+      # The developer pages are only published once the Mintlify login is on,
+      # see "Developer pages" in upshift/README.md
       - name: Build the docs of Upshift ${{ steps.release.outputs.version }}
         env:
           APP_VERSION: ${{ steps.release.outputs.app-version }}
-        run: node upshift/docs/import-docs.mjs --root .upshift-docs/twenty --version "$APP_VERSION"
+          DEVELOPER_PAGES: ${{ github.event_name == 'pull_request' || vars.UPSHIFT_DOCS_LOGIN == 'enabled' }}
+        run: |
+          visibility=()
+
+          if [ "$DEVELOPER_PAGES" != true ]; then
+            visibility=(--public-only)
+            echo "::notice::The developer pages are left out until the UPSHIFT_DOCS_LOGIN variable is 'enabled'."
+          fi
+
+          node upshift/docs/import-docs.mjs --root .upshift-docs/twenty --version "$APP_VERSION" "${visibility[@]}"
 
       # Mintlify deploys the docs-site branch; pull requests only prove the build
       - name: Publish the docs-site branch
