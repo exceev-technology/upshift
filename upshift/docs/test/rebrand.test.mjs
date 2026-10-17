@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 import { LANGUAGES, TERM_REPLACEMENTS } from '../rules.mjs';
 import {
   applyPhraseReplacements,
+  followRenamedAnchors,
   rebrandPage,
   replaceTerms,
 } from '../transform.mjs';
@@ -135,6 +136,38 @@ describe('rebrandPage', () => {
         '  <Card title="Workflows" href="/en/user-guide/workflows/overview">Automate.</Card>',
         '</CardGroup>',
       ].join('\n'),
+    );
+  });
+});
+
+describe('followRenamedAnchors', () => {
+  it('points links at the anchors of renamed headings, and keeps anchors that still match', () => {
+    const files = new Map([
+      [
+        'en/a.mdx',
+        [
+          '### Calling the Upshift REST API',
+          'See [the API](#calling-the-twenty-rest-api) and <a href="#missing-twenty">x</a>.',
+        ].join('\n'),
+      ],
+      [
+        'en/b.mdx',
+        [
+          '## Typed API clients (`twenty-client-sdk`)',
+          '[Clients](/en/b#typed-api-clients-twenty-client-sdk), [API](/en/a#calling-the-twenty-rest-api)',
+        ].join('\n'),
+      ],
+    ]);
+
+    followRenamedAnchors(files);
+
+    assert.equal(
+      files.get('en/a.mdx').split('\n')[1],
+      'See [the API](#calling-the-upshift-rest-api) and <a href="#missing-twenty">x</a>.',
+    );
+    assert.equal(
+      files.get('en/b.mdx').split('\n')[1],
+      '[Clients](/en/b#typed-api-clients-twenty-client-sdk), [API](/en/a#calling-the-upshift-rest-api)',
     );
   });
 });
