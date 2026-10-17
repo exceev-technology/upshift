@@ -150,9 +150,17 @@ export const filterNavigation = (twentyDocsConfig, language) => {
       );
     }
 
+    const groups = tab.groups
+      .map(filterEntry)
+      .filter((group) => group !== null);
+
+    // Mintlify builds the navigation of signed-out readers from the groups
+    // marked public; a page's own `public: true` only opens the page.
     return {
       ...tab,
-      groups: tab.groups.map(filterEntry).filter((group) => group !== null),
+      groups: PRIVATE_SECTIONS.includes(section)
+        ? groups
+        : groups.map((group) => ({ ...group, public: true })),
     };
   });
 
