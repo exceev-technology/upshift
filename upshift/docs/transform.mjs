@@ -1,6 +1,7 @@
 import {
   BRAND_COLORS,
   BRAND_NAME,
+  CODE_BRAND_WORD,
   COMPANY_NAME,
   COMPANY_URL,
   CONTACT_LINK,
@@ -14,6 +15,7 @@ import {
   LANGUAGES,
   LOCALE_FALLBACK,
   PRIVACY_POLICY_URL,
+  PRIVATE_SECTIONS,
   SOCIALS,
   TERMS_URL,
   TWENTY_SOURCE_URL,
@@ -31,6 +33,13 @@ const HREF_ATTRIBUTE = /\bhref="(\/[^"]*)"/g;
 const IMAGE_REFERENCE = /\/images\/[^\s)"'`]+/g;
 const SNIPPET_IMPORT = /from\s+['"]\/(snippets\/[^'"]+)['"]/g;
 const CRM_WORD = /\bCRMs?\b/;
+const FRONTMATTER = /^---\n[\s\S]*?\n---\n/;
+const HEADING_LINE = /^#{1,6}\s+(.+?)\s*$/gm;
+const COMPONENT_TITLE = /\btitle="([^"]+)"/g;
+const ID_ATTRIBUTE = /\bid="([^"]+)"/g;
+const MARKDOWN_ANCHOR_LINK = /\[([^\]]*)\]\(((?:\/[^)#\s]*)?)#([^)\s]+)\)/g;
+const HREF_ANCHOR = /\bhref="((?:\/[^"#\s]*)?)#([^"\s]+)"/g;
+const PUBLIC_FLAG = /^public: true$/m;
 
 export const renamePage = (page) => page.replaceAll('twenty', 'upshift');
 
@@ -39,6 +48,12 @@ export const sitePath = (language, page) =>
 
 export const isExcluded = (page) =>
   EXCLUDED_PAGE_PREFIXES.some((prefix) => page.startsWith(prefix));
+
+export const isPrivate = (page) =>
+  PRIVATE_SECTIONS.some((section) => page.startsWith(`${section}/`));
+
+export const markPublic = (source) =>
+  source.replace(/^---\n/, '---\npublic: true\n');
 
 const isAsset = (relativePath) =>
   ASSET_PREFIXES.some((prefix) => relativePath.startsWith(prefix));
@@ -143,6 +158,11 @@ export const filterNavigation = (twentyDocsConfig, language) => {
 
   return { tabs, pages, excludedPages };
 };
+
+export const publicTabs = (language, tabs) =>
+  tabs.filter(
+    (tab) => !isPrivate(firstPage(tab).slice(language.sitePrefix.length)),
+  );
 
 const linkTargets = (source) => [
   ...[...source.matchAll(MARKDOWN_LINK)].map((match) => match[2]),
@@ -328,7 +348,92 @@ export const rebrandPage = (source, publishedPages, brandWord) => {
 
   output = output.replace(EMPTY_CARD_GROUP, '');
 
-  return replaceOutsideCode(output, brandWord, BRAND_NAME);
+  return output
+    .split(CODE_SEGMENT)
+    .map((segment, index) =>
+      segment.replace(index % 2 === 1 ? CODE_BRAND_WORD : brandWord, BRAND_NAME),
+    )
+    .join('');
+};
+
+// The anchor Mintlify derives from a heading, like github-slugger.
+const headingAnchor = (heading) =>
+  heading
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\p{M}\s_-]/gu, '')
+    .trim()
+    .replace(/\s/g, '-');
+
+const decodeFragment = (fragment) => {
+  try {
+    return decodeURIComponent(fragment);
+  } catch {
+    return fragment;
+  }
+};
+
+// Renaming the brand in a heading changes its anchor, so links to the old
+// anchor follow it. Twenty's translations keep the English anchors of
+// translated headings; links to an anchor their page does not have drop it
+// and open the page, or become plain text on the same page.
+export const repairAnchors = (files) => {
+  const brandSlug = BRAND_NAME.toLowerCase();
+  const pages = [...files.keys()].filter((filePath) => filePath.endsWith('.mdx'));
+  const anchors = new Map(
+    pages.map((filePath) => {
+      const text = files.get(filePath).toString();
+
+      return [
+        filePath.replace(/\.mdx$/, ''),
+        new Set([
+          ...[...text.matchAll(HEADING_LINE), ...text.matchAll(COMPONENT_TITLE)].map(
+            ([, heading]) => headingAnchor(heading),
+          ),
+          ...[...text.matchAll(ID_ATTRIBUTE)].map(([, id]) => id),
+        ]),
+      ];
+    }),
+  );
+
+  for (const filePath of pages) {
+    const page = filePath.replace(/\.mdx$/, '');
+    const repair = (target, fragment) => {
+      const targetAnchors = anchors.get(
+        target === '' ? page : target.replace(/^\/|\/$/g, ''),
+      );
+      const anchor = decodeFragment(fragment);
+
+      if (targetAnchors === undefined || targetAnchors.has(anchor)) {
+        return `#${fragment}`;
+      }
+
+      const renamed = anchor.replaceAll('twenty', brandSlug);
+
+      return targetAnchors.has(renamed) ? `#${renamed}` : '';
+    };
+
+    files.set(
+      filePath,
+      files
+        .get(filePath)
+        .toString()
+        .replace(MARKDOWN_ANCHOR_LINK, (link, text, target, fragment) => {
+          const anchor = repair(target, fragment);
+
+          return target === '' && anchor === ''
+            ? text
+            : `[${text}](${target}${anchor})`;
+        })
+        .replace(HREF_ANCHOR, (attribute, target, fragment) => {
+          const anchor = repair(target, fragment);
+
+          return target === '' && anchor === ''
+            ? attribute
+            : `href="${target}${anchor}"`;
+        }),
+    );
+  }
 };
 
 export const collectAssets = (sources) => {
@@ -412,30 +517,39 @@ export const buildDocsConfig = (
         language: language.language,
         ...(language.isDefault ? { default: true } : {}),
         navbar: buildNavbar(language.labels),
-        footer: buildFooter(language.labels, tabs),
+        footer: buildFooter(language.labels, publicTabs(language, tabs)),
         versions: [{ version: `v${releaseVersion}`, default: true, tabs }],
       })),
     },
     footer: buildFooter(
       defaultNavigation.language.labels,
-      defaultNavigation.tabs,
+      publicTabs(defaultNavigation.language, defaultNavigation.tabs),
     ),
     redirects,
   };
 };
 
-export const adaptCustomCss = (css) =>
-  css
-    .split('\n')
-    .filter((line) => !line.includes('/developers/'))
-    .join('\n')
-    .replaceAll("[href='/", "[href$='/");
+export const adaptCustomCss = (css) => css.replaceAll("[href='/", "[href$='/");
 
-export const auditSite = (files, sitePages) => {
+export const auditSite = (files, sitePages, privatePages = new Set()) => {
   const published = new Set(sitePages);
   const problems = sitePages
     .filter((page) => !files.has(`${page}.mdx`))
     .map((page) => `${page} is in the navigation but has no page`);
+
+  for (const page of sitePages.filter((sitePage) => files.has(`${sitePage}.mdx`))) {
+    const [frontmatter = ''] =
+      files.get(`${page}.mdx`).toString().match(FRONTMATTER) ?? [];
+    const isMarkedPublic = PUBLIC_FLAG.test(frontmatter);
+
+    if (privatePages.has(page) && isMarkedPublic) {
+      problems.push(`${page} says public: true, so it would not need the docs login`);
+    }
+
+    if (!privatePages.has(page) && !isMarkedPublic) {
+      problems.push(`${page} does not say public: true, so the docs login would hide it`);
+    }
+  }
 
   for (const [filePath, content] of files) {
     const text = content.toString();
