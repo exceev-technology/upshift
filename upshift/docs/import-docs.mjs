@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import {
   LANGUAGES,
   PHRASE_REPLACEMENTS,
+  PUBLISH_PRIVATE_SECTIONS,
   TERM_REPLACEMENTS,
 } from './rules.mjs';
 import {
@@ -319,7 +320,7 @@ const main = () => {
     twentyRoot === undefined ? LAYER_REPOSITORY_ROOT : path.resolve(twentyRoot);
   const { files, problems, summary } = buildSite(
     path.join(appRoot, 'packages/twenty-docs'),
-    { appRoot, releaseVersion, publicOnly },
+    { appRoot, releaseVersion, publicOnly: publicOnly || !PUBLISH_PRIVATE_SECTIONS },
   );
 
   if (problems.length > 0) {

@@ -39,6 +39,11 @@ export const KEPT_SECTIONS = ['getting-started', 'user-guide', 'developers'];
 // of these sections are published without it; every other page gets it.
 export const PRIVATE_SECTIONS = ['developers'];
 
+// docs.upshiftcloud.com has its Mintlify access set to Private (password), so
+// the developer pages are published. Set this to false and let the docs
+// publish before turning that login off, or they become public.
+export const PUBLISH_PRIVATE_SECTIONS = true;
+
 // French is the default language, so it is served at the site root and English
 // under /en/. Twenty's French translation sometimes translates the brand name
 // literally as "Vingt".
