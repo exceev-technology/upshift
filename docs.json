@@ -19,7 +19,7 @@
     "primary": {
       "type": "button",
       "label": "Nous contacter",
-      "href": "mailto:contact@exceev.com"
+      "href": "https://calcom.exceev.com/team/exceev-technology/upshift-intro"
     }
   },
   "styling": {
@@ -39,7 +39,7 @@
           "primary": {
             "type": "button",
             "label": "Nous contacter",
-            "href": "mailto:contact@exceev.com"
+            "href": "https://calcom.exceev.com/team/exceev-technology/upshift-intro"
           }
         },
         "footer": {
@@ -89,7 +89,7 @@
                 },
                 {
                   "label": "Nous contacter",
-                  "href": "mailto:contact@exceev.com"
+                  "href": "https://calcom.exceev.com/team/exceev-technology/upshift-intro"
                 }
               ]
             },
@@ -444,7 +444,7 @@
           "primary": {
             "type": "button",
             "label": "Contact us",
-            "href": "mailto:contact@exceev.com"
+            "href": "https://calcom.exceev.com/team/exceev-technology/upshift-intro"
           }
         },
         "footer": {
@@ -494,7 +494,7 @@
                 },
                 {
                   "label": "Contact us",
-                  "href": "mailto:contact@exceev.com"
+                  "href": "https://calcom.exceev.com/team/exceev-technology/upshift-intro"
                 }
               ]
             },
@@ -913,7 +913,7 @@
           },
           {
             "label": "Nous contacter",
-            "href": "mailto:contact@exceev.com"
+            "href": "https://calcom.exceev.com/team/exceev-technology/upshift-intro"
           }
         ]
       },
