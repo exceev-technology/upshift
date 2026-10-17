@@ -27,7 +27,10 @@ import {
   filterRedirects,
   findUnmatchedExclusions,
   isExcluded,
+  isPrivate,
   listLinkedPages,
+  markPublic,
+  publicTabs,
   rebrandPage,
   replaceTerms,
   sitePath,
@@ -52,7 +55,7 @@ export const TWENTY_DOCS_ROOT = path.join(
 
 export const buildSite = (
   twentyDocsRoot,
-  { appRoot = LAYER_REPOSITORY_ROOT, releaseVersion } = {},
+  { appRoot = LAYER_REPOSITORY_ROOT, releaseVersion, publicOnly = false } = {},
 ) => {
   const readTwenty = (relativePath) =>
     readFileSync(path.join(twentyDocsRoot, relativePath));
@@ -108,18 +111,36 @@ export const buildSite = (
 
   const files = new Map();
   const problems = findUnmatchedExclusions(excludedPages);
+  const outputs = new Map();
 
   for (const { language } of navigation) {
-    const { outputs, problems: phraseProblems } = applyPhraseReplacements(
-      sources.get(language.language),
-      PHRASE_REPLACEMENTS[language.language],
-    );
+    const { outputs: languageOutputs, problems: phraseProblems } =
+      applyPhraseReplacements(
+        sources.get(language.language),
+        PHRASE_REPLACEMENTS[language.language],
+      );
 
     problems.push(
       ...phraseProblems.map((problem) => `${language.language}: ${problem}`),
     );
+    outputs.set(language.language, languageOutputs);
+  }
 
-    for (const [page, source] of outputs) {
+  // The developer pages still go through the rules, so a Twenty change that
+  // breaks one fails this build too.
+  if (publicOnly) {
+    for (const { language } of navigation) {
+      for (const page of publishedPages.get(language.language)) {
+        if (isPrivate(page)) {
+          publishedPages.get(language.language).delete(page);
+          outputs.get(language.language).delete(page);
+        }
+      }
+    }
+  }
+
+  for (const { language } of navigation) {
+    for (const [page, source] of outputs.get(language.language)) {
       files.set(
         `${sitePath(language, page)}.mdx`,
         replaceTerms(
@@ -135,6 +156,13 @@ export const buildSite = (
       sitePath(language, page),
     ),
   );
+  const privatePages = new Set(
+    LANGUAGES.flatMap((language) =>
+      [...publishedPages.get(language.language)]
+        .filter(isPrivate)
+        .map((page) => sitePath(language, page)),
+    ),
+  );
   const overrides = new Map(
     listSiteFiles(OVERRIDES_ROOT).map((relativePath) => [
       relativePath,
@@ -143,6 +171,12 @@ export const buildSite = (
   );
 
   problems.push(...applyOverrides(files, overrides, sitePages));
+
+  for (const page of sitePages) {
+    if (!privatePages.has(page) && files.has(`${page}.mdx`)) {
+      files.set(`${page}.mdx`, markPublic(files.get(`${page}.mdx`)));
+    }
+  }
 
   const { snippets } = collectAssets([...files.values()]);
 
@@ -193,6 +227,12 @@ export const buildSite = (
     );
   }
 
+  const publishedNavigation = publicOnly
+    ? navigation.map((entry) => ({
+        ...entry,
+        tabs: publicTabs(entry.language, entry.tabs),
+      }))
+    : navigation;
   const redirects = [
     ...filterRedirects(twentyDocsConfig.redirects, publishedPages),
     ...buildLocaleRedirects(appLanguages, appDefaultLanguage),
@@ -207,10 +247,10 @@ export const buildSite = (
   files.set('favicon.svg', readBranding('logo.svg'));
   files.set(
     'docs.json',
-    `${JSON.stringify(buildDocsConfig(twentyDocsConfig, navigation, redirects, sourceVersion), null, 2)}\n`,
+    `${JSON.stringify(buildDocsConfig(twentyDocsConfig, publishedNavigation, redirects, sourceVersion), null, 2)}\n`,
   );
 
-  problems.push(...auditSite(files, sitePages));
+  problems.push(...auditSite(files, sitePages, privatePages));
 
   return {
     files,
@@ -222,6 +262,7 @@ export const buildSite = (
       images: images.length,
       snippets: snippets.length,
       redirects: redirects.length,
+      privatePages: privatePages.size,
     },
   };
 };
@@ -262,18 +303,19 @@ export const parseArguments = (argv) => {
     twentyRoot: valueOf('--root'),
     releaseVersion: valueOf('--version'),
     check: argv.includes('--check'),
+    publicOnly: argv.includes('--public-only'),
   };
 };
 
 const main = () => {
-  const { twentyRoot, releaseVersion, check } = parseArguments(
+  const { twentyRoot, releaseVersion, check, publicOnly } = parseArguments(
     process.argv.slice(2),
   );
   const appRoot =
     twentyRoot === undefined ? LAYER_REPOSITORY_ROOT : path.resolve(twentyRoot);
   const { files, problems, summary } = buildSite(
     path.join(appRoot, 'packages/twenty-docs'),
-    { appRoot, releaseVersion },
+    { appRoot, releaseVersion, publicOnly },
   );
 
   if (problems.length > 0) {
@@ -283,7 +325,7 @@ const main = () => {
     process.exit(1);
   }
 
-  const built = `${summary.pages} pages, ${summary.images} images, ${summary.snippets} snippets, ${summary.redirects} redirects`;
+  const built = `${summary.pages} pages (${summary.privatePages} behind the docs login), ${summary.images} images, ${summary.snippets} snippets, ${summary.redirects} redirects`;
 
   if (check) {
     console.log(`The docs import works: ${built}.`);
