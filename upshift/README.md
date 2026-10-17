@@ -102,9 +102,9 @@ docker compose up -d --remove-orphans
 
 `docs/` publishes the user documentation at https://docs.upshiftcloud.com with Mintlify. It is built from Twenty's own docs in `packages/twenty-docs`, which stays untouched:
 
-- `docs/rules.mjs` says what is published and how it is rebranded: the Getting Started and User Guide tabs in French (the default, served at the root) and English (under `/en/`), without Twenty's billing, legal, cloud migration and partner pages, with Twenty's links and addresses pointed at Upshift. Pages those tabs link to but that Twenty keeps out of its navigation are published too, without a navigation entry. French links to a page Twenty has not translated yet go to its English version. Upshift covers the whole chain from first contact to reporting, so the rules also reword prose that calls Upshift or its data "CRM"; "CRM" stays only for other products, migrations and the prospecting step.
+- `docs/rules.mjs` says what is published and how it is rebranded: the Getting Started, User Guide and Developers tabs in French (the default, served at the root) and English (under `/en/`), without Twenty's billing, legal, cloud migration and partner pages, nor its self-hosting, contributing and UI library pages, with Twenty's links and addresses pointed at Upshift. The Developers tab is only readable after signing in, see [Developer pages](#developer-pages). No page names Twenty, code samples included, except the real identifiers listed in [What users see](#what-users-see); links to Twenty's source code point at the same files in this repository's `main` branch, which mirrors Twenty. Pages those tabs link to but that Twenty keeps out of its navigation are published too, without a navigation entry. French links to a page Twenty has not translated yet go to its English version. Upshift covers the whole chain from first contact to reporting, so the rules also reword prose that calls Upshift or its data "CRM"; "CRM" stays only for other products, migrations and the prospecting step.
 - `docs/overrides/` holds pages written for Upshift, such as "Pourquoi Upshift" (`getting-started/introduction.mdx`, and its English version under `en/`), which replace Twenty's version of the same page, and the React snippets those pages import from `snippets/`, such as the interactive process map (`snippets/process-map.jsx`, styled in `docs/upshift.css`).
-- `docs/import-docs.mjs` applies the rules and overrides to a Twenty checkout and writes `docs/site/`. `--root <checkout>` says which Twenty sources to read (this repository by default), `--version X.Y.Z` names the Upshift release the site documents and fails when the checkout carries another version, and `--check` builds without writing. The navigation carries a single version, `vX.Y.Z` from the server's `TWENTY_CURRENT_VERSION` of that checkout, so readers see which release the docs describe.
+- `docs/import-docs.mjs` applies the rules and overrides to a Twenty checkout and writes `docs/site/`. `--root <checkout>` says which Twenty sources to read (this repository by default), `--version X.Y.Z` names the Upshift release the site documents and fails when the checkout carries another version, `--check` builds without writing, and `--public-only` leaves the developer pages out (their rules are still checked). The navigation carries a single version, `vX.Y.Z` from the server's `TWENTY_CURRENT_VERSION` of that checkout, so readers see which release the docs describe.
 
 The site is not committed. The [Upshift Docs](../.github/workflows/upshift-docs.yaml) workflow builds it from the latest Upshift release: it takes the newest `upshift/vX.Y.Z` GitHub Release, checks out Twenty at the matching `twenty/vX.Y.Z` tag, applies the rules and overrides of `upshift-main`, and publishes the result to the `docs-site` branch, which Mintlify deploys to docs.upshiftcloud.com. It runs after every Upshift Release run, on every push to `upshift-main` that touches `docs/` or `branding/`, and on demand. Pull requests that touch those folders run the same build without publishing. Never edit the `docs-site` branch by hand or in the Mintlify web editor: the next run replaces it. Change the rules or add an override instead.
 
@@ -112,9 +112,21 @@ The site is not committed. The [Upshift Docs](../.github/workflows/upshift-docs.
 node upshift/docs/import-docs.mjs
 ```
 
-The import fails when a sentence a rule expects has changed in Twenty's docs, when an excluded section no longer matches any Twenty page (so a moved legal or billing page cannot slip through), when a page still references a Twenty address or links to a page that is not published, when a page presents Upshift as a CRM (add a term rule, or an allowed context in `CRM_ALLOWED_CONTEXTS`), or when an override no longer matches a published page or no page imports an override snippet. Update the rule's text or `count` in `rules.mjs` and run it again. The Upshift Branding Check runs the importer's tests and a `--check` build against this branch's Twenty docs, so a Twenty change that breaks a rule shows up before the next release. The Upshift Docs workflow runs the build against the released docs.
+The import fails when a sentence a rule expects has changed in Twenty's docs, when a page outside the Developers tab lacks `public: true` or a developer page has it, when an excluded section no longer matches any Twenty page (so a moved legal or billing page cannot slip through), when a page still references a Twenty address or links to a page that is not published, when a page presents Upshift as a CRM (add a term rule, or an allowed context in `CRM_ALLOWED_CONTEXTS`), or when an override no longer matches a published page or no page imports an override snippet. Update the rule's text or `count` in `rules.mjs` and run it again. The Upshift Branding Check runs the importer's tests and a `--check` build against this branch's Twenty docs, so a Twenty change that breaks a rule shows up before the next release. The Upshift Docs workflow runs the build against the released docs.
 
-To preview the site locally, build it from this checkout, then serve it:
+### Developer pages
+
+Mintlify hides every page whose frontmatter does not say `public: true` once the site's access is private. The importer adds `public: true` to every page except those of `PRIVATE_SECTIONS` (the Developers tab), so turning the login on only closes the developer pages. Public pages link to them; readers who follow those links are asked to sign in.
+
+The Upshift Docs workflow publishes the developer pages only when the repository variable `UPSHIFT_DOCS_LOGIN` is `enabled`; until then it builds with `--public-only`. To open them to signed-in readers:
+
+1. In the Mintlify dashboard, go to **Settings → Access** (app.mintlify.com/settings/project/authentication), set **Visibility** to **Private** and pick a method: **Authenticated** lets in the members of the Mintlify organization (all plans), **Password** shares one password (Pro plan), **Custom** uses OAuth or JWT, for example to sign in with Upshift accounts (Enterprise plan). The public pages stay open because they say `public: true`.
+2. Set `UPSHIFT_DOCS_LOGIN` to `enabled` in the repository's **Settings → Secrets and variables → Actions → Variables**.
+3. Run the Upshift Docs workflow.
+
+To turn the login off, first delete the variable and run the workflow, so the developer pages are gone before the site opens up. With the login on, the sitemap and `llms.txt` list the public pages only, and the search shows developer pages to signed-in readers only.
+
+To preview the site locally, build it from this checkout, then serve it (the local preview shows the developer pages without a login):
 
 ```bash
 node upshift/docs/import-docs.mjs && cd upshift/docs/site && npx --yes mintlify@4.2.956 dev
@@ -233,13 +245,13 @@ Changing these sources does not update an existing registry image. After merging
 
 - Name, logo, icons, page titles, emails, translations (all languages), AI assistant prompts, MCP and OpenAPI metadata say Upshift.
 - Upshift is described as a platform that digitizes all company processes, CRM included, not as a CRM: the invitation email in every language (`scripts/catalog-wording.mjs`), the AI assistant, agent and workflow prompts and the MCP instructions. CRM stays where it names that part of the product, such as the CRM Hygiene skill.
-- Documentation links point to `docsUrl` (`https://docs.upshiftcloud.com`) with Twenty's paths kept, for example `/user-guide/workflows/...` and `/developers/extend/apps/getting-started`. The Upshift docs site should serve or redirect those paths.
+- Documentation links point to `docsUrl` (`https://docs.upshiftcloud.com`) with Twenty's paths kept, for example `/user-guide/workflows/...` and `/developers/extend/apps/getting-started`. The Upshift docs site serves or redirects those paths, the developer ones behind its login.
 - The Community settings page links to Exceev's LinkedIn and X (`linkedinUrl`, `xUrl`) and shows the beta Features toggles, so each workspace can turn a feature on or off, only when the server offers at least one. Twenty's contributor cover, partners and changelog are removed from it.
 - Hidden: the Organization tab of the admin panel (Twenty's enterprise licence and plans), the Legal / DPA pages (Twenty's own legal agreement) and the ChatGPT card that installs Twenty's ChatGPT app.
 
 Still named Twenty on purpose, because they are real identifiers:
 
-- The app developer commands `npx create-twenty-app` and `yarn twenty ...` (published npm packages; the example folder is renamed `my-upshift-app`).
+- The app developer commands and packages `npx create-twenty-app`, `yarn twenty ...`, `twenty-sdk` and `twenty-client-sdk`, and the `TWENTY_*` variables apps read (published npm packages; the example folder is renamed `my-upshift-app`, in the docs too).
 - Webhook signature headers `X-Twenty-Webhook-Signature`, `-Timestamp`, `-Nonce` (API contract).
 - Internal package paths, logs and environment variable names inside the container.
 
