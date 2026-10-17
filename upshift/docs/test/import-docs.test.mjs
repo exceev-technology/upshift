@@ -95,9 +95,11 @@ describe('buildSite on packages/twenty-docs', () => {
     const mentions = [...files]
       .filter(([filePath]) => /\.(mdx|jsx?)$/.test(filePath))
       .flatMap(([filePath, content]) =>
-        [...content.toString().matchAll(/.{0,40}(?<!X-)\bTwenty\b.{0,40}/g)].map(
-          ([mention]) => `${filePath}: ${mention}`,
-        ),
+        [
+          ...content
+            .toString()
+            .matchAll(/.{0,40}((?<!X-)\bTwenty\b|\bVingt\b|\bvingt-).{0,40}/g),
+        ].map(([mention]) => `${filePath}: ${mention}`),
       );
 
     assert.deepEqual(mentions, []);

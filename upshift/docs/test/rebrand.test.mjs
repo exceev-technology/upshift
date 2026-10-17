@@ -4,8 +4,8 @@ import { describe, it } from 'node:test';
 import { LANGUAGES, TERM_REPLACEMENTS } from '../rules.mjs';
 import {
   applyPhraseReplacements,
-  followRenamedAnchors,
   rebrandPage,
+  repairAnchors,
   replaceTerms,
 } from '../transform.mjs';
 
@@ -140,7 +140,7 @@ describe('rebrandPage', () => {
   });
 });
 
-describe('followRenamedAnchors', () => {
+describe('repairAnchors', () => {
   it('points links at the anchors of renamed headings, and keeps anchors that still match', () => {
     const files = new Map([
       [
@@ -159,7 +159,7 @@ describe('followRenamedAnchors', () => {
       ],
     ]);
 
-    followRenamedAnchors(files);
+    repairAnchors(files);
 
     assert.equal(
       files.get('en/a.mdx').split('\n')[1],
@@ -169,6 +169,29 @@ describe('followRenamedAnchors', () => {
       files.get('en/b.mdx').split('\n')[1],
       '[Clients](/en/b#typed-api-clients-twenty-client-sdk), [API](/en/a#calling-the-upshift-rest-api)',
     );
+  });
+
+  it('drops anchors a translated page does not have, and keeps accordion, id and accented ones', () => {
+    const files = new Map([
+      [
+        'a.mdx',
+        [
+          '## Limitations actuelles',
+          '<Accordion title="Configuration GitHub auto-hébergée">x</Accordion>',
+          '<a id="exemple" />',
+          'Voir les [limitations](#current-limitations) et les [limites](#limitations-actuelles).',
+          '[Config](#configuration-github-auto-h%C3%A9berg%C3%A9e), [exemple](#exemple), [API](/b#calling-the-api).',
+        ].join('\n'),
+      ],
+      ['b.mdx', '## Appeler l’API'],
+    ]);
+
+    repairAnchors(files);
+
+    assert.deepEqual(files.get('a.mdx').split('\n').slice(3), [
+      'Voir les limitations et les [limites](#limitations-actuelles).',
+      '[Config](#configuration-github-auto-h%C3%A9berg%C3%A9e), [exemple](#exemple), [API](/b).',
+    ]);
   });
 });
 
