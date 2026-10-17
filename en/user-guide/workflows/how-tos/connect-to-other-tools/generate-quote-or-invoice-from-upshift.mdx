@@ -1,4 +1,5 @@
 ---
+public: true
 title: Generate a Quote or Invoice from Upshift
 description: Automatically create invoices in external tools when deals close.
 ---
@@ -74,7 +75,7 @@ export const main = async (params: {
       description: `Invoice for ${opportunity.name}`,
       due_days: 30,
 
-      // Reference back to Twenty
+      // Reference back to Upshift
       metadata: {
         opportunity_id: opportunity.id,
         company_id: company.id

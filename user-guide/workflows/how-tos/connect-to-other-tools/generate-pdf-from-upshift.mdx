@@ -1,4 +1,5 @@
 ---
+public: true
 title: Générer un PDF depuis Upshift
 description: Créez un flux de travail pour générer et joindre un PDF (par exemple un devis) à un enregistrement.
 ---
@@ -55,7 +56,7 @@ export const main = async (
   params: { companyId: string },
 ) => {
   const { companyId } = params;
-  // Replace with your Twenty GraphQL endpoints (/metadata for metadata and files or /graphql for your records)
+  // Replace with your Upshift GraphQL endpoints (/metadata for metadata and files or /graphql for your records)
   // Cloud: https://crm.yourcompany.com/graphql
   // Self-hosted: https://your-domain.com/graphql
 

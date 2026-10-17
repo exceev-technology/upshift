@@ -1,4 +1,5 @@
 ---
+public: true
 title: Déclencheurs de flux de travail
 description: Découvrez les différents déclencheurs qui démarrent vos flux de travail.
 ---
@@ -80,7 +81,7 @@ Pour une disponibilité **simple** et **en bloc**, le(s) enregistrement(s) séle
     **Limite souple : 100 exécutions/minute**. Au-delà de cela, les flux de travail restent au statut "Not Started" et sont traités progressivement — soit par une tâche en arrière-plan, soit lorsqu'un autre flux de travail entre dans la file d'attente. Cela signifie que vous pouvez sélectionner plus de 100 enregistrements avec un déclencheur unique ; l'exécution sera simplement plus lente.
   </Note>
 
-* **En vrac** : Le workflow s'exécutera une fois, fournissant la liste complète des enregistrements en entrée. Cela signifie que le flux de travail doit contenir une [Action d'itération](/user-guide/workflows/capabilities/workflow-actions#iterator).
+* **En vrac** : Le workflow s'exécutera une fois, fournissant la liste complète des enregistrements en entrée. Cela signifie que le flux de travail doit contenir une [Action d'itération](/user-guide/workflows/capabilities/workflow-actions).
 
 <Note>
 C'est plus avancé, et idéal pour les personnes qui souhaitent optimiser le nombre d'exécutions de flux de travail.
