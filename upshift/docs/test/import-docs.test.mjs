@@ -9,6 +9,7 @@ import {
   buildSite,
   parseArguments,
 } from '../import-docs.mjs';
+import { BRAND_COLORS, DEMO_URL } from '../rules.mjs';
 
 describe('buildSite on packages/twenty-docs', () => {
   const { files, problems } = buildSite(TWENTY_DOCS_ROOT);
@@ -240,6 +241,18 @@ describe('buildSite on packages/twenty-docs', () => {
     ]) {
       assert.ok(files.has(filePath), filePath);
     }
+  });
+
+  it('opens the intro booking in a Cal.com pop-up with the Upshift colors', () => {
+    const script = files.get('booking.js').toString();
+    const [, origin] = script.match(/var ORIGIN = '([^']+)'/);
+    const [, calLink] = script.match(/var CAL_LINK = '([^']+)'/);
+
+    assert.equal(`${origin}/${calLink}`, DEMO_URL);
+    assert.equal(docsConfig.navbar.primary.href, DEMO_URL);
+    // Mintlify's light color is the accent of the dark theme.
+    assert.match(script, new RegExp(`light: '${BRAND_COLORS.primary}'`));
+    assert.match(script, new RegExp(`dark: '${BRAND_COLORS.light}'`));
   });
 
   it('uses the rounded Upshift icon as favicon, like upshiftcloud.com', () => {

@@ -87,12 +87,13 @@ jobs:
         env:
           APP_VERSION: ${{ steps.release.outputs.app-version }}
           DEVELOPER_PAGES: ${{ github.event_name == 'pull_request' || vars.UPSHIFT_DOCS_LOGIN == 'enabled' }}
+          UPSHIFT_DOCS_LOGIN: ${{ vars.UPSHIFT_DOCS_LOGIN }}
         run: |
           visibility=()
 
           if [ "$DEVELOPER_PAGES" != true ]; then
             visibility=(--public-only)
-            echo "::notice::The developer pages are left out until the UPSHIFT_DOCS_LOGIN variable is 'enabled'."
+            echo "::notice::The developer pages are left out until the UPSHIFT_DOCS_LOGIN repository variable is 'enabled' (this run got '${UPSHIFT_DOCS_LOGIN}')."
           fi
 
           node upshift/docs/import-docs.mjs --root .upshift-docs/twenty --version "$APP_VERSION" "${visibility[@]}"
