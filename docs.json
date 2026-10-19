@@ -114,7 +114,7 @@
         },
         "versions": [
           {
-            "version": "v2.48.0",
+            "version": "v2.49.0",
             "default": true,
             "tabs": [
               {
@@ -620,7 +620,7 @@
         },
         "versions": [
           {
-            "version": "v2.48.0",
+            "version": "v2.49.0",
             "default": true,
             "tabs": [
               {
@@ -1026,6 +1026,7 @@
                           "en/developers/extend/apps/logic/key-value-store",
                           "en/developers/extend/apps/logic/background-jobs",
                           "en/developers/extend/apps/logic/skills-and-agents",
+                          "en/developers/extend/apps/logic/workflows",
                           "en/developers/extend/apps/logic/connections",
                           "en/developers/extend/apps/logic/messaging-channels",
                           "en/developers/extend/apps/logic/credits"
