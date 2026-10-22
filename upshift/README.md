@@ -214,7 +214,7 @@ Every failure names the file and what was expected.
 | Enterprise licence validation, seat reports, checkout, portal, status and release calls to Twenty | Conditional on licence configuration or admin actions | Requests rejected before collecting instance metadata or contacting Twenty |
 | Company logos from twenty-icons.com (browser and server) | On | URL builder returns nothing, workspace logo inference removed |
 | Company enrichment from twenty-companies.com during email and calendar sync | On | Removed, falls back to the name derived from the domain |
-| AI help-center search through twenty-help-search.com | On | Disabled unless you configure your own Mintlify key |
+| AI help-center search through Twenty's documentation server (docs.twenty.com/mcp) | On | Disabled, the tool answers without sending the query |
 | Email logo and default workspace logo hosted by Twenty | On | Served from this repository |
 | Founder avatars from twentyhq.github.io in prefilled data | On | Removed |
 | Yarn telemetry during builds | On | Off |
