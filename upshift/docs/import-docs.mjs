@@ -38,6 +38,7 @@ import {
   repairAnchors,
   replaceTerms,
   sitePath,
+  unlinkMissingPages,
 } from './transform.mjs';
 import { isRuleForVersion, versionPath } from './versions.mjs';
 
@@ -58,6 +59,14 @@ export const TWENTY_DOCS_ROOT = path.join(
   'packages/twenty-docs',
 );
 
+export const readOverrides = () =>
+  new Map(
+    listSiteFiles(OVERRIDES_ROOT).map((relativePath) => [
+      relativePath,
+      readFileSync(path.join(OVERRIDES_ROOT, relativePath)).toString(),
+    ]),
+  );
+
 export const buildSite = (
   twentyDocsRoot,
   {
@@ -67,6 +76,7 @@ export const buildSite = (
     historical = false,
     phraseReplacements = PHRASE_REPLACEMENTS,
     excludedPagePrefixes = EXCLUDED_PAGE_PREFIXES,
+    overrides = readOverrides(),
   } = {},
 ) => {
   const readTwenty = (relativePath) =>
@@ -78,10 +88,13 @@ export const buildSite = (
       /TWENTY_CURRENT_VERSION = '(\d+\.\d+\.\d+)'/,
     ) ?? [];
   const documentedVersion = releaseVersion ?? sourceVersion;
+  const isForThisVersion = (rule) =>
+    documentedVersion === undefined || isRuleForVersion(rule, documentedVersion);
+  const exclusions = excludedPagePrefixes.filter(isForThisVersion);
   const twentyDocsConfig = JSON.parse(readTwenty('docs.json').toString());
   const navigation = LANGUAGES.map((language) => ({
     language,
-    ...filterNavigation(twentyDocsConfig, language),
+    ...filterNavigation(twentyDocsConfig, language, { exclusions, historical }),
   }));
   const publishedPages = new Map(
     navigation.map(({ language, pages }) => [language.language, new Set(pages)]),
@@ -109,7 +122,7 @@ export const buildSite = (
         continue;
       }
 
-      if (isExcluded(linked.page)) {
+      if (isExcluded(linked.page, exclusions)) {
         excludedPages.push(linked.page);
         continue;
       }
@@ -135,14 +148,14 @@ export const buildSite = (
   // stopped matching them only warns. Exclusions always fail: an unmatched one
   // may mean a renamed billing or legal page is being published.
   const ruleProblems = historical ? warnings : problems;
-  const isForThisVersion = (rule) =>
-    documentedVersion === undefined || isRuleForVersion(rule, documentedVersion);
   const outputs = new Map();
 
-  problems.push(
-    ...findUnmatchedExclusions(
-      excludedPages,
-      excludedPagePrefixes.filter(isForThisVersion),
+  problems.push(...findUnmatchedExclusions(excludedPages, exclusions));
+  warnings.push(
+    ...navigation.flatMap(({ language, missingSections }) =>
+      missingSections.map(
+        (section) => `${language.language}: no ${section}/ tab, published without it`,
+      ),
     ),
   );
 
@@ -196,14 +209,21 @@ export const buildSite = (
         .map((page) => sitePath(language, page)),
     ),
   );
-  const overrides = new Map(
-    listSiteFiles(OVERRIDES_ROOT).map((relativePath) => [
-      relativePath,
-      readFileSync(path.join(OVERRIDES_ROOT, relativePath)).toString(),
-    ]),
-  );
-
   ruleProblems.push(...applyOverrides(files, overrides, sitePages));
+
+  if (historical) {
+    for (const filePath of overrides.keys()) {
+      const source = files.get(filePath)?.toString();
+      const unlinked = source && unlinkMissingPages(source, sitePages);
+
+      if (unlinked !== source) {
+        files.set(filePath, unlinked);
+        warnings.push(
+          `overrides/${filePath} links to pages this version does not publish; they are plain text`,
+        );
+      }
+    }
+  }
 
   for (const page of sitePages) {
     if (!privatePages.has(page) && files.has(`${page}.mdx`)) {

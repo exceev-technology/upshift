@@ -249,6 +249,36 @@ describe('relocateVersion with a snippet whose dependencies changed', () => {
     latestFiles,
   );
 
+  it('keeps its own copy of a snippet that links to one of its pages', () => {
+    const details = '[Details](/user-guide/start)';
+    const linked = relocateVersion(
+      {
+        files: new Map([
+          ['snippets/details.mdx', details],
+          [
+            'page.mdx',
+            "---\ntitle: Page\n---\n\nimport Details from '/snippets/details.mdx';\n\n<Details />\n",
+          ],
+          ['user-guide/start.mdx', '---\ntitle: Start\n---\n\nHello\n'],
+        ]),
+        sitePages: ['page', 'user-guide/start'],
+        privatePages: [],
+        tabsByLanguage: new Map(),
+      },
+      'v2.49',
+      new Map([['snippets/details.mdx', details]]),
+    );
+
+    assert.equal(
+      linked.files.get('snippets/v2.49/details.mdx'),
+      '[Details](/v2.49/user-guide/start)',
+    );
+    assert.match(
+      linked.files.get('v2.49/page.mdx'),
+      /from '\/snippets\/v2\.49\/details\.mdx'/,
+    );
+  });
+
   it('keeps its own copy of every snippet that leads to a changed asset', () => {
     assert.deepEqual([...relocated.files.keys()].sort(), [
       'snippets/v2.49/chart.mdx',

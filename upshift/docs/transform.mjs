@@ -112,19 +112,24 @@ const firstPage = (entry) =>
         .map(firstPage)
         .find((page) => page !== undefined);
 
-export const filterNavigation = (twentyDocsConfig, language) => {
+export const filterNavigation = (
+  twentyDocsConfig,
+  language,
+  { exclusions = EXCLUDED_PAGE_PREFIXES, historical = false } = {},
+) => {
   const twentyTabs =
     twentyDocsConfig.navigation.languages.find(
       ({ language: code }) => code === language.language,
     )?.tabs ?? [];
   const pages = [];
   const excludedPages = [];
+  const missingSections = [];
 
   const filterEntry = (entry) => {
     if (typeof entry === 'string') {
       const page = entry.slice(language.twentyPrefix.length);
 
-      if (isExcluded(page)) {
+      if (isExcluded(page, exclusions)) {
         excludedPages.push(page);
 
         return null;
@@ -142,10 +147,17 @@ export const filterNavigation = (twentyDocsConfig, language) => {
     return children.length === 0 ? null : { ...entry, pages: children };
   };
 
-  const tabs = KEPT_SECTIONS.map((section) => {
+  const tabs = KEPT_SECTIONS.flatMap((section) => {
     const tab = twentyTabs.find((candidate) =>
       firstPage(candidate)?.startsWith(`${language.twentyPrefix}${section}/`),
     );
+
+    // An older version that predates a kept section is published without it
+    if (tab === undefined && historical) {
+      missingSections.push(section);
+
+      return [];
+    }
 
     if (tab === undefined) {
       throw new Error(
@@ -159,15 +171,17 @@ export const filterNavigation = (twentyDocsConfig, language) => {
 
     // Mintlify builds the navigation of signed-out readers from the groups
     // marked public; a page's own `public: true` only opens the page.
-    return {
-      ...tab,
-      groups: PRIVATE_SECTIONS.includes(section)
-        ? groups
-        : groups.map((group) => ({ ...group, public: true })),
-    };
+    return [
+      {
+        ...tab,
+        groups: PRIVATE_SECTIONS.includes(section)
+          ? groups
+          : groups.map((group) => ({ ...group, public: true })),
+      },
+    ];
   });
 
-  return { tabs, pages, excludedPages };
+  return { tabs, pages, excludedPages, missingSections };
 };
 
 export const publicTabs = (language, tabs) =>
@@ -301,6 +315,25 @@ export const applyOverrides = (files, overrides, sitePages) => {
   }
 
   return problems;
+};
+
+// rebrandPage turns Twenty's links to unpublished pages into text; an older
+// version gets the same for links in Upshift's overrides.
+export const unlinkMissingPages = (source, sitePages) => {
+  const published = new Set(sitePages);
+  const isMissingPage = (target) => {
+    const [page] = splitTarget(target);
+
+    return page !== '' && !isAsset(page) && !published.has(page);
+  };
+
+  return source
+    .replace(MARKDOWN_LINK, (link, text, target) =>
+      isMissingPage(target) ? text : link,
+    )
+    .replace(HREF_ATTRIBUTE, (attribute, target) =>
+      isMissingPage(target) ? '' : attribute,
+    );
 };
 
 export const replaceOutsideCode = (source, pattern, replacement) =>
@@ -487,7 +520,8 @@ const markNoindex = (source) =>
     : `---\nnoindex: true\n---\n\n${source}`;
 
 // An older version is built like the latest one, then moved under its folder.
-// Assets it shares byte for byte with the latest version stay at the root.
+// Assets it shares byte for byte with the latest version stay at the root,
+// unless they link to one of its pages or use an asset it keeps.
 export const relocateVersion = (
   { files, sitePages, privatePages, tabsByLanguage },
   prefix,
@@ -498,11 +532,15 @@ export const relocateVersion = (
     isSnippet(asset)
       ? `snippets/${prefix}/${asset.slice('snippets/'.length)}`
       : `${prefix}/${asset}`;
+  const linksToVersionPage = (source) =>
+    linkTargets(source).some((target) => pages.has(splitTarget(target)[0]));
   const movedAssets = new Set(
     [...files.keys()].filter(
       (filePath) =>
         isAsset(filePath) &&
-        !isSameContent(files.get(filePath), latestFiles.get(filePath)),
+        (!isSameContent(files.get(filePath), latestFiles.get(filePath)) ||
+          (isSnippet(filePath) &&
+            linksToVersionPage(files.get(filePath).toString()))),
     ),
   );
   const snippetDependencies = [...files.keys()]

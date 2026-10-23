@@ -9,6 +9,7 @@ import {
   buildSite,
   mergeVersions,
   parseArguments,
+  readOverrides,
 } from '../import-docs.mjs';
 import {
   BRAND_COLORS,
@@ -447,6 +448,24 @@ describe('buildSite of an older version', () => {
     assert.deepEqual(problems, []);
   });
 
+  it('removes the pages of an exclusion only in the versions it covers', () => {
+    const build = (exclusion) =>
+      buildSite(TWENTY_DOCS_ROOT, {
+        appRoot,
+        releaseVersion: '9.8.0',
+        historical: true,
+        excludedPagePrefixes: [...EXCLUDED_PAGE_PREFIXES, exclusion],
+      });
+    const covered = build({ prefix: 'user-guide/data-model/', since: '9.8' });
+    const notCovered = build({ prefix: 'user-guide/data-model/', until: '9.7' });
+    const dataModelPage = 'en/user-guide/data-model/capabilities/fields.mdx';
+
+    assert.deepEqual(covered.problems, []);
+    assert.equal(covered.files.has(dataModelPage), false);
+    assert.deepEqual(notCovered.problems, []);
+    assert.equal(notCovered.files.has(dataModelPage), true);
+  });
+
   it('skips a rule whose `until` minor is older than the version it builds', () => {
     const { problems, warnings } = buildSite(TWENTY_DOCS_ROOT, {
       appRoot,
@@ -456,6 +475,47 @@ describe('buildSite of an older version', () => {
 
     assert.deepEqual(problems, []);
     assert.deepEqual(warnings, []);
+  });
+});
+
+describe('buildSite with an override that links to a page a version lacks', () => {
+  const appRoot = writeReleaseSources('9.8.0');
+  const overrides = readOverrides();
+  const communitySettings = 'user-guide/settings/capabilities/community-settings.mdx';
+
+  overrides.set(
+    communitySettings,
+    `${overrides.get(communitySettings)}\n[Plus tard](/user-guide/not-yet) et [Démarrage](/getting-started/introduction).\n`,
+  );
+
+  it('fails the latest version on the broken link', () => {
+    const { problems } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+      overrides,
+    });
+
+    assert.deepEqual(problems, [
+      `${communitySettings} links to /user-guide/not-yet, which is not published`,
+    ]);
+  });
+
+  it('publishes the link as plain text in an older version, with a warning', () => {
+    const { files, problems, warnings } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+      historical: true,
+      overrides,
+    });
+
+    assert.deepEqual(problems, []);
+    assert.deepEqual(warnings, [
+      `overrides/${communitySettings} links to pages this version does not publish; they are plain text`,
+    ]);
+    assert.match(
+      files.get(communitySettings).toString(),
+      /Plus tard et \[Démarrage\]\(\/getting-started\/introduction\)\./,
+    );
   });
 });
 

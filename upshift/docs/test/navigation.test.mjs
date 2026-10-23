@@ -180,6 +180,29 @@ describe('publicTabs', () => {
       /en docs have no tab for user-guide\/ pages/,
     );
   });
+
+  it('leaves the section out of an older version that does not have it', () => {
+    const withoutUserGuide = structuredClone(twentyDocsConfig);
+
+    withoutUserGuide.navigation.languages[0].tabs.splice(1, 1);
+
+    const { tabs, missingSections } = filterNavigation(withoutUserGuide, ENGLISH, {
+      historical: true,
+    });
+
+    assert.deepEqual(tabs.map(({ tab }) => tab), ['Getting Started', 'Developers']);
+    assert.deepEqual(missingSections, ['user-guide']);
+  });
+
+  it('excludes pages with the exclusions it is given', () => {
+    const { pages, excludedPages } = filterNavigation(twentyDocsConfig, ENGLISH, {
+      exclusions: ['user-guide/'],
+    });
+
+    assert.ok(pages.every((page) => !page.startsWith('user-guide/')));
+    assert.ok(excludedPages.some((page) => page.startsWith('user-guide/')));
+    assert.ok(pages.some((page) => page.startsWith('getting-started/')));
+  });
 });
 
 describe('filterRedirects', () => {
