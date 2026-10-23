@@ -536,6 +536,1275 @@
                 ]
               }
             ]
+          },
+          {
+            "version": "v2.49.0",
+            "tabs": [
+              {
+                "tab": "Prise en main",
+                "groups": [
+                  {
+                    "group": "Bienvenue",
+                    "pages": [
+                      "v2.49/getting-started/introduction",
+                      "v2.49/getting-started/key-features",
+                      "v2.49/getting-started/quickstart"
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Concepts clés",
+                    "pages": [
+                      "v2.49/getting-started/core-concepts/data-model",
+                      "v2.49/getting-started/core-concepts/layout",
+                      "v2.49/getting-started/core-concepts/workflows",
+                      "v2.49/getting-started/core-concepts/calendar-and-email",
+                      "v2.49/getting-started/core-concepts/ai",
+                      "v2.49/getting-started/core-concepts/apps",
+                      "v2.49/getting-started/core-concepts/dashboards",
+                      "v2.49/getting-started/core-concepts/glossary"
+                    ],
+                    "public": true
+                  }
+                ]
+              },
+              {
+                "tab": "Guide de l'utilisateur",
+                "groups": [
+                  {
+                    "group": "Vue d'ensemble",
+                    "pages": [
+                      "v2.49/user-guide/introduction"
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Modèle de données",
+                    "icon": "database",
+                    "pages": [
+                      "v2.49/user-guide/data-model/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.49/user-guide/data-model/capabilities/objects",
+                          "v2.49/user-guide/data-model/capabilities/fields",
+                          "v2.49/user-guide/data-model/capabilities/relation-fields"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.49/user-guide/data-model/how-tos/create-custom-objects",
+                          "v2.49/user-guide/data-model/how-tos/create-custom-fields",
+                          "v2.49/user-guide/data-model/how-tos/create-relation-fields",
+                          "v2.49/user-guide/data-model/how-tos/create-many-to-many-relations",
+                          "v2.49/user-guide/data-model/how-tos/customize-your-data-model",
+                          "v2.49/user-guide/data-model/how-tos/data-model-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Migration de données",
+                    "icon": "cloud-arrow-up",
+                    "pages": [
+                      "v2.49/user-guide/data-migration/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.49/user-guide/data-migration/capabilities/file-formats",
+                          "v2.49/user-guide/data-migration/capabilities/field-mapping",
+                          "v2.49/user-guide/data-migration/capabilities/uniqueness-constraints",
+                          "v2.49/user-guide/data-migration/capabilities/import-relations",
+                          "v2.49/user-guide/data-migration/capabilities/error-handling"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.49/user-guide/data-migration/how-tos/prepare-your-csv-files",
+                          "v2.49/user-guide/data-migration/how-tos/import-companies-via-csv",
+                          "v2.49/user-guide/data-migration/how-tos/import-contacts-via-csv",
+                          "v2.49/user-guide/data-migration/how-tos/import-relations-between-objects-via-csv",
+                          "v2.49/user-guide/data-migration/how-tos/update-existing-records-via-import",
+                          "v2.49/user-guide/data-migration/how-tos/fix-import-errors",
+                          "v2.49/user-guide/data-migration/how-tos/export-your-data",
+                          "v2.49/user-guide/data-migration/how-tos/import-data-via-api",
+                          "v2.49/user-guide/data-migration/how-tos/migrating-from-other-crms"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Calendrier et e-mails",
+                    "icon": "envelope",
+                    "pages": [
+                      "v2.49/user-guide/calendar-emails/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.49/user-guide/calendar-emails/capabilities/mailbox",
+                          "v2.49/user-guide/calendar-emails/capabilities/calendar"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.49/user-guide/calendar-emails/how-tos/connect-several-mailboxes-per-user",
+                          "v2.49/user-guide/calendar-emails/how-tos/limit-emails-imported",
+                          "v2.49/user-guide/calendar-emails/how-tos/can-i-track-email-activity-on-all-objects",
+                          "v2.49/user-guide/calendar-emails/how-tos/can-i-send-emails-from-upshift",
+                          "v2.49/user-guide/calendar-emails/how-tos/can-i-book-meetings-from-upshift",
+                          "v2.49/user-guide/calendar-emails/how-tos/i-dont-see-emails-on-records"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Flux de travail",
+                    "icon": "bolt",
+                    "pages": [
+                      "v2.49/user-guide/workflows/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.49/user-guide/workflows/capabilities/workflow-triggers",
+                          "v2.49/user-guide/workflows/capabilities/workflow-actions",
+                          "v2.49/user-guide/workflows/capabilities/workflow-branches",
+                          "v2.49/user-guide/workflows/capabilities/workflow-runs",
+                          "v2.49/user-guide/workflows/capabilities/workflow-versions",
+                          "v2.49/user-guide/workflows/capabilities/workflow-credits",
+                          "v2.49/user-guide/workflows/capabilities/use-branches-in-workflows",
+                          "v2.49/user-guide/workflows/capabilities/use-iterator",
+                          "v2.49/user-guide/workflows/capabilities/send-emails-from-workflows"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          {
+                            "group": "Automatisations CRM",
+                            "pages": [
+                              "v2.49/user-guide/workflows/how-tos/crm-automations/send-email-alerts-with-tasks-due",
+                              "v2.49/user-guide/workflows/how-tos/crm-automations/notify-teammates-of-note-to-review",
+                              "v2.49/user-guide/workflows/how-tos/crm-automations/display-number-of-emails-received",
+                              "v2.49/user-guide/workflows/how-tos/crm-automations/formula-fields",
+                              "v2.49/user-guide/workflows/how-tos/crm-automations/display-related-record-data",
+                              "v2.49/user-guide/workflows/how-tos/crm-automations/closed-won-automations",
+                              "v2.49/user-guide/workflows/how-tos/crm-automations/detect-stale-opportunities",
+                              "v2.49/user-guide/workflows/how-tos/crm-automations/auto-reply-to-inbound-emails"
+                            ]
+                          },
+                          {
+                            "group": "Connexion à d'autres outils",
+                            "pages": [
+                              "v2.49/user-guide/workflows/how-tos/connect-to-other-tools/set-up-a-webhook-trigger",
+                              "v2.49/user-guide/workflows/how-tos/connect-to-other-tools/bring-typeform-submissions-in-upshift",
+                              "v2.49/user-guide/workflows/how-tos/connect-to-other-tools/bring-product-data-in-upshift",
+                              "v2.49/user-guide/workflows/how-tos/connect-to-other-tools/generate-quote-or-invoice-from-upshift",
+                              "v2.49/user-guide/workflows/how-tos/connect-to-other-tools/generate-pdf-from-upshift"
+                            ]
+                          },
+                          {
+                            "group": "Configurations avancées",
+                            "pages": [
+                              "v2.49/user-guide/workflows/how-tos/advanced-configurations/handle-arrays-in-code-actions"
+                            ]
+                          },
+                          {
+                            "group": "Besoin de plus d'aide",
+                            "pages": [
+                              "v2.49/user-guide/workflows/how-tos/need-more-help/workflow-troubleshooting",
+                              "v2.49/user-guide/workflows/how-tos/need-more-help/workflows-faq"
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "IA",
+                    "icon": "robot",
+                    "pages": [
+                      "v2.49/user-guide/ai/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.49/user-guide/ai/capabilities/ai-chatbot",
+                          "v2.49/user-guide/ai/capabilities/ai-agents",
+                          "v2.49/user-guide/ai/capabilities/permissions-access-control"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.49/user-guide/ai/how-tos/ai-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Disposition",
+                    "icon": "table-columns",
+                    "pages": [
+                      "v2.49/user-guide/layout/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.49/user-guide/layout/capabilities/navigation",
+                          {
+                            "group": "Vues",
+                            "pages": [
+                              "v2.49/user-guide/views-pipelines/capabilities/table-views",
+                              "v2.49/user-guide/views-pipelines/capabilities/kanban-views",
+                              "v2.49/user-guide/views-pipelines/capabilities/calendar-view",
+                              "v2.49/user-guide/views-pipelines/capabilities/filters-and-sorting",
+                              "v2.49/user-guide/views-pipelines/capabilities/fields-and-columns",
+                              "v2.49/user-guide/views-pipelines/capabilities/view-settings"
+                            ]
+                          },
+                          "v2.49/user-guide/layout/capabilities/record-pages"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.49/user-guide/views-pipelines/how-tos/create-a-table-view-with-grouping",
+                          "v2.49/user-guide/views-pipelines/how-tos/create-a-kanban-view-for-projects",
+                          "v2.49/user-guide/views-pipelines/how-tos/create-a-calendar-view-for-tasks-due",
+                          "v2.49/user-guide/views-pipelines/how-tos/restrict-access-to-your-view",
+                          "v2.49/user-guide/views-pipelines/how-tos/set-up-a-sales-pipeline",
+                          "v2.49/user-guide/views-pipelines/how-tos/show-expected-amount-in-pipeline",
+                          "v2.49/user-guide/views-pipelines/how-tos/track-time-in-stage"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Tableaux de bord",
+                    "icon": "chart-bar",
+                    "pages": [
+                      "v2.49/user-guide/dashboards/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.49/user-guide/dashboards/capabilities/dashboards",
+                          "v2.49/user-guide/dashboards/capabilities/widgets",
+                          "v2.49/user-guide/dashboards/capabilities/chart-settings"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.49/user-guide/dashboards/how-tos/dashboards-faq",
+                          "v2.49/user-guide/dashboards/how-tos/widget-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Autorisations et accès",
+                    "icon": "lock",
+                    "pages": [
+                      "v2.49/user-guide/permissions-access/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.49/user-guide/permissions-access/capabilities/permissions",
+                          "v2.49/user-guide/permissions-access/capabilities/sso-configuration"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.49/user-guide/permissions-access/how-tos/permissions-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Paramètres",
+                    "icon": "gear",
+                    "pages": [
+                      "v2.49/user-guide/settings/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.49/user-guide/settings/capabilities/workspace-settings",
+                          "v2.49/user-guide/settings/capabilities/member-management",
+                          "v2.49/user-guide/settings/capabilities/profile-settings",
+                          "v2.49/user-guide/settings/capabilities/experience-settings",
+                          "v2.49/user-guide/settings/capabilities/domains-settings",
+                          "v2.49/user-guide/settings/capabilities/community-settings"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.49/user-guide/settings/how-tos/settings-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  }
+                ]
+              },
+              {
+                "tab": "Développeurs",
+                "groups": [
+                  {
+                    "group": "Vue d'ensemble",
+                    "pages": [
+                      "v2.49/developers/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Applications",
+                    "pages": [
+                      {
+                        "group": "Prise en main",
+                        "pages": [
+                          "v2.49/developers/extend/apps/getting-started/quick-start",
+                          "v2.49/developers/extend/apps/getting-started/concepts",
+                          "v2.49/developers/extend/apps/getting-started/project-structure",
+                          "v2.49/developers/extend/apps/getting-started/local-server",
+                          "v2.49/developers/extend/apps/getting-started/scaffolding",
+                          "v2.49/developers/extend/apps/getting-started/troubleshooting"
+                        ]
+                      },
+                      {
+                        "group": "Tutoriel",
+                        "pages": [
+                          "v2.49/developers/extend/apps/tutorials/document-generator/overview",
+                          "v2.49/developers/extend/apps/tutorials/document-generator/data-model",
+                          "v2.49/developers/extend/apps/tutorials/document-generator/generating-documents",
+                          "v2.49/developers/extend/apps/tutorials/document-generator/http-routes",
+                          "v2.49/developers/extend/apps/tutorials/document-generator/building-the-ui",
+                          "v2.49/developers/extend/apps/tutorials/document-generator/ai-agent",
+                          "v2.49/developers/extend/apps/tutorials/document-generator/publishing"
+                        ]
+                      },
+                      {
+                        "group": "Configuration",
+                        "pages": [
+                          "v2.49/developers/extend/apps/config/overview",
+                          "v2.49/developers/extend/apps/config/application",
+                          "v2.49/developers/extend/apps/config/roles",
+                          "v2.49/developers/extend/apps/config/install-hooks",
+                          "v2.49/developers/extend/apps/config/public-assets"
+                        ]
+                      },
+                      {
+                        "group": "Données",
+                        "pages": [
+                          "v2.49/developers/extend/apps/data/overview",
+                          "v2.49/developers/extend/apps/data/objects",
+                          "v2.49/developers/extend/apps/data/extending-objects",
+                          "v2.49/developers/extend/apps/data/system-fields",
+                          "v2.49/developers/extend/apps/data/relations",
+                          "v2.49/developers/extend/apps/data/timeline-activity-types"
+                        ]
+                      },
+                      {
+                        "group": "Logique",
+                        "pages": [
+                          "v2.49/developers/extend/apps/logic/overview",
+                          "v2.49/developers/extend/apps/logic/logic-functions",
+                          "v2.49/developers/extend/apps/logic/key-value-store",
+                          "v2.49/developers/extend/apps/logic/background-jobs",
+                          "v2.49/developers/extend/apps/logic/skills-and-agents",
+                          "v2.49/developers/extend/apps/logic/connections"
+                        ]
+                      },
+                      {
+                        "group": "Disposition",
+                        "pages": [
+                          "v2.49/developers/extend/apps/layout/overview",
+                          "v2.49/developers/extend/apps/layout/views",
+                          "v2.49/developers/extend/apps/layout/navigation-menu-items",
+                          "v2.49/developers/extend/apps/layout/page-layouts",
+                          "v2.49/developers/extend/apps/layout/front-components",
+                          "v2.49/developers/extend/apps/layout/command-menu-items"
+                        ]
+                      },
+                      {
+                        "group": "Opérations",
+                        "pages": [
+                          "v2.49/developers/extend/apps/operations/overview",
+                          "v2.49/developers/extend/apps/operations/cli",
+                          "v2.49/developers/extend/apps/operations/sync-and-recovery",
+                          "v2.49/developers/extend/apps/operations/testing",
+                          "v2.49/developers/extend/apps/operations/translations",
+                          "v2.49/developers/extend/apps/operations/publishing"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "API",
+                    "pages": [
+                      "v2.49/developers/extend/api",
+                      "v2.49/developers/extend/webhooks",
+                      "v2.49/developers/extend/oauth"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "version": "v2.48.0",
+            "tabs": [
+              {
+                "tab": "Prise en main",
+                "groups": [
+                  {
+                    "group": "Bienvenue",
+                    "pages": [
+                      "v2.48/getting-started/introduction",
+                      "v2.48/getting-started/key-features",
+                      "v2.48/getting-started/quickstart"
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Concepts clés",
+                    "pages": [
+                      "v2.48/getting-started/core-concepts/data-model",
+                      "v2.48/getting-started/core-concepts/layout",
+                      "v2.48/getting-started/core-concepts/workflows",
+                      "v2.48/getting-started/core-concepts/calendar-and-email",
+                      "v2.48/getting-started/core-concepts/ai",
+                      "v2.48/getting-started/core-concepts/apps",
+                      "v2.48/getting-started/core-concepts/dashboards",
+                      "v2.48/getting-started/core-concepts/glossary"
+                    ],
+                    "public": true
+                  }
+                ]
+              },
+              {
+                "tab": "Guide de l'utilisateur",
+                "groups": [
+                  {
+                    "group": "Vue d'ensemble",
+                    "pages": [
+                      "v2.48/user-guide/introduction"
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Modèle de données",
+                    "icon": "database",
+                    "pages": [
+                      "v2.48/user-guide/data-model/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.48/user-guide/data-model/capabilities/objects",
+                          "v2.48/user-guide/data-model/capabilities/fields",
+                          "v2.48/user-guide/data-model/capabilities/relation-fields"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.48/user-guide/data-model/how-tos/create-custom-objects",
+                          "v2.48/user-guide/data-model/how-tos/create-custom-fields",
+                          "v2.48/user-guide/data-model/how-tos/create-relation-fields",
+                          "v2.48/user-guide/data-model/how-tos/create-many-to-many-relations",
+                          "v2.48/user-guide/data-model/how-tos/customize-your-data-model",
+                          "v2.48/user-guide/data-model/how-tos/data-model-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Migration de données",
+                    "icon": "cloud-arrow-up",
+                    "pages": [
+                      "v2.48/user-guide/data-migration/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.48/user-guide/data-migration/capabilities/file-formats",
+                          "v2.48/user-guide/data-migration/capabilities/field-mapping",
+                          "v2.48/user-guide/data-migration/capabilities/uniqueness-constraints",
+                          "v2.48/user-guide/data-migration/capabilities/import-relations",
+                          "v2.48/user-guide/data-migration/capabilities/error-handling"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.48/user-guide/data-migration/how-tos/prepare-your-csv-files",
+                          "v2.48/user-guide/data-migration/how-tos/import-companies-via-csv",
+                          "v2.48/user-guide/data-migration/how-tos/import-contacts-via-csv",
+                          "v2.48/user-guide/data-migration/how-tos/import-relations-between-objects-via-csv",
+                          "v2.48/user-guide/data-migration/how-tos/update-existing-records-via-import",
+                          "v2.48/user-guide/data-migration/how-tos/fix-import-errors",
+                          "v2.48/user-guide/data-migration/how-tos/export-your-data",
+                          "v2.48/user-guide/data-migration/how-tos/import-data-via-api",
+                          "v2.48/user-guide/data-migration/how-tos/migrating-from-other-crms"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Calendrier et e-mails",
+                    "icon": "envelope",
+                    "pages": [
+                      "v2.48/user-guide/calendar-emails/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.48/user-guide/calendar-emails/capabilities/mailbox",
+                          "v2.48/user-guide/calendar-emails/capabilities/calendar"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.48/user-guide/calendar-emails/how-tos/connect-several-mailboxes-per-user",
+                          "v2.48/user-guide/calendar-emails/how-tos/limit-emails-imported",
+                          "v2.48/user-guide/calendar-emails/how-tos/can-i-track-email-activity-on-all-objects",
+                          "v2.48/user-guide/calendar-emails/how-tos/can-i-send-emails-from-upshift",
+                          "v2.48/user-guide/calendar-emails/how-tos/can-i-book-meetings-from-upshift",
+                          "v2.48/user-guide/calendar-emails/how-tos/i-dont-see-emails-on-records"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Flux de travail",
+                    "icon": "bolt",
+                    "pages": [
+                      "v2.48/user-guide/workflows/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.48/user-guide/workflows/capabilities/workflow-triggers",
+                          "v2.48/user-guide/workflows/capabilities/workflow-actions",
+                          "v2.48/user-guide/workflows/capabilities/workflow-branches",
+                          "v2.48/user-guide/workflows/capabilities/workflow-runs",
+                          "v2.48/user-guide/workflows/capabilities/workflow-versions",
+                          "v2.48/user-guide/workflows/capabilities/workflow-credits",
+                          "v2.48/user-guide/workflows/capabilities/use-branches-in-workflows",
+                          "v2.48/user-guide/workflows/capabilities/use-iterator",
+                          "v2.48/user-guide/workflows/capabilities/send-emails-from-workflows"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          {
+                            "group": "Automatisations CRM",
+                            "pages": [
+                              "v2.48/user-guide/workflows/how-tos/crm-automations/send-email-alerts-with-tasks-due",
+                              "v2.48/user-guide/workflows/how-tos/crm-automations/notify-teammates-of-note-to-review",
+                              "v2.48/user-guide/workflows/how-tos/crm-automations/display-number-of-emails-received",
+                              "v2.48/user-guide/workflows/how-tos/crm-automations/formula-fields",
+                              "v2.48/user-guide/workflows/how-tos/crm-automations/display-related-record-data",
+                              "v2.48/user-guide/workflows/how-tos/crm-automations/closed-won-automations",
+                              "v2.48/user-guide/workflows/how-tos/crm-automations/detect-stale-opportunities",
+                              "v2.48/user-guide/workflows/how-tos/crm-automations/auto-reply-to-inbound-emails"
+                            ]
+                          },
+                          {
+                            "group": "Connexion à d'autres outils",
+                            "pages": [
+                              "v2.48/user-guide/workflows/how-tos/connect-to-other-tools/set-up-a-webhook-trigger",
+                              "v2.48/user-guide/workflows/how-tos/connect-to-other-tools/bring-typeform-submissions-in-upshift",
+                              "v2.48/user-guide/workflows/how-tos/connect-to-other-tools/bring-product-data-in-upshift",
+                              "v2.48/user-guide/workflows/how-tos/connect-to-other-tools/generate-quote-or-invoice-from-upshift",
+                              "v2.48/user-guide/workflows/how-tos/connect-to-other-tools/generate-pdf-from-upshift"
+                            ]
+                          },
+                          {
+                            "group": "Configurations avancées",
+                            "pages": [
+                              "v2.48/user-guide/workflows/how-tos/advanced-configurations/handle-arrays-in-code-actions"
+                            ]
+                          },
+                          {
+                            "group": "Besoin de plus d'aide",
+                            "pages": [
+                              "v2.48/user-guide/workflows/how-tos/need-more-help/workflow-troubleshooting",
+                              "v2.48/user-guide/workflows/how-tos/need-more-help/workflows-faq"
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "IA",
+                    "icon": "robot",
+                    "pages": [
+                      "v2.48/user-guide/ai/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.48/user-guide/ai/capabilities/ai-chatbot",
+                          "v2.48/user-guide/ai/capabilities/ai-agents",
+                          "v2.48/user-guide/ai/capabilities/permissions-access-control"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.48/user-guide/ai/how-tos/ai-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Disposition",
+                    "icon": "table-columns",
+                    "pages": [
+                      "v2.48/user-guide/layout/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.48/user-guide/layout/capabilities/navigation",
+                          {
+                            "group": "Vues",
+                            "pages": [
+                              "v2.48/user-guide/views-pipelines/capabilities/table-views",
+                              "v2.48/user-guide/views-pipelines/capabilities/kanban-views",
+                              "v2.48/user-guide/views-pipelines/capabilities/calendar-view",
+                              "v2.48/user-guide/views-pipelines/capabilities/filters-and-sorting",
+                              "v2.48/user-guide/views-pipelines/capabilities/fields-and-columns",
+                              "v2.48/user-guide/views-pipelines/capabilities/view-settings"
+                            ]
+                          },
+                          "v2.48/user-guide/layout/capabilities/record-pages"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.48/user-guide/views-pipelines/how-tos/create-a-table-view-with-grouping",
+                          "v2.48/user-guide/views-pipelines/how-tos/create-a-kanban-view-for-projects",
+                          "v2.48/user-guide/views-pipelines/how-tos/create-a-calendar-view-for-tasks-due",
+                          "v2.48/user-guide/views-pipelines/how-tos/restrict-access-to-your-view",
+                          "v2.48/user-guide/views-pipelines/how-tos/set-up-a-sales-pipeline",
+                          "v2.48/user-guide/views-pipelines/how-tos/show-expected-amount-in-pipeline",
+                          "v2.48/user-guide/views-pipelines/how-tos/track-time-in-stage"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Tableaux de bord",
+                    "icon": "chart-bar",
+                    "pages": [
+                      "v2.48/user-guide/dashboards/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.48/user-guide/dashboards/capabilities/dashboards",
+                          "v2.48/user-guide/dashboards/capabilities/widgets",
+                          "v2.48/user-guide/dashboards/capabilities/chart-settings"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.48/user-guide/dashboards/how-tos/dashboards-faq",
+                          "v2.48/user-guide/dashboards/how-tos/widget-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Autorisations et accès",
+                    "icon": "lock",
+                    "pages": [
+                      "v2.48/user-guide/permissions-access/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.48/user-guide/permissions-access/capabilities/permissions",
+                          "v2.48/user-guide/permissions-access/capabilities/sso-configuration"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.48/user-guide/permissions-access/how-tos/permissions-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Paramètres",
+                    "icon": "gear",
+                    "pages": [
+                      "v2.48/user-guide/settings/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.48/user-guide/settings/capabilities/workspace-settings",
+                          "v2.48/user-guide/settings/capabilities/member-management",
+                          "v2.48/user-guide/settings/capabilities/profile-settings",
+                          "v2.48/user-guide/settings/capabilities/experience-settings",
+                          "v2.48/user-guide/settings/capabilities/domains-settings",
+                          "v2.48/user-guide/settings/capabilities/community-settings"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.48/user-guide/settings/how-tos/settings-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  }
+                ]
+              },
+              {
+                "tab": "Développeurs",
+                "groups": [
+                  {
+                    "group": "Vue d'ensemble",
+                    "pages": [
+                      "v2.48/developers/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Applications",
+                    "pages": [
+                      {
+                        "group": "Prise en main",
+                        "pages": [
+                          "v2.48/developers/extend/apps/getting-started/quick-start",
+                          "v2.48/developers/extend/apps/getting-started/concepts",
+                          "v2.48/developers/extend/apps/getting-started/project-structure",
+                          "v2.48/developers/extend/apps/getting-started/local-server",
+                          "v2.48/developers/extend/apps/getting-started/scaffolding",
+                          "v2.48/developers/extend/apps/getting-started/troubleshooting"
+                        ]
+                      },
+                      {
+                        "group": "Tutoriel",
+                        "pages": [
+                          "v2.48/developers/extend/apps/tutorials/document-generator/overview",
+                          "v2.48/developers/extend/apps/tutorials/document-generator/data-model",
+                          "v2.48/developers/extend/apps/tutorials/document-generator/generating-documents",
+                          "v2.48/developers/extend/apps/tutorials/document-generator/http-routes",
+                          "v2.48/developers/extend/apps/tutorials/document-generator/building-the-ui",
+                          "v2.48/developers/extend/apps/tutorials/document-generator/ai-agent",
+                          "v2.48/developers/extend/apps/tutorials/document-generator/publishing"
+                        ]
+                      },
+                      {
+                        "group": "Configuration",
+                        "pages": [
+                          "v2.48/developers/extend/apps/config/overview",
+                          "v2.48/developers/extend/apps/config/application",
+                          "v2.48/developers/extend/apps/config/roles",
+                          "v2.48/developers/extend/apps/config/install-hooks",
+                          "v2.48/developers/extend/apps/config/public-assets"
+                        ]
+                      },
+                      {
+                        "group": "Données",
+                        "pages": [
+                          "v2.48/developers/extend/apps/data/overview",
+                          "v2.48/developers/extend/apps/data/objects",
+                          "v2.48/developers/extend/apps/data/extending-objects",
+                          "v2.48/developers/extend/apps/data/system-fields",
+                          "v2.48/developers/extend/apps/data/relations",
+                          "v2.48/developers/extend/apps/data/timeline-activity-types"
+                        ]
+                      },
+                      {
+                        "group": "Logique",
+                        "pages": [
+                          "v2.48/developers/extend/apps/logic/overview",
+                          "v2.48/developers/extend/apps/logic/logic-functions",
+                          "v2.48/developers/extend/apps/logic/key-value-store",
+                          "v2.48/developers/extend/apps/logic/background-jobs",
+                          "v2.48/developers/extend/apps/logic/skills-and-agents",
+                          "v2.48/developers/extend/apps/logic/connections"
+                        ]
+                      },
+                      {
+                        "group": "Disposition",
+                        "pages": [
+                          "v2.48/developers/extend/apps/layout/overview",
+                          "v2.48/developers/extend/apps/layout/views",
+                          "v2.48/developers/extend/apps/layout/navigation-menu-items",
+                          "v2.48/developers/extend/apps/layout/page-layouts",
+                          "v2.48/developers/extend/apps/layout/front-components",
+                          "v2.48/developers/extend/apps/layout/command-menu-items"
+                        ]
+                      },
+                      {
+                        "group": "Opérations",
+                        "pages": [
+                          "v2.48/developers/extend/apps/operations/overview",
+                          "v2.48/developers/extend/apps/operations/cli",
+                          "v2.48/developers/extend/apps/operations/sync-and-recovery",
+                          "v2.48/developers/extend/apps/operations/testing",
+                          "v2.48/developers/extend/apps/operations/translations",
+                          "v2.48/developers/extend/apps/operations/publishing"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "API",
+                    "pages": [
+                      "v2.48/developers/extend/api",
+                      "v2.48/developers/extend/webhooks",
+                      "v2.48/developers/extend/oauth"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "version": "v2.47.0",
+            "tabs": [
+              {
+                "tab": "Prise en main",
+                "groups": [
+                  {
+                    "group": "Bienvenue",
+                    "pages": [
+                      "v2.47/getting-started/introduction",
+                      "v2.47/getting-started/key-features",
+                      "v2.47/getting-started/quickstart"
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Concepts clés",
+                    "pages": [
+                      "v2.47/getting-started/core-concepts/data-model",
+                      "v2.47/getting-started/core-concepts/layout",
+                      "v2.47/getting-started/core-concepts/workflows",
+                      "v2.47/getting-started/core-concepts/calendar-and-email",
+                      "v2.47/getting-started/core-concepts/ai",
+                      "v2.47/getting-started/core-concepts/apps",
+                      "v2.47/getting-started/core-concepts/dashboards",
+                      "v2.47/getting-started/core-concepts/glossary"
+                    ],
+                    "public": true
+                  }
+                ]
+              },
+              {
+                "tab": "Guide de l'utilisateur",
+                "groups": [
+                  {
+                    "group": "Vue d'ensemble",
+                    "pages": [
+                      "v2.47/user-guide/introduction"
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Modèle de données",
+                    "icon": "database",
+                    "pages": [
+                      "v2.47/user-guide/data-model/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.47/user-guide/data-model/capabilities/objects",
+                          "v2.47/user-guide/data-model/capabilities/fields",
+                          "v2.47/user-guide/data-model/capabilities/relation-fields"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.47/user-guide/data-model/how-tos/create-custom-objects",
+                          "v2.47/user-guide/data-model/how-tos/create-custom-fields",
+                          "v2.47/user-guide/data-model/how-tos/create-relation-fields",
+                          "v2.47/user-guide/data-model/how-tos/create-many-to-many-relations",
+                          "v2.47/user-guide/data-model/how-tos/customize-your-data-model",
+                          "v2.47/user-guide/data-model/how-tos/data-model-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Migration de données",
+                    "icon": "cloud-arrow-up",
+                    "pages": [
+                      "v2.47/user-guide/data-migration/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.47/user-guide/data-migration/capabilities/file-formats",
+                          "v2.47/user-guide/data-migration/capabilities/field-mapping",
+                          "v2.47/user-guide/data-migration/capabilities/uniqueness-constraints",
+                          "v2.47/user-guide/data-migration/capabilities/import-relations",
+                          "v2.47/user-guide/data-migration/capabilities/error-handling"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.47/user-guide/data-migration/how-tos/prepare-your-csv-files",
+                          "v2.47/user-guide/data-migration/how-tos/import-companies-via-csv",
+                          "v2.47/user-guide/data-migration/how-tos/import-contacts-via-csv",
+                          "v2.47/user-guide/data-migration/how-tos/import-relations-between-objects-via-csv",
+                          "v2.47/user-guide/data-migration/how-tos/update-existing-records-via-import",
+                          "v2.47/user-guide/data-migration/how-tos/fix-import-errors",
+                          "v2.47/user-guide/data-migration/how-tos/export-your-data",
+                          "v2.47/user-guide/data-migration/how-tos/import-data-via-api",
+                          "v2.47/user-guide/data-migration/how-tos/migrating-from-other-crms"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Calendrier et e-mails",
+                    "icon": "envelope",
+                    "pages": [
+                      "v2.47/user-guide/calendar-emails/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.47/user-guide/calendar-emails/capabilities/mailbox",
+                          "v2.47/user-guide/calendar-emails/capabilities/calendar"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.47/user-guide/calendar-emails/how-tos/connect-several-mailboxes-per-user",
+                          "v2.47/user-guide/calendar-emails/how-tos/limit-emails-imported",
+                          "v2.47/user-guide/calendar-emails/how-tos/can-i-track-email-activity-on-all-objects",
+                          "v2.47/user-guide/calendar-emails/how-tos/can-i-send-emails-from-upshift",
+                          "v2.47/user-guide/calendar-emails/how-tos/can-i-book-meetings-from-upshift",
+                          "v2.47/user-guide/calendar-emails/how-tos/i-dont-see-emails-on-records"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Flux de travail",
+                    "icon": "bolt",
+                    "pages": [
+                      "v2.47/user-guide/workflows/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.47/user-guide/workflows/capabilities/workflow-triggers",
+                          "v2.47/user-guide/workflows/capabilities/workflow-actions",
+                          "v2.47/user-guide/workflows/capabilities/workflow-branches",
+                          "v2.47/user-guide/workflows/capabilities/workflow-runs",
+                          "v2.47/user-guide/workflows/capabilities/workflow-versions",
+                          "v2.47/user-guide/workflows/capabilities/workflow-credits",
+                          "v2.47/user-guide/workflows/capabilities/use-branches-in-workflows",
+                          "v2.47/user-guide/workflows/capabilities/use-iterator",
+                          "v2.47/user-guide/workflows/capabilities/send-emails-from-workflows"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          {
+                            "group": "Automatisations CRM",
+                            "pages": [
+                              "v2.47/user-guide/workflows/how-tos/crm-automations/send-email-alerts-with-tasks-due",
+                              "v2.47/user-guide/workflows/how-tos/crm-automations/notify-teammates-of-note-to-review",
+                              "v2.47/user-guide/workflows/how-tos/crm-automations/display-number-of-emails-received",
+                              "v2.47/user-guide/workflows/how-tos/crm-automations/formula-fields",
+                              "v2.47/user-guide/workflows/how-tos/crm-automations/display-related-record-data",
+                              "v2.47/user-guide/workflows/how-tos/crm-automations/closed-won-automations",
+                              "v2.47/user-guide/workflows/how-tos/crm-automations/detect-stale-opportunities",
+                              "v2.47/user-guide/workflows/how-tos/crm-automations/auto-reply-to-inbound-emails"
+                            ]
+                          },
+                          {
+                            "group": "Connexion à d'autres outils",
+                            "pages": [
+                              "v2.47/user-guide/workflows/how-tos/connect-to-other-tools/set-up-a-webhook-trigger",
+                              "v2.47/user-guide/workflows/how-tos/connect-to-other-tools/bring-typeform-submissions-in-upshift",
+                              "v2.47/user-guide/workflows/how-tos/connect-to-other-tools/bring-product-data-in-upshift",
+                              "v2.47/user-guide/workflows/how-tos/connect-to-other-tools/generate-quote-or-invoice-from-upshift",
+                              "v2.47/user-guide/workflows/how-tos/connect-to-other-tools/generate-pdf-from-upshift"
+                            ]
+                          },
+                          {
+                            "group": "Configurations avancées",
+                            "pages": [
+                              "v2.47/user-guide/workflows/how-tos/advanced-configurations/handle-arrays-in-code-actions"
+                            ]
+                          },
+                          {
+                            "group": "Besoin de plus d'aide",
+                            "pages": [
+                              "v2.47/user-guide/workflows/how-tos/need-more-help/workflow-troubleshooting",
+                              "v2.47/user-guide/workflows/how-tos/need-more-help/workflows-faq"
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "IA",
+                    "icon": "robot",
+                    "pages": [
+                      "v2.47/user-guide/ai/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.47/user-guide/ai/capabilities/ai-chatbot",
+                          "v2.47/user-guide/ai/capabilities/ai-agents",
+                          "v2.47/user-guide/ai/capabilities/permissions-access-control"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.47/user-guide/ai/how-tos/ai-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Disposition",
+                    "icon": "table-columns",
+                    "pages": [
+                      "v2.47/user-guide/layout/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.47/user-guide/layout/capabilities/navigation",
+                          {
+                            "group": "Vues",
+                            "pages": [
+                              "v2.47/user-guide/views-pipelines/capabilities/table-views",
+                              "v2.47/user-guide/views-pipelines/capabilities/kanban-views",
+                              "v2.47/user-guide/views-pipelines/capabilities/calendar-view",
+                              "v2.47/user-guide/views-pipelines/capabilities/filters-and-sorting",
+                              "v2.47/user-guide/views-pipelines/capabilities/fields-and-columns",
+                              "v2.47/user-guide/views-pipelines/capabilities/view-settings"
+                            ]
+                          },
+                          "v2.47/user-guide/layout/capabilities/record-pages"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.47/user-guide/views-pipelines/how-tos/create-a-table-view-with-grouping",
+                          "v2.47/user-guide/views-pipelines/how-tos/create-a-kanban-view-for-projects",
+                          "v2.47/user-guide/views-pipelines/how-tos/create-a-calendar-view-for-tasks-due",
+                          "v2.47/user-guide/views-pipelines/how-tos/restrict-access-to-your-view",
+                          "v2.47/user-guide/views-pipelines/how-tos/set-up-a-sales-pipeline",
+                          "v2.47/user-guide/views-pipelines/how-tos/show-expected-amount-in-pipeline",
+                          "v2.47/user-guide/views-pipelines/how-tos/track-time-in-stage"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Tableaux de bord",
+                    "icon": "chart-bar",
+                    "pages": [
+                      "v2.47/user-guide/dashboards/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.47/user-guide/dashboards/capabilities/dashboards",
+                          "v2.47/user-guide/dashboards/capabilities/widgets",
+                          "v2.47/user-guide/dashboards/capabilities/chart-settings"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.47/user-guide/dashboards/how-tos/dashboards-faq",
+                          "v2.47/user-guide/dashboards/how-tos/widget-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Autorisations et accès",
+                    "icon": "lock",
+                    "pages": [
+                      "v2.47/user-guide/permissions-access/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.47/user-guide/permissions-access/capabilities/permissions",
+                          "v2.47/user-guide/permissions-access/capabilities/sso-configuration"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.47/user-guide/permissions-access/how-tos/permissions-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Paramètres",
+                    "icon": "gear",
+                    "pages": [
+                      "v2.47/user-guide/settings/overview",
+                      {
+                        "group": "Référence",
+                        "pages": [
+                          "v2.47/user-guide/settings/capabilities/workspace-settings",
+                          "v2.47/user-guide/settings/capabilities/member-management",
+                          "v2.47/user-guide/settings/capabilities/profile-settings",
+                          "v2.47/user-guide/settings/capabilities/experience-settings",
+                          "v2.47/user-guide/settings/capabilities/domains-settings",
+                          "v2.47/user-guide/settings/capabilities/community-settings"
+                        ]
+                      },
+                      {
+                        "group": "Guides pratiques",
+                        "pages": [
+                          "v2.47/user-guide/settings/how-tos/settings-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  }
+                ]
+              },
+              {
+                "tab": "Développeurs",
+                "groups": [
+                  {
+                    "group": "Vue d'ensemble",
+                    "pages": [
+                      "v2.47/developers/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Applications",
+                    "pages": [
+                      {
+                        "group": "Prise en main",
+                        "pages": [
+                          "v2.47/developers/extend/apps/getting-started/quick-start",
+                          "v2.47/developers/extend/apps/getting-started/concepts",
+                          "v2.47/developers/extend/apps/getting-started/project-structure",
+                          "v2.47/developers/extend/apps/getting-started/local-server",
+                          "v2.47/developers/extend/apps/getting-started/scaffolding",
+                          "v2.47/developers/extend/apps/getting-started/troubleshooting"
+                        ]
+                      },
+                      {
+                        "group": "Tutoriel",
+                        "pages": [
+                          "v2.47/developers/extend/apps/tutorials/document-generator/overview",
+                          "v2.47/developers/extend/apps/tutorials/document-generator/data-model",
+                          "v2.47/developers/extend/apps/tutorials/document-generator/generating-documents",
+                          "v2.47/developers/extend/apps/tutorials/document-generator/http-routes",
+                          "v2.47/developers/extend/apps/tutorials/document-generator/building-the-ui",
+                          "v2.47/developers/extend/apps/tutorials/document-generator/ai-agent",
+                          "v2.47/developers/extend/apps/tutorials/document-generator/publishing"
+                        ]
+                      },
+                      {
+                        "group": "Configuration",
+                        "pages": [
+                          "v2.47/developers/extend/apps/config/overview",
+                          "v2.47/developers/extend/apps/config/application",
+                          "v2.47/developers/extend/apps/config/roles",
+                          "v2.47/developers/extend/apps/config/install-hooks",
+                          "v2.47/developers/extend/apps/config/public-assets"
+                        ]
+                      },
+                      {
+                        "group": "Données",
+                        "pages": [
+                          "v2.47/developers/extend/apps/data/overview",
+                          "v2.47/developers/extend/apps/data/objects",
+                          "v2.47/developers/extend/apps/data/extending-objects",
+                          "v2.47/developers/extend/apps/data/system-fields",
+                          "v2.47/developers/extend/apps/data/relations",
+                          "v2.47/developers/extend/apps/data/timeline-activity-types"
+                        ]
+                      },
+                      {
+                        "group": "Logique",
+                        "pages": [
+                          "v2.47/developers/extend/apps/logic/overview",
+                          "v2.47/developers/extend/apps/logic/logic-functions",
+                          "v2.47/developers/extend/apps/logic/key-value-store",
+                          "v2.47/developers/extend/apps/logic/background-jobs",
+                          "v2.47/developers/extend/apps/logic/skills-and-agents",
+                          "v2.47/developers/extend/apps/logic/connections"
+                        ]
+                      },
+                      {
+                        "group": "Disposition",
+                        "pages": [
+                          "v2.47/developers/extend/apps/layout/overview",
+                          "v2.47/developers/extend/apps/layout/views",
+                          "v2.47/developers/extend/apps/layout/navigation-menu-items",
+                          "v2.47/developers/extend/apps/layout/page-layouts",
+                          "v2.47/developers/extend/apps/layout/front-components",
+                          "v2.47/developers/extend/apps/layout/command-menu-items"
+                        ]
+                      },
+                      {
+                        "group": "Opérations",
+                        "pages": [
+                          "v2.47/developers/extend/apps/operations/overview",
+                          "v2.47/developers/extend/apps/operations/cli",
+                          "v2.47/developers/extend/apps/operations/sync-and-recovery",
+                          "v2.47/developers/extend/apps/operations/testing",
+                          "v2.47/developers/extend/apps/operations/translations",
+                          "v2.47/developers/extend/apps/operations/publishing"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "API",
+                    "pages": [
+                      "v2.47/developers/extend/api",
+                      "v2.47/developers/extend/webhooks",
+                      "v2.47/developers/extend/oauth"
+                    ]
+                  }
+                ]
+              }
+            ]
           }
         ]
       },
@@ -1062,6 +2331,1348 @@
                       "en/developers/extend/api",
                       "en/developers/extend/webhooks",
                       "en/developers/extend/oauth"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "version": "v2.49.0",
+            "tabs": [
+              {
+                "tab": "Getting Started",
+                "groups": [
+                  {
+                    "group": "Welcome",
+                    "pages": [
+                      "v2.49/en/getting-started/introduction",
+                      "v2.49/en/getting-started/key-features",
+                      "v2.49/en/getting-started/quickstart"
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Core Concepts",
+                    "pages": [
+                      "v2.49/en/getting-started/core-concepts/data-model",
+                      "v2.49/en/getting-started/core-concepts/layout",
+                      "v2.49/en/getting-started/core-concepts/workflows",
+                      "v2.49/en/getting-started/core-concepts/calendar-and-email",
+                      "v2.49/en/getting-started/core-concepts/ai",
+                      "v2.49/en/getting-started/core-concepts/apps",
+                      "v2.49/en/getting-started/core-concepts/dashboards",
+                      "v2.49/en/getting-started/core-concepts/glossary"
+                    ],
+                    "public": true
+                  }
+                ]
+              },
+              {
+                "tab": "User Guide",
+                "groups": [
+                  {
+                    "group": "Overview",
+                    "pages": [
+                      "v2.49/en/user-guide/introduction"
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Data Model",
+                    "icon": "database",
+                    "pages": [
+                      "v2.49/en/user-guide/data-model/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.49/en/user-guide/data-model/capabilities/objects",
+                          "v2.49/en/user-guide/data-model/capabilities/fields",
+                          "v2.49/en/user-guide/data-model/capabilities/relation-fields"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.49/en/user-guide/data-model/how-tos/create-custom-objects",
+                          "v2.49/en/user-guide/data-model/how-tos/create-custom-fields",
+                          "v2.49/en/user-guide/data-model/how-tos/create-relation-fields",
+                          "v2.49/en/user-guide/data-model/how-tos/create-many-to-many-relations",
+                          "v2.49/en/user-guide/data-model/how-tos/customize-your-data-model",
+                          "v2.49/en/user-guide/data-model/how-tos/data-model-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Data Migration",
+                    "icon": "cloud-arrow-up",
+                    "pages": [
+                      "v2.49/en/user-guide/data-migration/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.49/en/user-guide/data-migration/capabilities/file-formats",
+                          "v2.49/en/user-guide/data-migration/capabilities/field-mapping",
+                          "v2.49/en/user-guide/data-migration/capabilities/uniqueness-constraints",
+                          "v2.49/en/user-guide/data-migration/capabilities/import-relations",
+                          "v2.49/en/user-guide/data-migration/capabilities/error-handling"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.49/en/user-guide/data-migration/how-tos/prepare-your-csv-files",
+                          "v2.49/en/user-guide/data-migration/how-tos/import-companies-via-csv",
+                          "v2.49/en/user-guide/data-migration/how-tos/import-contacts-via-csv",
+                          "v2.49/en/user-guide/data-migration/how-tos/import-relations-between-objects-via-csv",
+                          "v2.49/en/user-guide/data-migration/how-tos/update-existing-records-via-import",
+                          "v2.49/en/user-guide/data-migration/how-tos/fix-import-errors",
+                          "v2.49/en/user-guide/data-migration/how-tos/export-your-data",
+                          "v2.49/en/user-guide/data-migration/how-tos/import-data-via-api",
+                          "v2.49/en/user-guide/data-migration/how-tos/migrating-from-other-crms"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Calendar & Emails",
+                    "icon": "envelope",
+                    "pages": [
+                      "v2.49/en/user-guide/calendar-emails/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.49/en/user-guide/calendar-emails/capabilities/mailbox",
+                          "v2.49/en/user-guide/calendar-emails/capabilities/calendar"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.49/en/user-guide/calendar-emails/how-tos/connect-several-mailboxes-per-user",
+                          "v2.49/en/user-guide/calendar-emails/how-tos/forward-a-shared-inbox-from-microsoft-365",
+                          "v2.49/en/user-guide/calendar-emails/how-tos/forward-a-shared-inbox-from-google-workspace",
+                          "v2.49/en/user-guide/calendar-emails/how-tos/forward-a-shared-inbox-from-any-mail-provider",
+                          "v2.49/en/user-guide/calendar-emails/how-tos/limit-emails-imported",
+                          "v2.49/en/user-guide/calendar-emails/how-tos/can-i-track-email-activity-on-all-objects",
+                          "v2.49/en/user-guide/calendar-emails/how-tos/can-i-send-emails-from-upshift",
+                          "v2.49/en/user-guide/calendar-emails/how-tos/can-i-book-meetings-from-upshift",
+                          "v2.49/en/user-guide/calendar-emails/how-tos/i-dont-see-emails-on-records"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Email Campaigns",
+                    "icon": "paper-plane",
+                    "pages": [
+                      "v2.49/en/user-guide/email-campaigns/overview",
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.49/en/user-guide/email-campaigns/how-tos/set-up-a-sending-domain",
+                          "v2.49/en/user-guide/email-campaigns/how-tos/email-campaign-best-practices",
+                          "v2.49/en/user-guide/email-campaigns/how-tos/send-your-first-campaign",
+                          "v2.49/en/user-guide/email-campaigns/how-tos/create-a-campaign-with-ai",
+                          "v2.49/en/user-guide/email-campaigns/how-tos/manage-unsubscribes-and-topics"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Workflows",
+                    "icon": "bolt",
+                    "pages": [
+                      "v2.49/en/user-guide/workflows/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.49/en/user-guide/workflows/capabilities/workflow-triggers",
+                          "v2.49/en/user-guide/workflows/capabilities/workflow-actions",
+                          "v2.49/en/user-guide/workflows/capabilities/workflow-branches",
+                          "v2.49/en/user-guide/workflows/capabilities/workflow-runs",
+                          "v2.49/en/user-guide/workflows/capabilities/workflow-versions",
+                          "v2.49/en/user-guide/workflows/capabilities/workflow-credits",
+                          "v2.49/en/user-guide/workflows/capabilities/use-branches-in-workflows",
+                          "v2.49/en/user-guide/workflows/capabilities/use-iterator",
+                          "v2.49/en/user-guide/workflows/capabilities/send-emails-from-workflows"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          {
+                            "group": "CRM Automations",
+                            "pages": [
+                              "v2.49/en/user-guide/workflows/how-tos/crm-automations/send-email-alerts-with-tasks-due",
+                              "v2.49/en/user-guide/workflows/how-tos/crm-automations/notify-teammates-of-note-to-review",
+                              "v2.49/en/user-guide/workflows/how-tos/crm-automations/display-number-of-emails-received",
+                              "v2.49/en/user-guide/workflows/how-tos/crm-automations/formula-fields",
+                              "v2.49/en/user-guide/workflows/how-tos/crm-automations/display-related-record-data",
+                              "v2.49/en/user-guide/workflows/how-tos/crm-automations/closed-won-automations",
+                              "v2.49/en/user-guide/workflows/how-tos/crm-automations/detect-stale-opportunities",
+                              "v2.49/en/user-guide/workflows/how-tos/crm-automations/auto-reply-to-inbound-emails"
+                            ]
+                          },
+                          {
+                            "group": "Connect to Other Tools",
+                            "pages": [
+                              "v2.49/en/user-guide/workflows/how-tos/connect-to-other-tools/set-up-a-webhook-trigger",
+                              "v2.49/en/user-guide/workflows/how-tos/connect-to-other-tools/bring-typeform-submissions-in-upshift",
+                              "v2.49/en/user-guide/workflows/how-tos/connect-to-other-tools/bring-product-data-in-upshift",
+                              "v2.49/en/user-guide/workflows/how-tos/connect-to-other-tools/generate-quote-or-invoice-from-upshift",
+                              "v2.49/en/user-guide/workflows/how-tos/connect-to-other-tools/generate-pdf-from-upshift"
+                            ]
+                          },
+                          {
+                            "group": "Advanced Configurations",
+                            "pages": [
+                              "v2.49/en/user-guide/workflows/how-tos/advanced-configurations/handle-arrays-in-code-actions"
+                            ]
+                          },
+                          {
+                            "group": "Need More Help",
+                            "pages": [
+                              "v2.49/en/user-guide/workflows/how-tos/need-more-help/workflow-troubleshooting",
+                              "v2.49/en/user-guide/workflows/how-tos/need-more-help/workflows-faq"
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "AI",
+                    "icon": "robot",
+                    "pages": [
+                      "v2.49/en/user-guide/ai/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.49/en/user-guide/ai/capabilities/ai-chatbot",
+                          "v2.49/en/user-guide/ai/capabilities/ai-agents",
+                          "v2.49/en/user-guide/ai/capabilities/permissions-access-control"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.49/en/user-guide/ai/how-tos/ai-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Layout",
+                    "icon": "table-columns",
+                    "pages": [
+                      "v2.49/en/user-guide/layout/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.49/en/user-guide/layout/capabilities/navigation",
+                          {
+                            "group": "Views",
+                            "pages": [
+                              "v2.49/en/user-guide/views-pipelines/capabilities/table-views",
+                              "v2.49/en/user-guide/views-pipelines/capabilities/kanban-views",
+                              "v2.49/en/user-guide/views-pipelines/capabilities/calendar-view",
+                              "v2.49/en/user-guide/views-pipelines/capabilities/filters-and-sorting",
+                              "v2.49/en/user-guide/views-pipelines/capabilities/fields-and-columns",
+                              "v2.49/en/user-guide/views-pipelines/capabilities/view-settings"
+                            ]
+                          },
+                          "v2.49/en/user-guide/layout/capabilities/record-pages"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.49/en/user-guide/views-pipelines/how-tos/create-a-table-view-with-grouping",
+                          "v2.49/en/user-guide/views-pipelines/how-tos/create-a-kanban-view-for-projects",
+                          "v2.49/en/user-guide/views-pipelines/how-tos/create-a-calendar-view-for-tasks-due",
+                          "v2.49/en/user-guide/views-pipelines/how-tos/restrict-access-to-your-view",
+                          "v2.49/en/user-guide/views-pipelines/how-tos/set-up-a-sales-pipeline",
+                          "v2.49/en/user-guide/views-pipelines/how-tos/show-expected-amount-in-pipeline",
+                          "v2.49/en/user-guide/views-pipelines/how-tos/track-time-in-stage"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Dashboards",
+                    "icon": "chart-bar",
+                    "pages": [
+                      "v2.49/en/user-guide/dashboards/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.49/en/user-guide/dashboards/capabilities/dashboards",
+                          "v2.49/en/user-guide/dashboards/capabilities/widgets",
+                          "v2.49/en/user-guide/dashboards/capabilities/chart-settings"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.49/en/user-guide/dashboards/how-tos/dashboards-faq",
+                          "v2.49/en/user-guide/dashboards/how-tos/widget-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Permissions & Access",
+                    "icon": "lock",
+                    "pages": [
+                      "v2.49/en/user-guide/permissions-access/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.49/en/user-guide/permissions-access/capabilities/permissions",
+                          "v2.49/en/user-guide/permissions-access/capabilities/sso-configuration"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.49/en/user-guide/permissions-access/how-tos/permissions-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Settings",
+                    "icon": "gear",
+                    "pages": [
+                      "v2.49/en/user-guide/settings/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.49/en/user-guide/settings/capabilities/workspace-settings",
+                          "v2.49/en/user-guide/settings/capabilities/member-management",
+                          "v2.49/en/user-guide/settings/capabilities/profile-settings",
+                          "v2.49/en/user-guide/settings/capabilities/experience-settings",
+                          "v2.49/en/user-guide/settings/capabilities/domains-settings",
+                          "v2.49/en/user-guide/settings/capabilities/community-settings"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.49/en/user-guide/settings/how-tos/settings-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  }
+                ]
+              },
+              {
+                "tab": "Developers",
+                "groups": [
+                  {
+                    "group": "Overview",
+                    "pages": [
+                      "v2.49/en/developers/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Apps",
+                    "pages": [
+                      {
+                        "group": "Getting Started",
+                        "pages": [
+                          "v2.49/en/developers/extend/apps/getting-started/quick-start",
+                          "v2.49/en/developers/extend/apps/getting-started/concepts",
+                          "v2.49/en/developers/extend/apps/getting-started/project-structure",
+                          "v2.49/en/developers/extend/apps/getting-started/local-server",
+                          "v2.49/en/developers/extend/apps/getting-started/scaffolding",
+                          "v2.49/en/developers/extend/apps/getting-started/good-practices",
+                          "v2.49/en/developers/extend/apps/getting-started/troubleshooting"
+                        ]
+                      },
+                      {
+                        "group": "Tutorial",
+                        "pages": [
+                          "v2.49/en/developers/extend/apps/tutorials/document-generator/overview",
+                          "v2.49/en/developers/extend/apps/tutorials/document-generator/data-model",
+                          "v2.49/en/developers/extend/apps/tutorials/document-generator/generating-documents",
+                          "v2.49/en/developers/extend/apps/tutorials/document-generator/http-routes",
+                          "v2.49/en/developers/extend/apps/tutorials/document-generator/building-the-ui",
+                          "v2.49/en/developers/extend/apps/tutorials/document-generator/ai-agent",
+                          "v2.49/en/developers/extend/apps/tutorials/document-generator/publishing"
+                        ]
+                      },
+                      {
+                        "group": "Config",
+                        "pages": [
+                          "v2.49/en/developers/extend/apps/config/overview",
+                          "v2.49/en/developers/extend/apps/config/application",
+                          "v2.49/en/developers/extend/apps/config/roles",
+                          "v2.49/en/developers/extend/apps/config/install-hooks",
+                          "v2.49/en/developers/extend/apps/config/public-assets"
+                        ]
+                      },
+                      {
+                        "group": "Data",
+                        "pages": [
+                          "v2.49/en/developers/extend/apps/data/overview",
+                          "v2.49/en/developers/extend/apps/data/objects",
+                          "v2.49/en/developers/extend/apps/data/extending-objects",
+                          "v2.49/en/developers/extend/apps/data/system-fields",
+                          "v2.49/en/developers/extend/apps/data/relations",
+                          "v2.49/en/developers/extend/apps/data/timeline-activity-types"
+                        ]
+                      },
+                      {
+                        "group": "Logic",
+                        "pages": [
+                          "v2.49/en/developers/extend/apps/logic/overview",
+                          "v2.49/en/developers/extend/apps/logic/logic-functions",
+                          "v2.49/en/developers/extend/apps/logic/key-value-store",
+                          "v2.49/en/developers/extend/apps/logic/background-jobs",
+                          "v2.49/en/developers/extend/apps/logic/skills-and-agents",
+                          "v2.49/en/developers/extend/apps/logic/workflows",
+                          "v2.49/en/developers/extend/apps/logic/connections",
+                          "v2.49/en/developers/extend/apps/logic/messaging-channels",
+                          "v2.49/en/developers/extend/apps/logic/credits"
+                        ]
+                      },
+                      {
+                        "group": "Layout",
+                        "pages": [
+                          "v2.49/en/developers/extend/apps/layout/overview",
+                          "v2.49/en/developers/extend/apps/layout/views",
+                          "v2.49/en/developers/extend/apps/layout/navigation-menu-items",
+                          "v2.49/en/developers/extend/apps/layout/page-layouts",
+                          "v2.49/en/developers/extend/apps/layout/front-components",
+                          "v2.49/en/developers/extend/apps/layout/command-menu-items"
+                        ]
+                      },
+                      {
+                        "group": "Operations",
+                        "pages": [
+                          "v2.49/en/developers/extend/apps/operations/overview",
+                          "v2.49/en/developers/extend/apps/operations/cli",
+                          "v2.49/en/developers/extend/apps/operations/sync-and-recovery",
+                          "v2.49/en/developers/extend/apps/operations/testing",
+                          "v2.49/en/developers/extend/apps/operations/translations",
+                          "v2.49/en/developers/extend/apps/operations/publishing"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "API",
+                    "pages": [
+                      "v2.49/en/developers/extend/api",
+                      "v2.49/en/developers/extend/webhooks",
+                      "v2.49/en/developers/extend/oauth"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "version": "v2.48.0",
+            "tabs": [
+              {
+                "tab": "Getting Started",
+                "groups": [
+                  {
+                    "group": "Welcome",
+                    "pages": [
+                      "v2.48/en/getting-started/introduction",
+                      "v2.48/en/getting-started/key-features",
+                      "v2.48/en/getting-started/quickstart"
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Core Concepts",
+                    "pages": [
+                      "v2.48/en/getting-started/core-concepts/data-model",
+                      "v2.48/en/getting-started/core-concepts/layout",
+                      "v2.48/en/getting-started/core-concepts/workflows",
+                      "v2.48/en/getting-started/core-concepts/calendar-and-email",
+                      "v2.48/en/getting-started/core-concepts/ai",
+                      "v2.48/en/getting-started/core-concepts/apps",
+                      "v2.48/en/getting-started/core-concepts/dashboards",
+                      "v2.48/en/getting-started/core-concepts/glossary"
+                    ],
+                    "public": true
+                  }
+                ]
+              },
+              {
+                "tab": "User Guide",
+                "groups": [
+                  {
+                    "group": "Overview",
+                    "pages": [
+                      "v2.48/en/user-guide/introduction"
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Data Model",
+                    "icon": "database",
+                    "pages": [
+                      "v2.48/en/user-guide/data-model/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.48/en/user-guide/data-model/capabilities/objects",
+                          "v2.48/en/user-guide/data-model/capabilities/fields",
+                          "v2.48/en/user-guide/data-model/capabilities/relation-fields"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.48/en/user-guide/data-model/how-tos/create-custom-objects",
+                          "v2.48/en/user-guide/data-model/how-tos/create-custom-fields",
+                          "v2.48/en/user-guide/data-model/how-tos/create-relation-fields",
+                          "v2.48/en/user-guide/data-model/how-tos/create-many-to-many-relations",
+                          "v2.48/en/user-guide/data-model/how-tos/customize-your-data-model",
+                          "v2.48/en/user-guide/data-model/how-tos/data-model-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Data Migration",
+                    "icon": "cloud-arrow-up",
+                    "pages": [
+                      "v2.48/en/user-guide/data-migration/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.48/en/user-guide/data-migration/capabilities/file-formats",
+                          "v2.48/en/user-guide/data-migration/capabilities/field-mapping",
+                          "v2.48/en/user-guide/data-migration/capabilities/uniqueness-constraints",
+                          "v2.48/en/user-guide/data-migration/capabilities/import-relations",
+                          "v2.48/en/user-guide/data-migration/capabilities/error-handling"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.48/en/user-guide/data-migration/how-tos/prepare-your-csv-files",
+                          "v2.48/en/user-guide/data-migration/how-tos/import-companies-via-csv",
+                          "v2.48/en/user-guide/data-migration/how-tos/import-contacts-via-csv",
+                          "v2.48/en/user-guide/data-migration/how-tos/import-relations-between-objects-via-csv",
+                          "v2.48/en/user-guide/data-migration/how-tos/update-existing-records-via-import",
+                          "v2.48/en/user-guide/data-migration/how-tos/fix-import-errors",
+                          "v2.48/en/user-guide/data-migration/how-tos/export-your-data",
+                          "v2.48/en/user-guide/data-migration/how-tos/import-data-via-api",
+                          "v2.48/en/user-guide/data-migration/how-tos/migrating-from-other-crms"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Calendar & Emails",
+                    "icon": "envelope",
+                    "pages": [
+                      "v2.48/en/user-guide/calendar-emails/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.48/en/user-guide/calendar-emails/capabilities/mailbox",
+                          "v2.48/en/user-guide/calendar-emails/capabilities/calendar"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.48/en/user-guide/calendar-emails/how-tos/connect-several-mailboxes-per-user",
+                          "v2.48/en/user-guide/calendar-emails/how-tos/forward-a-shared-inbox-from-microsoft-365",
+                          "v2.48/en/user-guide/calendar-emails/how-tos/forward-a-shared-inbox-from-google-workspace",
+                          "v2.48/en/user-guide/calendar-emails/how-tos/forward-a-shared-inbox-from-any-mail-provider",
+                          "v2.48/en/user-guide/calendar-emails/how-tos/limit-emails-imported",
+                          "v2.48/en/user-guide/calendar-emails/how-tos/can-i-track-email-activity-on-all-objects",
+                          "v2.48/en/user-guide/calendar-emails/how-tos/can-i-send-emails-from-upshift",
+                          "v2.48/en/user-guide/calendar-emails/how-tos/can-i-book-meetings-from-upshift",
+                          "v2.48/en/user-guide/calendar-emails/how-tos/i-dont-see-emails-on-records"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Email Campaigns",
+                    "icon": "paper-plane",
+                    "pages": [
+                      "v2.48/en/user-guide/email-campaigns/overview",
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.48/en/user-guide/email-campaigns/how-tos/set-up-a-sending-domain",
+                          "v2.48/en/user-guide/email-campaigns/how-tos/email-campaign-best-practices",
+                          "v2.48/en/user-guide/email-campaigns/how-tos/send-your-first-campaign",
+                          "v2.48/en/user-guide/email-campaigns/how-tos/create-a-campaign-with-ai",
+                          "v2.48/en/user-guide/email-campaigns/how-tos/manage-unsubscribes-and-topics"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Workflows",
+                    "icon": "bolt",
+                    "pages": [
+                      "v2.48/en/user-guide/workflows/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.48/en/user-guide/workflows/capabilities/workflow-triggers",
+                          "v2.48/en/user-guide/workflows/capabilities/workflow-actions",
+                          "v2.48/en/user-guide/workflows/capabilities/workflow-branches",
+                          "v2.48/en/user-guide/workflows/capabilities/workflow-runs",
+                          "v2.48/en/user-guide/workflows/capabilities/workflow-versions",
+                          "v2.48/en/user-guide/workflows/capabilities/workflow-credits",
+                          "v2.48/en/user-guide/workflows/capabilities/use-branches-in-workflows",
+                          "v2.48/en/user-guide/workflows/capabilities/use-iterator",
+                          "v2.48/en/user-guide/workflows/capabilities/send-emails-from-workflows"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          {
+                            "group": "CRM Automations",
+                            "pages": [
+                              "v2.48/en/user-guide/workflows/how-tos/crm-automations/send-email-alerts-with-tasks-due",
+                              "v2.48/en/user-guide/workflows/how-tos/crm-automations/notify-teammates-of-note-to-review",
+                              "v2.48/en/user-guide/workflows/how-tos/crm-automations/display-number-of-emails-received",
+                              "v2.48/en/user-guide/workflows/how-tos/crm-automations/formula-fields",
+                              "v2.48/en/user-guide/workflows/how-tos/crm-automations/display-related-record-data",
+                              "v2.48/en/user-guide/workflows/how-tos/crm-automations/closed-won-automations",
+                              "v2.48/en/user-guide/workflows/how-tos/crm-automations/detect-stale-opportunities",
+                              "v2.48/en/user-guide/workflows/how-tos/crm-automations/auto-reply-to-inbound-emails"
+                            ]
+                          },
+                          {
+                            "group": "Connect to Other Tools",
+                            "pages": [
+                              "v2.48/en/user-guide/workflows/how-tos/connect-to-other-tools/set-up-a-webhook-trigger",
+                              "v2.48/en/user-guide/workflows/how-tos/connect-to-other-tools/bring-typeform-submissions-in-upshift",
+                              "v2.48/en/user-guide/workflows/how-tos/connect-to-other-tools/bring-product-data-in-upshift",
+                              "v2.48/en/user-guide/workflows/how-tos/connect-to-other-tools/generate-quote-or-invoice-from-upshift",
+                              "v2.48/en/user-guide/workflows/how-tos/connect-to-other-tools/generate-pdf-from-upshift"
+                            ]
+                          },
+                          {
+                            "group": "Advanced Configurations",
+                            "pages": [
+                              "v2.48/en/user-guide/workflows/how-tos/advanced-configurations/handle-arrays-in-code-actions"
+                            ]
+                          },
+                          {
+                            "group": "Need More Help",
+                            "pages": [
+                              "v2.48/en/user-guide/workflows/how-tos/need-more-help/workflow-troubleshooting",
+                              "v2.48/en/user-guide/workflows/how-tos/need-more-help/workflows-faq"
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "AI",
+                    "icon": "robot",
+                    "pages": [
+                      "v2.48/en/user-guide/ai/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.48/en/user-guide/ai/capabilities/ai-chatbot",
+                          "v2.48/en/user-guide/ai/capabilities/ai-agents",
+                          "v2.48/en/user-guide/ai/capabilities/permissions-access-control"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.48/en/user-guide/ai/how-tos/ai-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Layout",
+                    "icon": "table-columns",
+                    "pages": [
+                      "v2.48/en/user-guide/layout/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.48/en/user-guide/layout/capabilities/navigation",
+                          {
+                            "group": "Views",
+                            "pages": [
+                              "v2.48/en/user-guide/views-pipelines/capabilities/table-views",
+                              "v2.48/en/user-guide/views-pipelines/capabilities/kanban-views",
+                              "v2.48/en/user-guide/views-pipelines/capabilities/calendar-view",
+                              "v2.48/en/user-guide/views-pipelines/capabilities/filters-and-sorting",
+                              "v2.48/en/user-guide/views-pipelines/capabilities/fields-and-columns",
+                              "v2.48/en/user-guide/views-pipelines/capabilities/view-settings"
+                            ]
+                          },
+                          "v2.48/en/user-guide/layout/capabilities/record-pages"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.48/en/user-guide/views-pipelines/how-tos/create-a-table-view-with-grouping",
+                          "v2.48/en/user-guide/views-pipelines/how-tos/create-a-kanban-view-for-projects",
+                          "v2.48/en/user-guide/views-pipelines/how-tos/create-a-calendar-view-for-tasks-due",
+                          "v2.48/en/user-guide/views-pipelines/how-tos/restrict-access-to-your-view",
+                          "v2.48/en/user-guide/views-pipelines/how-tos/set-up-a-sales-pipeline",
+                          "v2.48/en/user-guide/views-pipelines/how-tos/show-expected-amount-in-pipeline",
+                          "v2.48/en/user-guide/views-pipelines/how-tos/track-time-in-stage"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Dashboards",
+                    "icon": "chart-bar",
+                    "pages": [
+                      "v2.48/en/user-guide/dashboards/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.48/en/user-guide/dashboards/capabilities/dashboards",
+                          "v2.48/en/user-guide/dashboards/capabilities/widgets",
+                          "v2.48/en/user-guide/dashboards/capabilities/chart-settings"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.48/en/user-guide/dashboards/how-tos/dashboards-faq",
+                          "v2.48/en/user-guide/dashboards/how-tos/widget-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Permissions & Access",
+                    "icon": "lock",
+                    "pages": [
+                      "v2.48/en/user-guide/permissions-access/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.48/en/user-guide/permissions-access/capabilities/permissions",
+                          "v2.48/en/user-guide/permissions-access/capabilities/sso-configuration"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.48/en/user-guide/permissions-access/how-tos/permissions-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Settings",
+                    "icon": "gear",
+                    "pages": [
+                      "v2.48/en/user-guide/settings/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.48/en/user-guide/settings/capabilities/workspace-settings",
+                          "v2.48/en/user-guide/settings/capabilities/member-management",
+                          "v2.48/en/user-guide/settings/capabilities/profile-settings",
+                          "v2.48/en/user-guide/settings/capabilities/experience-settings",
+                          "v2.48/en/user-guide/settings/capabilities/domains-settings",
+                          "v2.48/en/user-guide/settings/capabilities/community-settings"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.48/en/user-guide/settings/how-tos/settings-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  }
+                ]
+              },
+              {
+                "tab": "Developers",
+                "groups": [
+                  {
+                    "group": "Overview",
+                    "pages": [
+                      "v2.48/en/developers/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Apps",
+                    "pages": [
+                      {
+                        "group": "Getting Started",
+                        "pages": [
+                          "v2.48/en/developers/extend/apps/getting-started/quick-start",
+                          "v2.48/en/developers/extend/apps/getting-started/concepts",
+                          "v2.48/en/developers/extend/apps/getting-started/project-structure",
+                          "v2.48/en/developers/extend/apps/getting-started/local-server",
+                          "v2.48/en/developers/extend/apps/getting-started/scaffolding",
+                          "v2.48/en/developers/extend/apps/getting-started/good-practices",
+                          "v2.48/en/developers/extend/apps/getting-started/troubleshooting"
+                        ]
+                      },
+                      {
+                        "group": "Tutorial",
+                        "pages": [
+                          "v2.48/en/developers/extend/apps/tutorials/document-generator/overview",
+                          "v2.48/en/developers/extend/apps/tutorials/document-generator/data-model",
+                          "v2.48/en/developers/extend/apps/tutorials/document-generator/generating-documents",
+                          "v2.48/en/developers/extend/apps/tutorials/document-generator/http-routes",
+                          "v2.48/en/developers/extend/apps/tutorials/document-generator/building-the-ui",
+                          "v2.48/en/developers/extend/apps/tutorials/document-generator/ai-agent",
+                          "v2.48/en/developers/extend/apps/tutorials/document-generator/publishing"
+                        ]
+                      },
+                      {
+                        "group": "Config",
+                        "pages": [
+                          "v2.48/en/developers/extend/apps/config/overview",
+                          "v2.48/en/developers/extend/apps/config/application",
+                          "v2.48/en/developers/extend/apps/config/roles",
+                          "v2.48/en/developers/extend/apps/config/install-hooks",
+                          "v2.48/en/developers/extend/apps/config/public-assets"
+                        ]
+                      },
+                      {
+                        "group": "Data",
+                        "pages": [
+                          "v2.48/en/developers/extend/apps/data/overview",
+                          "v2.48/en/developers/extend/apps/data/objects",
+                          "v2.48/en/developers/extend/apps/data/extending-objects",
+                          "v2.48/en/developers/extend/apps/data/system-fields",
+                          "v2.48/en/developers/extend/apps/data/relations",
+                          "v2.48/en/developers/extend/apps/data/timeline-activity-types"
+                        ]
+                      },
+                      {
+                        "group": "Logic",
+                        "pages": [
+                          "v2.48/en/developers/extend/apps/logic/overview",
+                          "v2.48/en/developers/extend/apps/logic/logic-functions",
+                          "v2.48/en/developers/extend/apps/logic/key-value-store",
+                          "v2.48/en/developers/extend/apps/logic/background-jobs",
+                          "v2.48/en/developers/extend/apps/logic/skills-and-agents",
+                          "v2.48/en/developers/extend/apps/logic/connections",
+                          "v2.48/en/developers/extend/apps/logic/messaging-channels",
+                          "v2.48/en/developers/extend/apps/logic/credits"
+                        ]
+                      },
+                      {
+                        "group": "Layout",
+                        "pages": [
+                          "v2.48/en/developers/extend/apps/layout/overview",
+                          "v2.48/en/developers/extend/apps/layout/views",
+                          "v2.48/en/developers/extend/apps/layout/navigation-menu-items",
+                          "v2.48/en/developers/extend/apps/layout/page-layouts",
+                          "v2.48/en/developers/extend/apps/layout/front-components",
+                          "v2.48/en/developers/extend/apps/layout/command-menu-items"
+                        ]
+                      },
+                      {
+                        "group": "Operations",
+                        "pages": [
+                          "v2.48/en/developers/extend/apps/operations/overview",
+                          "v2.48/en/developers/extend/apps/operations/cli",
+                          "v2.48/en/developers/extend/apps/operations/sync-and-recovery",
+                          "v2.48/en/developers/extend/apps/operations/testing",
+                          "v2.48/en/developers/extend/apps/operations/translations",
+                          "v2.48/en/developers/extend/apps/operations/publishing"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "API",
+                    "pages": [
+                      "v2.48/en/developers/extend/api",
+                      "v2.48/en/developers/extend/webhooks",
+                      "v2.48/en/developers/extend/oauth"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "version": "v2.47.0",
+            "tabs": [
+              {
+                "tab": "Getting Started",
+                "groups": [
+                  {
+                    "group": "Welcome",
+                    "pages": [
+                      "v2.47/en/getting-started/introduction",
+                      "v2.47/en/getting-started/key-features",
+                      "v2.47/en/getting-started/quickstart"
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Core Concepts",
+                    "pages": [
+                      "v2.47/en/getting-started/core-concepts/data-model",
+                      "v2.47/en/getting-started/core-concepts/layout",
+                      "v2.47/en/getting-started/core-concepts/workflows",
+                      "v2.47/en/getting-started/core-concepts/calendar-and-email",
+                      "v2.47/en/getting-started/core-concepts/ai",
+                      "v2.47/en/getting-started/core-concepts/apps",
+                      "v2.47/en/getting-started/core-concepts/dashboards",
+                      "v2.47/en/getting-started/core-concepts/glossary"
+                    ],
+                    "public": true
+                  }
+                ]
+              },
+              {
+                "tab": "User Guide",
+                "groups": [
+                  {
+                    "group": "Overview",
+                    "pages": [
+                      "v2.47/en/user-guide/introduction"
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Data Model",
+                    "icon": "database",
+                    "pages": [
+                      "v2.47/en/user-guide/data-model/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.47/en/user-guide/data-model/capabilities/objects",
+                          "v2.47/en/user-guide/data-model/capabilities/fields",
+                          "v2.47/en/user-guide/data-model/capabilities/relation-fields"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.47/en/user-guide/data-model/how-tos/create-custom-objects",
+                          "v2.47/en/user-guide/data-model/how-tos/create-custom-fields",
+                          "v2.47/en/user-guide/data-model/how-tos/create-relation-fields",
+                          "v2.47/en/user-guide/data-model/how-tos/create-many-to-many-relations",
+                          "v2.47/en/user-guide/data-model/how-tos/customize-your-data-model",
+                          "v2.47/en/user-guide/data-model/how-tos/data-model-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Data Migration",
+                    "icon": "cloud-arrow-up",
+                    "pages": [
+                      "v2.47/en/user-guide/data-migration/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.47/en/user-guide/data-migration/capabilities/file-formats",
+                          "v2.47/en/user-guide/data-migration/capabilities/field-mapping",
+                          "v2.47/en/user-guide/data-migration/capabilities/uniqueness-constraints",
+                          "v2.47/en/user-guide/data-migration/capabilities/import-relations",
+                          "v2.47/en/user-guide/data-migration/capabilities/error-handling"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.47/en/user-guide/data-migration/how-tos/prepare-your-csv-files",
+                          "v2.47/en/user-guide/data-migration/how-tos/import-companies-via-csv",
+                          "v2.47/en/user-guide/data-migration/how-tos/import-contacts-via-csv",
+                          "v2.47/en/user-guide/data-migration/how-tos/import-relations-between-objects-via-csv",
+                          "v2.47/en/user-guide/data-migration/how-tos/update-existing-records-via-import",
+                          "v2.47/en/user-guide/data-migration/how-tos/fix-import-errors",
+                          "v2.47/en/user-guide/data-migration/how-tos/export-your-data",
+                          "v2.47/en/user-guide/data-migration/how-tos/import-data-via-api",
+                          "v2.47/en/user-guide/data-migration/how-tos/migrating-from-other-crms"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Calendar & Emails",
+                    "icon": "envelope",
+                    "pages": [
+                      "v2.47/en/user-guide/calendar-emails/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.47/en/user-guide/calendar-emails/capabilities/mailbox",
+                          "v2.47/en/user-guide/calendar-emails/capabilities/calendar"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.47/en/user-guide/calendar-emails/how-tos/connect-several-mailboxes-per-user",
+                          "v2.47/en/user-guide/calendar-emails/how-tos/forward-a-shared-inbox-from-microsoft-365",
+                          "v2.47/en/user-guide/calendar-emails/how-tos/forward-a-shared-inbox-from-google-workspace",
+                          "v2.47/en/user-guide/calendar-emails/how-tos/forward-a-shared-inbox-from-any-mail-provider",
+                          "v2.47/en/user-guide/calendar-emails/how-tos/limit-emails-imported",
+                          "v2.47/en/user-guide/calendar-emails/how-tos/can-i-track-email-activity-on-all-objects",
+                          "v2.47/en/user-guide/calendar-emails/how-tos/can-i-send-emails-from-upshift",
+                          "v2.47/en/user-guide/calendar-emails/how-tos/can-i-book-meetings-from-upshift",
+                          "v2.47/en/user-guide/calendar-emails/how-tos/i-dont-see-emails-on-records"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Email Campaigns",
+                    "icon": "paper-plane",
+                    "pages": [
+                      "v2.47/en/user-guide/email-campaigns/overview",
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.47/en/user-guide/email-campaigns/how-tos/set-up-a-sending-domain",
+                          "v2.47/en/user-guide/email-campaigns/how-tos/email-campaign-best-practices",
+                          "v2.47/en/user-guide/email-campaigns/how-tos/send-your-first-campaign",
+                          "v2.47/en/user-guide/email-campaigns/how-tos/create-a-campaign-with-ai",
+                          "v2.47/en/user-guide/email-campaigns/how-tos/manage-unsubscribes-and-topics"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Workflows",
+                    "icon": "bolt",
+                    "pages": [
+                      "v2.47/en/user-guide/workflows/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.47/en/user-guide/workflows/capabilities/workflow-triggers",
+                          "v2.47/en/user-guide/workflows/capabilities/workflow-actions",
+                          "v2.47/en/user-guide/workflows/capabilities/workflow-branches",
+                          "v2.47/en/user-guide/workflows/capabilities/workflow-runs",
+                          "v2.47/en/user-guide/workflows/capabilities/workflow-versions",
+                          "v2.47/en/user-guide/workflows/capabilities/workflow-credits",
+                          "v2.47/en/user-guide/workflows/capabilities/use-branches-in-workflows",
+                          "v2.47/en/user-guide/workflows/capabilities/use-iterator",
+                          "v2.47/en/user-guide/workflows/capabilities/send-emails-from-workflows"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          {
+                            "group": "CRM Automations",
+                            "pages": [
+                              "v2.47/en/user-guide/workflows/how-tos/crm-automations/send-email-alerts-with-tasks-due",
+                              "v2.47/en/user-guide/workflows/how-tos/crm-automations/notify-teammates-of-note-to-review",
+                              "v2.47/en/user-guide/workflows/how-tos/crm-automations/display-number-of-emails-received",
+                              "v2.47/en/user-guide/workflows/how-tos/crm-automations/formula-fields",
+                              "v2.47/en/user-guide/workflows/how-tos/crm-automations/display-related-record-data",
+                              "v2.47/en/user-guide/workflows/how-tos/crm-automations/closed-won-automations",
+                              "v2.47/en/user-guide/workflows/how-tos/crm-automations/detect-stale-opportunities",
+                              "v2.47/en/user-guide/workflows/how-tos/crm-automations/auto-reply-to-inbound-emails"
+                            ]
+                          },
+                          {
+                            "group": "Connect to Other Tools",
+                            "pages": [
+                              "v2.47/en/user-guide/workflows/how-tos/connect-to-other-tools/set-up-a-webhook-trigger",
+                              "v2.47/en/user-guide/workflows/how-tos/connect-to-other-tools/bring-typeform-submissions-in-upshift",
+                              "v2.47/en/user-guide/workflows/how-tos/connect-to-other-tools/bring-product-data-in-upshift",
+                              "v2.47/en/user-guide/workflows/how-tos/connect-to-other-tools/generate-quote-or-invoice-from-upshift",
+                              "v2.47/en/user-guide/workflows/how-tos/connect-to-other-tools/generate-pdf-from-upshift"
+                            ]
+                          },
+                          {
+                            "group": "Advanced Configurations",
+                            "pages": [
+                              "v2.47/en/user-guide/workflows/how-tos/advanced-configurations/handle-arrays-in-code-actions"
+                            ]
+                          },
+                          {
+                            "group": "Need More Help",
+                            "pages": [
+                              "v2.47/en/user-guide/workflows/how-tos/need-more-help/workflow-troubleshooting",
+                              "v2.47/en/user-guide/workflows/how-tos/need-more-help/workflows-faq"
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "AI",
+                    "icon": "robot",
+                    "pages": [
+                      "v2.47/en/user-guide/ai/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.47/en/user-guide/ai/capabilities/ai-chatbot",
+                          "v2.47/en/user-guide/ai/capabilities/ai-agents",
+                          "v2.47/en/user-guide/ai/capabilities/permissions-access-control"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.47/en/user-guide/ai/how-tos/ai-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Layout",
+                    "icon": "table-columns",
+                    "pages": [
+                      "v2.47/en/user-guide/layout/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.47/en/user-guide/layout/capabilities/navigation",
+                          {
+                            "group": "Views",
+                            "pages": [
+                              "v2.47/en/user-guide/views-pipelines/capabilities/table-views",
+                              "v2.47/en/user-guide/views-pipelines/capabilities/kanban-views",
+                              "v2.47/en/user-guide/views-pipelines/capabilities/calendar-view",
+                              "v2.47/en/user-guide/views-pipelines/capabilities/filters-and-sorting",
+                              "v2.47/en/user-guide/views-pipelines/capabilities/fields-and-columns",
+                              "v2.47/en/user-guide/views-pipelines/capabilities/view-settings"
+                            ]
+                          },
+                          "v2.47/en/user-guide/layout/capabilities/record-pages"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.47/en/user-guide/views-pipelines/how-tos/create-a-table-view-with-grouping",
+                          "v2.47/en/user-guide/views-pipelines/how-tos/create-a-kanban-view-for-projects",
+                          "v2.47/en/user-guide/views-pipelines/how-tos/create-a-calendar-view-for-tasks-due",
+                          "v2.47/en/user-guide/views-pipelines/how-tos/restrict-access-to-your-view",
+                          "v2.47/en/user-guide/views-pipelines/how-tos/set-up-a-sales-pipeline",
+                          "v2.47/en/user-guide/views-pipelines/how-tos/show-expected-amount-in-pipeline",
+                          "v2.47/en/user-guide/views-pipelines/how-tos/track-time-in-stage"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Dashboards",
+                    "icon": "chart-bar",
+                    "pages": [
+                      "v2.47/en/user-guide/dashboards/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.47/en/user-guide/dashboards/capabilities/dashboards",
+                          "v2.47/en/user-guide/dashboards/capabilities/widgets",
+                          "v2.47/en/user-guide/dashboards/capabilities/chart-settings"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.47/en/user-guide/dashboards/how-tos/dashboards-faq",
+                          "v2.47/en/user-guide/dashboards/how-tos/widget-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Permissions & Access",
+                    "icon": "lock",
+                    "pages": [
+                      "v2.47/en/user-guide/permissions-access/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.47/en/user-guide/permissions-access/capabilities/permissions",
+                          "v2.47/en/user-guide/permissions-access/capabilities/sso-configuration"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.47/en/user-guide/permissions-access/how-tos/permissions-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  },
+                  {
+                    "group": "Settings",
+                    "icon": "gear",
+                    "pages": [
+                      "v2.47/en/user-guide/settings/overview",
+                      {
+                        "group": "Reference",
+                        "pages": [
+                          "v2.47/en/user-guide/settings/capabilities/workspace-settings",
+                          "v2.47/en/user-guide/settings/capabilities/member-management",
+                          "v2.47/en/user-guide/settings/capabilities/profile-settings",
+                          "v2.47/en/user-guide/settings/capabilities/experience-settings",
+                          "v2.47/en/user-guide/settings/capabilities/domains-settings",
+                          "v2.47/en/user-guide/settings/capabilities/community-settings"
+                        ]
+                      },
+                      {
+                        "group": "How-Tos",
+                        "pages": [
+                          "v2.47/en/user-guide/settings/how-tos/settings-faq"
+                        ]
+                      }
+                    ],
+                    "public": true
+                  }
+                ]
+              },
+              {
+                "tab": "Developers",
+                "groups": [
+                  {
+                    "group": "Overview",
+                    "pages": [
+                      "v2.47/en/developers/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Apps",
+                    "pages": [
+                      {
+                        "group": "Getting Started",
+                        "pages": [
+                          "v2.47/en/developers/extend/apps/getting-started/quick-start",
+                          "v2.47/en/developers/extend/apps/getting-started/concepts",
+                          "v2.47/en/developers/extend/apps/getting-started/project-structure",
+                          "v2.47/en/developers/extend/apps/getting-started/local-server",
+                          "v2.47/en/developers/extend/apps/getting-started/scaffolding",
+                          "v2.47/en/developers/extend/apps/getting-started/good-practices",
+                          "v2.47/en/developers/extend/apps/getting-started/troubleshooting"
+                        ]
+                      },
+                      {
+                        "group": "Tutorial",
+                        "pages": [
+                          "v2.47/en/developers/extend/apps/tutorials/document-generator/overview",
+                          "v2.47/en/developers/extend/apps/tutorials/document-generator/data-model",
+                          "v2.47/en/developers/extend/apps/tutorials/document-generator/generating-documents",
+                          "v2.47/en/developers/extend/apps/tutorials/document-generator/http-routes",
+                          "v2.47/en/developers/extend/apps/tutorials/document-generator/building-the-ui",
+                          "v2.47/en/developers/extend/apps/tutorials/document-generator/ai-agent",
+                          "v2.47/en/developers/extend/apps/tutorials/document-generator/publishing"
+                        ]
+                      },
+                      {
+                        "group": "Config",
+                        "pages": [
+                          "v2.47/en/developers/extend/apps/config/overview",
+                          "v2.47/en/developers/extend/apps/config/application",
+                          "v2.47/en/developers/extend/apps/config/roles",
+                          "v2.47/en/developers/extend/apps/config/install-hooks",
+                          "v2.47/en/developers/extend/apps/config/public-assets"
+                        ]
+                      },
+                      {
+                        "group": "Data",
+                        "pages": [
+                          "v2.47/en/developers/extend/apps/data/overview",
+                          "v2.47/en/developers/extend/apps/data/objects",
+                          "v2.47/en/developers/extend/apps/data/extending-objects",
+                          "v2.47/en/developers/extend/apps/data/system-fields",
+                          "v2.47/en/developers/extend/apps/data/relations",
+                          "v2.47/en/developers/extend/apps/data/timeline-activity-types"
+                        ]
+                      },
+                      {
+                        "group": "Logic",
+                        "pages": [
+                          "v2.47/en/developers/extend/apps/logic/overview",
+                          "v2.47/en/developers/extend/apps/logic/logic-functions",
+                          "v2.47/en/developers/extend/apps/logic/key-value-store",
+                          "v2.47/en/developers/extend/apps/logic/background-jobs",
+                          "v2.47/en/developers/extend/apps/logic/skills-and-agents",
+                          "v2.47/en/developers/extend/apps/logic/connections",
+                          "v2.47/en/developers/extend/apps/logic/messaging-channels",
+                          "v2.47/en/developers/extend/apps/logic/credits"
+                        ]
+                      },
+                      {
+                        "group": "Layout",
+                        "pages": [
+                          "v2.47/en/developers/extend/apps/layout/overview",
+                          "v2.47/en/developers/extend/apps/layout/views",
+                          "v2.47/en/developers/extend/apps/layout/navigation-menu-items",
+                          "v2.47/en/developers/extend/apps/layout/page-layouts",
+                          "v2.47/en/developers/extend/apps/layout/front-components",
+                          "v2.47/en/developers/extend/apps/layout/command-menu-items"
+                        ]
+                      },
+                      {
+                        "group": "Operations",
+                        "pages": [
+                          "v2.47/en/developers/extend/apps/operations/overview",
+                          "v2.47/en/developers/extend/apps/operations/cli",
+                          "v2.47/en/developers/extend/apps/operations/sync-and-recovery",
+                          "v2.47/en/developers/extend/apps/operations/testing",
+                          "v2.47/en/developers/extend/apps/operations/translations",
+                          "v2.47/en/developers/extend/apps/operations/publishing"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "API",
+                    "pages": [
+                      "v2.47/en/developers/extend/api",
+                      "v2.47/en/developers/extend/webhooks",
+                      "v2.47/en/developers/extend/oauth"
                     ]
                   }
                 ]
