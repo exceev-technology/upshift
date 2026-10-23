@@ -378,11 +378,23 @@ const PATCHES = [
       `${FRONT}/src/pages/settings/applications/tabs/SettingsApplicationsDeveloperTab.tsx`,
     ],
     replacements: [
+      // Replaced after Twenty v2.50 by the standalone CLI commands, which name the app my-app
       {
         from: "'npx create-twenty-app@latest my-twenty-app'",
         to: "'npx create-twenty-app@latest my-{{slug}}-app'",
+        optional: true,
       },
-      { from: "'cd my-twenty-app'", to: "'cd my-{{slug}}-app'" },
+      { from: "'cd my-twenty-app'", to: "'cd my-{{slug}}-app'", optional: true },
+    ],
+  },
+  {
+    file: `${FRONT}/src/pages/settings/developers/tabs/SettingsDevelopersCliTab.tsx`,
+    optional: true,
+    replacements: [
+      {
+        from: "'https://github.com/twentyhq/twenty/blob/main/packages/twenty-cli/docs/commands.md'",
+        to: "'{{docsUrl}}/developers/extend/apps/operations/cli'",
+      },
     ],
   },
   {
@@ -445,7 +457,12 @@ const PATCHES = [
   {
     file: `${FRONT}/src/modules/auth/sign-in-up/components/FooterNote.tsx`,
     replacements: [
-      { from: 'href="https://twenty.com/legal/dpa"', to: 'href="{{dpaUrl}}"' },
+      // Twenty removed the sign-up DPA link after v2.50
+      {
+        from: 'href="https://twenty.com/legal/dpa"',
+        to: 'href="{{dpaUrl}}"',
+        optional: true,
+      },
     ],
   },
   {
@@ -506,6 +523,8 @@ const PATCHES = [
   {
     file: `${SERVER}/engine/core-modules/tool/tools/search-help-center-tool/search-help-center-tool.ts`,
     replacements: [
+      // One layout per Twenty version (v2.50 moved the search to the docs MCP server); the
+      // census fails on the Twenty search URL if neither matches
       {
         from: '      const useDirectApi = MINTLIFY_API_KEY && MINTLIFY_SUBDOMAIN;\n',
         to: [
@@ -520,8 +539,31 @@ const PATCHES = [
           '      }',
           '',
         ].join('\n'),
+        optional: true,
       },
-      { from: "'https://twenty-help-search.com/search/twenty'", to: "''" },
+      {
+        from: "'https://twenty-help-search.com/search/twenty'",
+        to: "''",
+        optional: true,
+      },
+      {
+        from: '    try {\n      const httpClient = this.secureHttpClientService.getHttpClient({\n',
+        to: [
+          "    if (HELP_CENTER_MCP_URL === '') {",
+          '      return {',
+          '        success: false,',
+          '        message: `Help center search is not available for "${query}"`,',
+          "        error: 'Help center search is disabled',",
+          '      };',
+          '    }',
+          '',
+          '    try {',
+          '      const httpClient = this.secureHttpClientService.getHttpClient({',
+          '',
+        ].join('\n'),
+        optional: true,
+      },
+      { from: "'https://docs.twenty.com/mcp'", to: "''", optional: true },
       { brandWord: true },
     ],
   },
