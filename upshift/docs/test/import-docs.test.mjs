@@ -347,11 +347,11 @@ describe('buildSite on the sources of an Upshift release', () => {
   it('refuses to label the docs with an Upshift release the sources do not carry', () => {
     const { problems } = buildSite(TWENTY_DOCS_ROOT, {
       appRoot,
-      releaseVersion: '2.46.0',
+      releaseVersion: '9.8.0',
     });
 
     assert.deepEqual(problems, [
-      'the docs are built for Upshift v2.46.0 but the sources carry 9.9.9',
+      'the docs are built for Upshift v9.8.0 but the sources carry 9.9.9',
     ]);
   });
 });
