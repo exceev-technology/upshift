@@ -50,8 +50,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          versions=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 200 --json tagName --jq '.[].tagName' \
-            | node upshift/docs/versions.mjs)
+          versions=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 200 --exclude-drafts --exclude-pre-releases \
+            --json tagName --jq '.[].tagName' | node upshift/docs/versions.mjs)
           latest=$(head -n 1 <<< "$versions")
 
           if [ -z "$latest" ]; then
