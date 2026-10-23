@@ -10,7 +10,12 @@ import {
   mergeVersions,
   parseArguments,
 } from '../import-docs.mjs';
-import { BRAND_COLORS, DEMO_URL, PHRASE_REPLACEMENTS } from '../rules.mjs';
+import {
+  BRAND_COLORS,
+  DEMO_URL,
+  EXCLUDED_PAGE_PREFIXES,
+  PHRASE_REPLACEMENTS,
+} from '../rules.mjs';
 
 describe('buildSite on packages/twenty-docs', () => {
   const { files, problems } = buildSite(TWENTY_DOCS_ROOT);
@@ -413,6 +418,33 @@ describe('buildSite of an older version', () => {
     assert.deepEqual(problems, []);
     assert.equal(warnings.length, 1);
     assert.match(warnings[0], /^fr: rules\.mjs expects 1 matches/);
+  });
+
+  it('still fails an older version on an exclusion that matches no page, so excluded pages cannot slip through', () => {
+    const { problems } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+      historical: true,
+      excludedPagePrefixes: [...EXCLUDED_PAGE_PREFIXES, 'user-guide/no-such-section/'],
+    });
+
+    assert.deepEqual(problems, [
+      'rules.mjs excludes user-guide/no-such-section/, but no Twenty page matches it any more; check where those pages moved',
+    ]);
+  });
+
+  it('requires an exclusion bound to versions only in the versions it covers', () => {
+    const { problems } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+      historical: true,
+      excludedPagePrefixes: [
+        ...EXCLUDED_PAGE_PREFIXES,
+        { prefix: 'user-guide/no-such-section/', since: '9.9' },
+      ],
+    });
+
+    assert.deepEqual(problems, []);
   });
 
   it('skips a rule whose `until` minor is older than the version it builds', () => {

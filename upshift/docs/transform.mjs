@@ -46,8 +46,11 @@ export const renamePage = (page) => page.replaceAll('twenty', 'upshift');
 export const sitePath = (language, page) =>
   `${language.sitePrefix}${renamePage(page)}`;
 
-export const isExcluded = (page) =>
-  EXCLUDED_PAGE_PREFIXES.some((prefix) => page.startsWith(prefix));
+const exclusionPrefix = (exclusion) =>
+  typeof exclusion === 'string' ? exclusion : exclusion.prefix;
+
+export const isExcluded = (page, exclusions = EXCLUDED_PAGE_PREFIXES) =>
+  exclusions.some((exclusion) => page.startsWith(exclusionPrefix(exclusion)));
 
 export const isPrivate = (page) =>
   PRIVATE_SECTIONS.some((section) => page.startsWith(`${section}/`));
@@ -195,9 +198,10 @@ export const listLinkedPages = (source) =>
 
 export const findUnmatchedExclusions = (
   excludedPages,
-  prefixes = EXCLUDED_PAGE_PREFIXES,
+  exclusions = EXCLUDED_PAGE_PREFIXES,
 ) =>
-  prefixes
+  exclusions
+    .map(exclusionPrefix)
     .filter((prefix) => !excludedPages.some((page) => page.startsWith(prefix)))
     .map(
       (prefix) =>

@@ -7,6 +7,7 @@ import {
   filterNavigation,
   filterRedirects,
   findUnmatchedExclusions,
+  isExcluded,
   listLinkedPages,
   publicTabs,
   renamePage,
@@ -270,6 +271,34 @@ describe('findUnmatchedExclusions', () => {
         'rules.mjs excludes user-guide/legal/, but no Twenty page matches it any more; check where those pages moved',
       ],
     );
+  });
+
+  it('reads the prefix of an exclusion bound to versions', () => {
+    assert.deepEqual(
+      findUnmatchedExclusions(
+        ['user-guide/billing/overview'],
+        [
+          { prefix: 'user-guide/billing/', until: '2.50' },
+          { prefix: 'user-guide/plans/', since: '2.51' },
+        ],
+      ),
+      [
+        'rules.mjs excludes user-guide/plans/, but no Twenty page matches it any more; check where those pages moved',
+      ],
+    );
+  });
+});
+
+describe('isExcluded', () => {
+  it('excludes a page under any prefix, whatever versions the prefix is bound to', () => {
+    const exclusions = [
+      'user-guide/old-plans/',
+      { prefix: 'user-guide/new-plans/', since: '2.51' },
+    ];
+
+    assert.equal(isExcluded('user-guide/old-plans/terms', exclusions), true);
+    assert.equal(isExcluded('user-guide/new-plans/overview', exclusions), true);
+    assert.equal(isExcluded('user-guide/billing/overview', exclusions), false);
   });
 });
 

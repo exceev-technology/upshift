@@ -6,24 +6,19 @@ export const MAX_DOCS_VERSIONS = 10;
 export const OLDEST_DOCS_MINOR = '2.47';
 
 const RELEASE_TAG = /^upshift\/v(\d+)\.(\d+)\.(\d+)$/;
-const [OLDEST_MAJOR, OLDEST_MINOR] = OLDEST_DOCS_MINOR.split('.').map(Number);
 
-const isDocumented = (major, minor) =>
-  major > OLDEST_MAJOR || (major === OLDEST_MAJOR && minor >= OLDEST_MINOR);
+const compareMinors = (version, otherVersion) => {
+  const [major, minor] = version.split('.').map(Number);
+  const [otherMajor, otherMinor] = otherVersion.split('.').map(Number);
 
-const minorParts = (version) => version.split('.').slice(0, 2).map(Number);
-
-// A phrase rule with `until: 'X.Y'` only rewrites the docs of versions up to that minor.
-export const isRuleForVersion = ({ until }, version) => {
-  if (until === undefined) {
-    return true;
-  }
-
-  const [major, minor] = minorParts(version);
-  const [untilMajor, untilMinor] = minorParts(until);
-
-  return major < untilMajor || (major === untilMajor && minor <= untilMinor);
+  return major - otherMajor || minor - otherMinor;
 };
+
+// A phrase rule or an exclusion with `since` or `until: 'X.Y'` only covers the
+// docs of versions from or up to that minor.
+export const isRuleForVersion = ({ since, until }, version) =>
+  (since === undefined || compareMinors(version, since) >= 0) &&
+  (until === undefined || compareMinors(version, until) <= 0);
 
 export const versionPath = (version) =>
   `v${version.split('.').slice(0, 2).join('.')}`;
@@ -40,7 +35,7 @@ export const selectDocsVersions = (releaseTags) => {
 
     const [major, minor, patch] = match.slice(1).map(Number);
 
-    if (!isDocumented(major, minor)) {
+    if (compareMinors(`${major}.${minor}`, OLDEST_DOCS_MINOR) < 0) {
       continue;
     }
 

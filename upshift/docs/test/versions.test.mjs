@@ -23,6 +23,18 @@ describe('isRuleForVersion', () => {
     assert.equal(isRuleForVersion(rule, '2.51.0'), false);
     assert.equal(isRuleForVersion(rule, '3.0.0'), false);
   });
+
+  it('applies a rule with `since` from that minor on', () => {
+    const rule = { prefix: 'user-guide/plans/', since: '2.51' };
+
+    assert.equal(isRuleForVersion(rule, '2.50.1'), false);
+    assert.equal(isRuleForVersion(rule, '2.51.0'), true);
+    assert.equal(isRuleForVersion(rule, '3.0.0'), true);
+  });
+
+  it('applies a plain exclusion prefix to every version', () => {
+    assert.equal(isRuleForVersion('user-guide/billing/', '2.47.0'), true);
+  });
 });
 
 describe('selectDocsVersions', () => {

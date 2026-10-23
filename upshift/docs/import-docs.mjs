@@ -11,6 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
+  EXCLUDED_PAGE_PREFIXES,
   LANGUAGES,
   PHRASE_REPLACEMENTS,
   PUBLISH_PRIVATE_SECTIONS,
@@ -65,6 +66,7 @@ export const buildSite = (
     publicOnly = false,
     historical = false,
     phraseReplacements = PHRASE_REPLACEMENTS,
+    excludedPagePrefixes = EXCLUDED_PAGE_PREFIXES,
   } = {},
 ) => {
   const readTwenty = (relativePath) =>
@@ -129,22 +131,26 @@ export const buildSite = (
   const files = new Map();
   const problems = [];
   const warnings = [];
-  // An older version's sources never change, so a rule that stopped matching
-  // them only warns; the site audit still fails on anything unsafe.
+  // An older version's sources never change, so a phrase or override that
+  // stopped matching them only warns. Exclusions always fail: an unmatched one
+  // may mean a renamed billing or legal page is being published.
   const ruleProblems = historical ? warnings : problems;
+  const isForThisVersion = (rule) =>
+    documentedVersion === undefined || isRuleForVersion(rule, documentedVersion);
   const outputs = new Map();
 
-  ruleProblems.push(...findUnmatchedExclusions(excludedPages));
+  problems.push(
+    ...findUnmatchedExclusions(
+      excludedPages,
+      excludedPagePrefixes.filter(isForThisVersion),
+    ),
+  );
 
   for (const { language } of navigation) {
     const { outputs: languageOutputs, problems: phraseProblems } =
       applyPhraseReplacements(
         sources.get(language.language),
-        phraseReplacements[language.language].filter(
-          (rule) =>
-            documentedVersion === undefined ||
-            isRuleForVersion(rule, documentedVersion),
-        ),
+        phraseReplacements[language.language].filter(isForThisVersion),
       );
 
     ruleProblems.push(
