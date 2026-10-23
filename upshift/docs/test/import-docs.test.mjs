@@ -298,7 +298,7 @@ describe('buildSite for a docs site without the login', () => {
   });
 });
 
-describe('buildSite on the sources of an Upshift release', () => {
+const writeReleaseSources = (currentVersion) => {
   const appRoot = mkdtempSync(path.join(tmpdir(), 'upshift-docs-release-'));
   const writeApp = (relativePath, content) => {
     mkdirSync(path.join(appRoot, path.dirname(relativePath)), {
@@ -317,8 +317,14 @@ describe('buildSite on the sources of an Upshift release', () => {
   );
   writeApp(
     'packages/twenty-server/src/engine/core-modules/upgrade/constants/twenty-current-version.constant.ts',
-    "export const TWENTY_CURRENT_VERSION = '9.9.9' as const;\n",
+    `export const TWENTY_CURRENT_VERSION = '${currentVersion}' as const;\n`,
   );
+
+  return appRoot;
+};
+
+describe('buildSite on the sources of an Upshift release', () => {
+  const appRoot = writeReleaseSources('9.9.9');
 
   it('labels the docs with the version of the checkout it reads', () => {
     const { files, problems } = buildSite(TWENTY_DOCS_ROOT, { appRoot });
@@ -339,6 +345,35 @@ describe('buildSite on the sources of an Upshift release', () => {
 
     assert.deepEqual(problems, [
       'the docs are built for Upshift v2.46.0 but the sources carry 9.9.9',
+    ]);
+  });
+});
+
+describe('buildSite on the sources of an Upshift patch release', () => {
+  const appRoot = writeReleaseSources('9.9.0');
+
+  it('labels the docs with the patch release, whose sources carry the version of its minor', () => {
+    const { files, problems } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.9.3',
+    });
+    const docsConfig = JSON.parse(files.get('docs.json'));
+
+    assert.deepEqual(problems, []);
+    assert.equal(
+      docsConfig.navigation.languages[0].versions[0].version,
+      'v9.9.3',
+    );
+  });
+
+  it('refuses a release from another minor', () => {
+    const { problems } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+    });
+
+    assert.deepEqual(problems, [
+      'the docs are built for Upshift v9.8.0 but the sources carry 9.9.0',
     ]);
   });
 });
