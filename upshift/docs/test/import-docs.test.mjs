@@ -7,6 +7,7 @@ import { describe, it } from 'node:test';
 import {
   TWENTY_DOCS_ROOT,
   buildSite,
+  mergeVersions,
   parseArguments,
 } from '../import-docs.mjs';
 import { BRAND_COLORS, DEMO_URL } from '../rules.mjs';
@@ -378,6 +379,72 @@ describe('buildSite on the sources of an Upshift patch release', () => {
   });
 });
 
+describe('mergeVersions', () => {
+  const latest = buildSite(TWENTY_DOCS_ROOT);
+  const older = {
+    version: '9.8.0',
+    ...buildSite(TWENTY_DOCS_ROOT, {
+      appRoot: writeReleaseSources('9.8.0'),
+      releaseVersion: '9.8.0',
+    }),
+  };
+  const { files, problems } = mergeVersions(latest, [older]);
+  const docsConfig = JSON.parse(files.get('docs.json'));
+  const latestConfig = JSON.parse(latest.files.get('docs.json'));
+
+  it('builds without problems', () => {
+    assert.deepEqual(problems, []);
+  });
+
+  it('lists the latest version first and as the default, then the older one, in every language', () => {
+    for (const { versions } of docsConfig.navigation.languages) {
+      assert.deepEqual(
+        versions.map(({ version, default: isDefault }) => ({
+          version,
+          default: isDefault,
+        })),
+        [
+          { version: latestConfig.navigation.languages[0].versions[0].version, default: true },
+          { version: 'v9.8.0', default: undefined },
+        ],
+      );
+    }
+  });
+
+  it('serves the latest version at the root and the older one under its folder', () => {
+    const [french, english] = docsConfig.navigation.languages;
+
+    assert.ok(files.has('getting-started/introduction.mdx'));
+    assert.ok(files.has('v9.8/getting-started/introduction.mdx'));
+    assert.ok(files.has('v9.8/en/getting-started/introduction.mdx'));
+    assert.equal(french.versions[1].tabs[0].groups[0].pages[0], 'v9.8/getting-started/introduction');
+    assert.match(
+      JSON.stringify(english.versions[1].tabs),
+      /"v9\.8\/en\/getting-started\//,
+    );
+    assert.doesNotMatch(
+      files.get('getting-started/introduction.mdx').toString(),
+      /noindex/,
+    );
+    assert.match(
+      files.get('v9.8/getting-started/introduction.mdx').toString(),
+      /^---\nnoindex: true\n/,
+    );
+  });
+
+  it('keeps the redirects, navbar, footer and assets of the latest version only', () => {
+    assert.deepEqual(docsConfig.redirects, latestConfig.redirects);
+    assert.deepEqual(docsConfig.footer, latestConfig.footer);
+    assert.deepEqual(docsConfig.navbar, latestConfig.navbar);
+    assert.deepEqual(
+      [...files.keys()].filter(
+        (filePath) => filePath.startsWith('v9.8/images/') || filePath.startsWith('snippets/v9.8/'),
+      ),
+      [],
+    );
+  });
+});
+
 describe('parseArguments', () => {
   it('reads the Twenty checkout, the Upshift release and the check and public-only flags', () => {
     assert.deepEqual(
@@ -394,7 +461,27 @@ describe('parseArguments', () => {
         releaseVersion: '2.46.0',
         check: true,
         publicOnly: true,
+        older: [],
       },
+    );
+  });
+
+  it('reads each older version and the Twenty checkout it is built from', () => {
+    assert.deepEqual(
+      parseArguments([
+        '--root',
+        'twenty',
+        '--version',
+        '2.50.1',
+        '--older',
+        '2.49.0=twenty-2.49.0',
+        '--older',
+        '2.48.0=twenty-2.48.0',
+      ]).older,
+      [
+        { version: '2.49.0', twentyRoot: 'twenty-2.49.0' },
+        { version: '2.48.0', twentyRoot: 'twenty-2.48.0' },
+      ],
     );
   });
 
@@ -404,6 +491,7 @@ describe('parseArguments', () => {
       releaseVersion: undefined,
       check: false,
       publicOnly: false,
+      older: [],
     });
   });
 });

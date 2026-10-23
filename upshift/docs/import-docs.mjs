@@ -33,10 +33,12 @@ import {
   markPublic,
   publicTabs,
   rebrandPage,
+  relocateVersion,
   repairAnchors,
   replaceTerms,
   sitePath,
 } from './transform.mjs';
+import { versionPath } from './versions.mjs';
 
 const DOCS_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const LAYER_REPOSITORY_ROOT = path.resolve(DOCS_ROOT, '..', '..');
@@ -267,6 +269,8 @@ export const buildSite = (
   return {
     files,
     problems,
+    sitePages,
+    privatePages,
     summary: {
       pages: LANGUAGES.map(
         ({ language }) => `${publishedPages.get(language).size} ${language}`,
@@ -277,6 +281,67 @@ export const buildSite = (
       privatePages: privatePages.size,
     },
   };
+};
+
+const tabsByLanguage = (files) =>
+  new Map(
+    JSON.parse(files.get('docs.json')).navigation.languages.map(
+      ({ language, versions }) => [language, versions[0].tabs],
+    ),
+  );
+
+// The latest version keeps the root, so links from the app and from search
+// engines keep working; each older version moves under /vX.Y/.
+export const mergeVersions = (latest, olderBuilds) => {
+  const files = new Map(latest.files);
+  const sitePages = [...latest.sitePages];
+  const privatePages = new Set(latest.privatePages);
+  const olderVersions = olderBuilds.map((build) => {
+    const relocated = relocateVersion(
+      { ...build, tabsByLanguage: tabsByLanguage(build.files) },
+      versionPath(build.version),
+      latest.files,
+    );
+
+    for (const [filePath, content] of relocated.files) {
+      files.set(filePath, content);
+    }
+
+    sitePages.push(...relocated.sitePages);
+    relocated.privatePages.forEach((page) => privatePages.add(page));
+
+    return {
+      version: `v${build.version}`,
+      tabsByLanguage: relocated.tabsByLanguage,
+    };
+  });
+  const docsConfig = JSON.parse(latest.files.get('docs.json'));
+
+  files.set(
+    'docs.json',
+    `${JSON.stringify(
+      {
+        ...docsConfig,
+        navigation: {
+          ...docsConfig.navigation,
+          languages: docsConfig.navigation.languages.map((entry) => ({
+            ...entry,
+            versions: [
+              ...entry.versions,
+              ...olderVersions.map(({ version, tabsByLanguage: tabs }) => ({
+                version,
+                tabs: tabs.get(entry.language),
+              })),
+            ],
+          })),
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+
+  return { files, problems: auditSite(files, sitePages, privatePages) };
 };
 
 const listSiteFiles = (directory, prefix = '') =>
@@ -311,33 +376,68 @@ export const parseArguments = (argv) => {
     return index === -1 ? undefined : argv[index + 1];
   };
 
+  const valuesOf = (flag) =>
+    argv.flatMap((argument, index) => (argument === flag ? [argv[index + 1]] : []));
+
   return {
     twentyRoot: valueOf('--root'),
     releaseVersion: valueOf('--version'),
     check: argv.includes('--check'),
     publicOnly: argv.includes('--public-only'),
+    older: valuesOf('--older').map((value) => {
+      const [version, ...rootParts] = value.split('=');
+
+      return { version, twentyRoot: rootParts.join('=') };
+    }),
   };
 };
 
-const main = () => {
-  const { twentyRoot, releaseVersion, check, publicOnly } = parseArguments(
-    process.argv.slice(2),
-  );
-  const appRoot =
-    twentyRoot === undefined ? LAYER_REPOSITORY_ROOT : path.resolve(twentyRoot);
-  const { files, problems, summary } = buildSite(
-    path.join(appRoot, 'packages/twenty-docs'),
-    { appRoot, releaseVersion, publicOnly: publicOnly || !PUBLISH_PRIVATE_SECTIONS },
-  );
-
+const exitOnProblems = (problems) => {
   if (problems.length > 0) {
     console.error(
       `The docs import failed:\n${problems.map((problem) => `- ${problem}`).join('\n')}\nSee upshift/README.md, "Documentation".`,
     );
     process.exit(1);
   }
+};
 
-  const built = `${summary.pages} pages (${summary.privatePages} behind the docs login), ${summary.images} images, ${summary.snippets} snippets, ${summary.redirects} redirects`;
+const main = () => {
+  const { twentyRoot, releaseVersion, check, publicOnly, older } =
+    parseArguments(process.argv.slice(2));
+  const build = (root, version) => {
+    const appRoot =
+      root === undefined ? LAYER_REPOSITORY_ROOT : path.resolve(root);
+
+    return buildSite(path.join(appRoot, 'packages/twenty-docs'), {
+      appRoot,
+      releaseVersion: version,
+      publicOnly: publicOnly || !PUBLISH_PRIVATE_SECTIONS,
+    });
+  };
+  const latest = build(twentyRoot, releaseVersion);
+  const olderBuilds = older.map(({ version, twentyRoot: olderRoot }) => ({
+    version,
+    ...build(olderRoot, version),
+  }));
+
+  exitOnProblems([
+    ...latest.problems,
+    ...olderBuilds.flatMap(({ version, problems }) =>
+      problems.map((problem) => `v${version}: ${problem}`),
+    ),
+  ]);
+
+  const { files, problems } =
+    olderBuilds.length === 0 ? latest : mergeVersions(latest, olderBuilds);
+
+  exitOnProblems(problems);
+
+  const { summary } = latest;
+  const versions =
+    olderBuilds.length === 0
+      ? ''
+      : `, plus ${olderBuilds.length} older versions (${olderBuilds.map(({ version }) => `v${version}`).join(', ')})`;
+  const built = `${summary.pages} pages (${summary.privatePages} behind the docs login), ${summary.images} images, ${summary.snippets} snippets, ${summary.redirects} redirects${versions}`;
 
   if (check) {
     console.log(`The docs import works: ${built}.`);

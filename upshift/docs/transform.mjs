@@ -460,6 +460,94 @@ export const collectAssets = (sources) => {
   return { images: [...images].sort(), snippets: [...snippets].sort() };
 };
 
+const isSameContent = (content, otherContent) =>
+  otherContent !== undefined &&
+  Buffer.from(content).equals(Buffer.from(otherContent));
+
+const prefixNavigation = (entry, prefix) =>
+  typeof entry === 'string'
+    ? `${prefix}/${entry}`
+    : Object.fromEntries(
+        Object.entries(entry).map(([key, value]) => [
+          key,
+          key === 'groups' || key === 'pages'
+            ? value.map((child) => prefixNavigation(child, prefix))
+            : value,
+        ]),
+      );
+
+const markNoindex = (source) =>
+  FRONTMATTER.test(source)
+    ? source.replace(/^---\n/, '---\nnoindex: true\n')
+    : `---\nnoindex: true\n---\n\n${source}`;
+
+// An older version is built like the latest one, then moved under its folder.
+// Assets it shares byte for byte with the latest version stay at the root.
+export const relocateVersion = (
+  { files, sitePages, privatePages, tabsByLanguage },
+  prefix,
+  latestFiles,
+) => {
+  const pages = new Set(sitePages);
+  const movedPath = (asset) =>
+    isSnippet(asset)
+      ? `snippets/${prefix}/${asset.slice('snippets/'.length)}`
+      : `${prefix}/${asset}`;
+  const movedAssets = new Set(
+    [...files.keys()].filter(
+      (filePath) =>
+        isAsset(filePath) &&
+        !isSameContent(files.get(filePath), latestFiles.get(filePath)),
+    ),
+  );
+  const prefixTarget = (target) => {
+    const [page, suffix] = splitTarget(target);
+
+    return pages.has(page) ? `/${prefix}/${page}${suffix}` : target;
+  };
+  const pointAtVersion = (source) =>
+    source
+      .replace(MARKDOWN_LINK, (link, text, target) => `[${text}](${prefixTarget(target)})`)
+      .replace(HREF_ATTRIBUTE, (attribute, target) => `href="${prefixTarget(target)}"`)
+      .replace(IMAGE_REFERENCE, (reference) =>
+        movedAssets.has(reference.slice(1))
+          ? `/${movedPath(reference.slice(1))}`
+          : reference,
+      )
+      .replace(SNIPPET_IMPORT, (statement, snippet) =>
+        movedAssets.has(snippet)
+          ? statement.replace(`/${snippet}`, `/${movedPath(snippet)}`)
+          : statement,
+      );
+  const relocatedFiles = new Map();
+
+  for (const [filePath, content] of files) {
+    if (filePath.endsWith('.mdx') && pages.has(filePath.replace(/\.mdx$/, ''))) {
+      relocatedFiles.set(
+        `${prefix}/${filePath}`,
+        markNoindex(pointAtVersion(content.toString())),
+      );
+    } else if (movedAssets.has(filePath)) {
+      relocatedFiles.set(
+        movedPath(filePath),
+        isSnippet(filePath) ? pointAtVersion(content.toString()) : content,
+      );
+    }
+  }
+
+  return {
+    files: relocatedFiles,
+    sitePages: sitePages.map((page) => `${prefix}/${page}`),
+    privatePages: [...privatePages].map((page) => `${prefix}/${page}`),
+    tabsByLanguage: new Map(
+      [...tabsByLanguage].map(([language, tabs]) => [
+        language,
+        tabs.map((tab) => prefixNavigation(tab, prefix)),
+      ]),
+    ),
+  };
+};
+
 const buildNavbar = (labels) => ({
   primary: { type: 'button', label: labels.contactUs, href: DEMO_URL },
 });
