@@ -31,7 +31,7 @@ jobs:
     # A failed release keeps the docs of the previous one
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
       contents: write
     steps:
@@ -40,24 +40,32 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Find the latest Upshift release
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+
+      - name: Find the Upshift releases to document
         id: release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+          versions=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 200 --exclude-drafts --exclude-pre-releases \
+            --json tagName --jq '.[].tagName' | node upshift/docs/versions.mjs)
+          latest=$(head -n 1 <<< "$versions")
 
-          if ! [[ "$tag" =~ ^upshift/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::The latest GitHub Release is not an Upshift version: '$tag'"
+          if [ -z "$latest" ]; then
+            echo "::error::No GitHub Release is an Upshift version (upshift/vX.Y.Z)"
             exit 1
           fi
 
-          version="${tag#upshift/}"
-          echo "Upshift release: $version, built on Twenty twenty/$version"
+          older=$(tail -n +2 <<< "$versions" | tr '\n' ' ')
+          echo "Upshift docs: v$latest at the root, older versions: ${older:-none}"
           {
-            echo "version=$version"
-            echo "app-version=${version#v}"
-            echo "twenty-tag=twenty/$version"
+            echo "version=v$latest"
+            echo "app-version=$latest"
+            echo "twenty-tag=twenty/v$latest"
+            echo "older=$older"
           } >> "$GITHUB_OUTPUT"
 
       - name: Check out the Twenty sources of Upshift ${{ steps.release.outputs.version }}
@@ -73,18 +81,34 @@ jobs:
           filter: blob:none
           persist-credentials: false
 
-      - name: Set up Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: 24
+      - name: Check out the Twenty sources of the older Upshift versions
+        env:
+          OLDER: ${{ steps.release.outputs.older }}
+        run: |
+          for version in $OLDER; do
+            checkout=".upshift-docs/twenty-$version"
+            git clone -q --depth 1 --filter=blob:none --sparse --branch "twenty/v$version" \
+              https://github.com/twentyhq/twenty.git "$checkout"
+            git -C "$checkout" sparse-checkout set packages/twenty-docs \
+              packages/twenty-shared/src/constants \
+              packages/twenty-server/src/engine/core-modules/upgrade/constants
+          done
 
       - name: Test the docs importer
         run: node --test upshift/docs/test/*.test.mjs
 
-      - name: Build the docs of Upshift ${{ steps.release.outputs.version }}
+      - name: Build the docs of Upshift ${{ steps.release.outputs.version }} and its older versions
         env:
           APP_VERSION: ${{ steps.release.outputs.app-version }}
-        run: node upshift/docs/import-docs.mjs --root .upshift-docs/twenty --version "$APP_VERSION"
+          OLDER: ${{ steps.release.outputs.older }}
+        run: |
+          older_arguments=()
+
+          for version in $OLDER; do
+            older_arguments+=(--older "$version=.upshift-docs/twenty-$version")
+          done
+
+          node upshift/docs/import-docs.mjs --root .upshift-docs/twenty --version "$APP_VERSION" "${older_arguments[@]}"
 
       # Mintlify deploys the docs-site branch; pull requests only prove the build
       - name: Publish the docs-site branch

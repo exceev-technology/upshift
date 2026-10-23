@@ -7,9 +7,16 @@ import { describe, it } from 'node:test';
 import {
   TWENTY_DOCS_ROOT,
   buildSite,
+  mergeVersions,
   parseArguments,
+  readOverrides,
 } from '../import-docs.mjs';
-import { BRAND_COLORS, DEMO_URL } from '../rules.mjs';
+import {
+  BRAND_COLORS,
+  DEMO_URL,
+  EXCLUDED_PAGE_PREFIXES,
+  PHRASE_REPLACEMENTS,
+} from '../rules.mjs';
 
 describe('buildSite on packages/twenty-docs', () => {
   const { files, problems } = buildSite(TWENTY_DOCS_ROOT);
@@ -378,6 +385,206 @@ describe('buildSite on the sources of an Upshift patch release', () => {
   });
 });
 
+describe('buildSite of an older version', () => {
+  const appRoot = writeReleaseSources('9.8.0');
+  const staleRule = {
+    from: 'A sentence Twenty no longer writes.',
+    to: 'Anything.',
+    count: 1,
+  };
+  const withRule = (rule) => ({
+    ...PHRASE_REPLACEMENTS,
+    fr: [...PHRASE_REPLACEMENTS.fr, rule],
+  });
+
+  it('fails the latest version on a phrase rule that no longer matches', () => {
+    const { problems } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+      phraseReplacements: withRule(staleRule),
+    });
+
+    assert.equal(problems.length, 1);
+    assert.match(problems[0], /^fr: rules\.mjs expects 1 matches of "A sentence Twenty no longer writes\." .* found 0$/);
+  });
+
+  it('only warns about it on an older version, whose sources never change', () => {
+    const { problems, warnings } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+      historical: true,
+      phraseReplacements: withRule(staleRule),
+    });
+
+    assert.deepEqual(problems, []);
+    assert.equal(warnings.length, 1);
+    assert.match(warnings[0], /^fr: rules\.mjs expects 1 matches/);
+  });
+
+  it('still fails an older version on an exclusion that matches no page, so excluded pages cannot slip through', () => {
+    const { problems } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+      historical: true,
+      excludedPagePrefixes: [...EXCLUDED_PAGE_PREFIXES, 'user-guide/no-such-section/'],
+    });
+
+    assert.deepEqual(problems, [
+      'rules.mjs excludes user-guide/no-such-section/, but no Twenty page matches it any more; check where those pages moved',
+    ]);
+  });
+
+  it('requires an exclusion bound to versions only in the versions it covers', () => {
+    const { problems } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+      historical: true,
+      excludedPagePrefixes: [
+        ...EXCLUDED_PAGE_PREFIXES,
+        { prefix: 'user-guide/no-such-section/', since: '9.9' },
+      ],
+    });
+
+    assert.deepEqual(problems, []);
+  });
+
+  it('removes the pages of an exclusion only in the versions it covers', () => {
+    const build = (exclusion) =>
+      buildSite(TWENTY_DOCS_ROOT, {
+        appRoot,
+        releaseVersion: '9.8.0',
+        historical: true,
+        excludedPagePrefixes: [...EXCLUDED_PAGE_PREFIXES, exclusion],
+      });
+    const covered = build({ prefix: 'user-guide/data-model/', since: '9.8' });
+    const notCovered = build({ prefix: 'user-guide/data-model/', until: '9.7' });
+    const dataModelPage = 'en/user-guide/data-model/capabilities/fields.mdx';
+
+    assert.deepEqual(covered.problems, []);
+    assert.equal(covered.files.has(dataModelPage), false);
+    assert.deepEqual(notCovered.problems, []);
+    assert.equal(notCovered.files.has(dataModelPage), true);
+  });
+
+  it('skips a rule whose `until` minor is older than the version it builds', () => {
+    const { problems, warnings } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+      phraseReplacements: withRule({ ...staleRule, until: '9.7' }),
+    });
+
+    assert.deepEqual(problems, []);
+    assert.deepEqual(warnings, []);
+  });
+});
+
+describe('buildSite with an override that links to a page a version lacks', () => {
+  const appRoot = writeReleaseSources('9.8.0');
+  const overrides = readOverrides();
+  const communitySettings = 'user-guide/settings/capabilities/community-settings.mdx';
+
+  overrides.set(
+    communitySettings,
+    `${overrides.get(communitySettings)}\n[Plus tard](/user-guide/not-yet) et [Démarrage](/getting-started/introduction).\n`,
+  );
+
+  it('fails the latest version on the broken link', () => {
+    const { problems } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+      overrides,
+    });
+
+    assert.deepEqual(problems, [
+      `${communitySettings} links to /user-guide/not-yet, which is not published`,
+    ]);
+  });
+
+  it('publishes the link as plain text in an older version, with a warning', () => {
+    const { files, problems, warnings } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+      historical: true,
+      overrides,
+    });
+
+    assert.deepEqual(problems, []);
+    assert.deepEqual(warnings, [
+      `overrides/${communitySettings} links to pages this version does not publish; they are plain text`,
+    ]);
+    assert.match(
+      files.get(communitySettings).toString(),
+      /Plus tard et \[Démarrage\]\(\/getting-started\/introduction\)\./,
+    );
+  });
+});
+
+describe('mergeVersions', () => {
+  const latest = buildSite(TWENTY_DOCS_ROOT);
+  const older = {
+    version: '9.8.0',
+    ...buildSite(TWENTY_DOCS_ROOT, {
+      appRoot: writeReleaseSources('9.8.0'),
+      releaseVersion: '9.8.0',
+    }),
+  };
+  const { files, problems } = mergeVersions(latest, [older]);
+  const docsConfig = JSON.parse(files.get('docs.json'));
+  const latestConfig = JSON.parse(latest.files.get('docs.json'));
+
+  it('builds without problems', () => {
+    assert.deepEqual(problems, []);
+  });
+
+  it('lists the latest version first and as the default, then the older one, in every language', () => {
+    for (const { versions } of docsConfig.navigation.languages) {
+      assert.deepEqual(
+        versions.map(({ version, default: isDefault }) => ({
+          version,
+          default: isDefault,
+        })),
+        [
+          { version: latestConfig.navigation.languages[0].versions[0].version, default: true },
+          { version: 'v9.8.0', default: undefined },
+        ],
+      );
+    }
+  });
+
+  it('serves the latest version at the root and the older one under its folder', () => {
+    const [french, english] = docsConfig.navigation.languages;
+
+    assert.ok(files.has('getting-started/introduction.mdx'));
+    assert.ok(files.has('v9.8/getting-started/introduction.mdx'));
+    assert.ok(files.has('v9.8/en/getting-started/introduction.mdx'));
+    assert.equal(french.versions[1].tabs[0].groups[0].pages[0], 'v9.8/getting-started/introduction');
+    assert.match(
+      JSON.stringify(english.versions[1].tabs),
+      /"v9\.8\/en\/getting-started\//,
+    );
+    assert.doesNotMatch(
+      files.get('getting-started/introduction.mdx').toString(),
+      /noindex/,
+    );
+    assert.match(
+      files.get('v9.8/getting-started/introduction.mdx').toString(),
+      /^---\nnoindex: true\n/,
+    );
+  });
+
+  it('keeps the redirects, navbar, footer and assets of the latest version only', () => {
+    assert.deepEqual(docsConfig.redirects, latestConfig.redirects);
+    assert.deepEqual(docsConfig.footer, latestConfig.footer);
+    assert.deepEqual(docsConfig.navbar, latestConfig.navbar);
+    assert.deepEqual(
+      [...files.keys()].filter(
+        (filePath) => filePath.startsWith('v9.8/images/') || filePath.startsWith('snippets/v9.8/'),
+      ),
+      [],
+    );
+  });
+});
+
 describe('parseArguments', () => {
   it('reads the Twenty checkout, the Upshift release and the check and public-only flags', () => {
     assert.deepEqual(
@@ -394,7 +601,27 @@ describe('parseArguments', () => {
         releaseVersion: '2.46.0',
         check: true,
         publicOnly: true,
+        older: [],
       },
+    );
+  });
+
+  it('reads each older version and the Twenty checkout it is built from', () => {
+    assert.deepEqual(
+      parseArguments([
+        '--root',
+        'twenty',
+        '--version',
+        '2.50.1',
+        '--older',
+        '2.49.0=twenty-2.49.0',
+        '--older',
+        '2.48.0=twenty-2.48.0',
+      ]).older,
+      [
+        { version: '2.49.0', twentyRoot: 'twenty-2.49.0' },
+        { version: '2.48.0', twentyRoot: 'twenty-2.48.0' },
+      ],
     );
   });
 
@@ -404,6 +631,7 @@ describe('parseArguments', () => {
       releaseVersion: undefined,
       check: false,
       publicOnly: false,
+      older: [],
     });
   });
 });

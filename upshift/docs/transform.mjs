@@ -39,14 +39,18 @@ const ID_ATTRIBUTE = /\bid="([^"]+)"/g;
 const MARKDOWN_ANCHOR_LINK = /\[([^\]]*)\]\(((?:\/[^)#\s]*)?)#([^)\s]+)\)/g;
 const HREF_ANCHOR = /\bhref="((?:\/[^"#\s]*)?)#([^"\s]+)"/g;
 const PUBLIC_FLAG = /^public: true$/m;
+const VERSION_FOLDER = /^v\d+\.\d+\//;
 
 export const renamePage = (page) => page.replaceAll('twenty', 'upshift');
 
 export const sitePath = (language, page) =>
   `${language.sitePrefix}${renamePage(page)}`;
 
-export const isExcluded = (page) =>
-  EXCLUDED_PAGE_PREFIXES.some((prefix) => page.startsWith(prefix));
+const exclusionPrefix = (exclusion) =>
+  typeof exclusion === 'string' ? exclusion : exclusion.prefix;
+
+export const isExcluded = (page, exclusions = EXCLUDED_PAGE_PREFIXES) =>
+  exclusions.some((exclusion) => page.startsWith(exclusionPrefix(exclusion)));
 
 export const isPrivate = (page) =>
   PRIVATE_SECTIONS.some((section) => page.startsWith(`${section}/`));
@@ -108,19 +112,24 @@ const firstPage = (entry) =>
         .map(firstPage)
         .find((page) => page !== undefined);
 
-export const filterNavigation = (twentyDocsConfig, language) => {
+export const filterNavigation = (
+  twentyDocsConfig,
+  language,
+  { exclusions = EXCLUDED_PAGE_PREFIXES, historical = false } = {},
+) => {
   const twentyTabs =
     twentyDocsConfig.navigation.languages.find(
       ({ language: code }) => code === language.language,
     )?.tabs ?? [];
   const pages = [];
   const excludedPages = [];
+  const missingSections = [];
 
   const filterEntry = (entry) => {
     if (typeof entry === 'string') {
       const page = entry.slice(language.twentyPrefix.length);
 
-      if (isExcluded(page)) {
+      if (isExcluded(page, exclusions)) {
         excludedPages.push(page);
 
         return null;
@@ -138,10 +147,17 @@ export const filterNavigation = (twentyDocsConfig, language) => {
     return children.length === 0 ? null : { ...entry, pages: children };
   };
 
-  const tabs = KEPT_SECTIONS.map((section) => {
+  const tabs = KEPT_SECTIONS.flatMap((section) => {
     const tab = twentyTabs.find((candidate) =>
       firstPage(candidate)?.startsWith(`${language.twentyPrefix}${section}/`),
     );
+
+    // An older version that predates a kept section is published without it
+    if (tab === undefined && historical) {
+      missingSections.push(section);
+
+      return [];
+    }
 
     if (tab === undefined) {
       throw new Error(
@@ -155,15 +171,17 @@ export const filterNavigation = (twentyDocsConfig, language) => {
 
     // Mintlify builds the navigation of signed-out readers from the groups
     // marked public; a page's own `public: true` only opens the page.
-    return {
-      ...tab,
-      groups: PRIVATE_SECTIONS.includes(section)
-        ? groups
-        : groups.map((group) => ({ ...group, public: true })),
-    };
+    return [
+      {
+        ...tab,
+        groups: PRIVATE_SECTIONS.includes(section)
+          ? groups
+          : groups.map((group) => ({ ...group, public: true })),
+      },
+    ];
   });
 
-  return { tabs, pages, excludedPages };
+  return { tabs, pages, excludedPages, missingSections };
 };
 
 export const publicTabs = (language, tabs) =>
@@ -194,9 +212,10 @@ export const listLinkedPages = (source) =>
 
 export const findUnmatchedExclusions = (
   excludedPages,
-  prefixes = EXCLUDED_PAGE_PREFIXES,
+  exclusions = EXCLUDED_PAGE_PREFIXES,
 ) =>
-  prefixes
+  exclusions
+    .map(exclusionPrefix)
     .filter((prefix) => !excludedPages.some((page) => page.startsWith(prefix)))
     .map(
       (prefix) =>
@@ -296,6 +315,25 @@ export const applyOverrides = (files, overrides, sitePages) => {
   }
 
   return problems;
+};
+
+// rebrandPage turns Twenty's links to unpublished pages into text; an older
+// version gets the same for links in Upshift's overrides.
+export const unlinkMissingPages = (source, sitePages) => {
+  const published = new Set(sitePages);
+  const isMissingPage = (target) => {
+    const [page] = splitTarget(target);
+
+    return page !== '' && !isAsset(page) && !published.has(page);
+  };
+
+  return source
+    .replace(MARKDOWN_LINK, (link, text, target) =>
+      isMissingPage(target) ? text : link,
+    )
+    .replace(HREF_ATTRIBUTE, (attribute, target) =>
+      isMissingPage(target) ? '' : attribute,
+    );
 };
 
 export const replaceOutsideCode = (source, pattern, replacement) =>
@@ -460,6 +498,122 @@ export const collectAssets = (sources) => {
   return { images: [...images].sort(), snippets: [...snippets].sort() };
 };
 
+const isSameContent = (content, otherContent) =>
+  otherContent !== undefined &&
+  Buffer.from(content).equals(Buffer.from(otherContent));
+
+const prefixNavigation = (entry, prefix) =>
+  typeof entry === 'string'
+    ? `${prefix}/${entry}`
+    : Object.fromEntries(
+        Object.entries(entry).map(([key, value]) => [
+          key,
+          key === 'groups' || key === 'pages'
+            ? value.map((child) => prefixNavigation(child, prefix))
+            : value,
+        ]),
+      );
+
+const markNoindex = (source) =>
+  FRONTMATTER.test(source)
+    ? source.replace(/^---\n/, '---\nnoindex: true\n')
+    : `---\nnoindex: true\n---\n\n${source}`;
+
+// An older version is built like the latest one, then moved under its folder.
+// Assets it shares byte for byte with the latest version stay at the root,
+// unless they link to one of its pages or use an asset it keeps.
+export const relocateVersion = (
+  { files, sitePages, privatePages, tabsByLanguage },
+  prefix,
+  latestFiles,
+) => {
+  const pages = new Set(sitePages);
+  const movedPath = (asset) =>
+    isSnippet(asset)
+      ? `snippets/${prefix}/${asset.slice('snippets/'.length)}`
+      : `${prefix}/${asset}`;
+  const linksToVersionPage = (source) =>
+    linkTargets(source).some((target) => pages.has(splitTarget(target)[0]));
+  const movedAssets = new Set(
+    [...files.keys()].filter(
+      (filePath) =>
+        isAsset(filePath) &&
+        (!isSameContent(files.get(filePath), latestFiles.get(filePath)) ||
+          (isSnippet(filePath) &&
+            linksToVersionPage(files.get(filePath).toString()))),
+    ),
+  );
+  const snippetDependencies = [...files.keys()]
+    .filter(isSnippet)
+    .map((snippet) => {
+      const { images, snippets } = collectAssets([files.get(snippet).toString()]);
+
+      return [snippet, [...images, ...snippets]];
+    });
+  let hasMovedMore = true;
+
+  // A shared snippet would show the latest copy of what it uses
+  while (hasMovedMore) {
+    hasMovedMore = false;
+
+    for (const [snippet, dependencies] of snippetDependencies) {
+      if (
+        !movedAssets.has(snippet) &&
+        dependencies.some((dependency) => movedAssets.has(dependency))
+      ) {
+        movedAssets.add(snippet);
+        hasMovedMore = true;
+      }
+    }
+  }
+  const prefixTarget = (target) => {
+    const [page, suffix] = splitTarget(target);
+
+    return pages.has(page) ? `/${prefix}/${page}${suffix}` : target;
+  };
+  const pointAtVersion = (source) =>
+    source
+      .replace(MARKDOWN_LINK, (link, text, target) => `[${text}](${prefixTarget(target)})`)
+      .replace(HREF_ATTRIBUTE, (attribute, target) => `href="${prefixTarget(target)}"`)
+      .replace(IMAGE_REFERENCE, (reference) =>
+        movedAssets.has(reference.slice(1))
+          ? `/${movedPath(reference.slice(1))}`
+          : reference,
+      )
+      .replace(SNIPPET_IMPORT, (statement, snippet) =>
+        movedAssets.has(snippet)
+          ? statement.replace(`/${snippet}`, `/${movedPath(snippet)}`)
+          : statement,
+      );
+  const relocatedFiles = new Map();
+
+  for (const [filePath, content] of files) {
+    if (filePath.endsWith('.mdx') && pages.has(filePath.replace(/\.mdx$/, ''))) {
+      relocatedFiles.set(
+        `${prefix}/${filePath}`,
+        markNoindex(pointAtVersion(content.toString())),
+      );
+    } else if (movedAssets.has(filePath)) {
+      relocatedFiles.set(
+        movedPath(filePath),
+        isSnippet(filePath) ? pointAtVersion(content.toString()) : content,
+      );
+    }
+  }
+
+  return {
+    files: relocatedFiles,
+    sitePages: sitePages.map((page) => `${prefix}/${page}`),
+    privatePages: [...privatePages].map((page) => `${prefix}/${page}`),
+    tabsByLanguage: new Map(
+      [...tabsByLanguage].map(([language, tabs]) => [
+        language,
+        tabs.map((tab) => prefixNavigation(tab, prefix)),
+      ]),
+    ),
+  };
+};
+
 const buildNavbar = (labels) => ({
   primary: { type: 'button', label: labels.contactUs, href: DEMO_URL },
 });
@@ -591,7 +745,9 @@ export const auditSite = (files, sitePages, privatePages = new Set()) => {
 
     for (const target of linkTargets(text)) {
       const [page] = splitTarget(target);
-      const isMissing = isAsset(page) ? !files.has(page) : !published.has(page);
+      const isMissing = isAsset(page.replace(VERSION_FOLDER, ''))
+        ? !files.has(page)
+        : !published.has(page);
 
       if (isMissing) {
         problems.push(`${filePath} links to ${target}, which is not published`);

@@ -7,6 +7,7 @@ import {
   filterNavigation,
   filterRedirects,
   findUnmatchedExclusions,
+  isExcluded,
   listLinkedPages,
   publicTabs,
   renamePage,
@@ -179,6 +180,29 @@ describe('publicTabs', () => {
       /en docs have no tab for user-guide\/ pages/,
     );
   });
+
+  it('leaves the section out of an older version that does not have it', () => {
+    const withoutUserGuide = structuredClone(twentyDocsConfig);
+
+    withoutUserGuide.navigation.languages[0].tabs.splice(1, 1);
+
+    const { tabs, missingSections } = filterNavigation(withoutUserGuide, ENGLISH, {
+      historical: true,
+    });
+
+    assert.deepEqual(tabs.map(({ tab }) => tab), ['Getting Started', 'Developers']);
+    assert.deepEqual(missingSections, ['user-guide']);
+  });
+
+  it('excludes pages with the exclusions it is given', () => {
+    const { pages, excludedPages } = filterNavigation(twentyDocsConfig, ENGLISH, {
+      exclusions: ['user-guide/'],
+    });
+
+    assert.ok(pages.every((page) => !page.startsWith('user-guide/')));
+    assert.ok(excludedPages.some((page) => page.startsWith('user-guide/')));
+    assert.ok(pages.some((page) => page.startsWith('getting-started/')));
+  });
 });
 
 describe('filterRedirects', () => {
@@ -270,6 +294,34 @@ describe('findUnmatchedExclusions', () => {
         'rules.mjs excludes user-guide/legal/, but no Twenty page matches it any more; check where those pages moved',
       ],
     );
+  });
+
+  it('reads the prefix of an exclusion bound to versions', () => {
+    assert.deepEqual(
+      findUnmatchedExclusions(
+        ['user-guide/billing/overview'],
+        [
+          { prefix: 'user-guide/billing/', until: '2.50' },
+          { prefix: 'user-guide/plans/', since: '2.51' },
+        ],
+      ),
+      [
+        'rules.mjs excludes user-guide/plans/, but no Twenty page matches it any more; check where those pages moved',
+      ],
+    );
+  });
+});
+
+describe('isExcluded', () => {
+  it('excludes a page under any prefix, whatever versions the prefix is bound to', () => {
+    const exclusions = [
+      'user-guide/old-plans/',
+      { prefix: 'user-guide/new-plans/', since: '2.51' },
+    ];
+
+    assert.equal(isExcluded('user-guide/old-plans/terms', exclusions), true);
+    assert.equal(isExcluded('user-guide/new-plans/overview', exclusions), true);
+    assert.equal(isExcluded('user-guide/billing/overview', exclusions), false);
   });
 });
 
