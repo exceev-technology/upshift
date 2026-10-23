@@ -523,6 +523,29 @@ const PATCHES = [
   {
     file: `${SERVER}/engine/core-modules/tool/tools/search-help-center-tool/search-help-center-tool.ts`,
     replacements: [
+      // One layout per Twenty version (v2.50 moved the search to the docs MCP server); the
+      // census fails on the Twenty search URL if neither matches
+      {
+        from: '      const useDirectApi = MINTLIFY_API_KEY && MINTLIFY_SUBDOMAIN;\n',
+        to: [
+          '      const useDirectApi = MINTLIFY_API_KEY && MINTLIFY_SUBDOMAIN;',
+          '',
+          '      if (!useDirectApi) {',
+          '        return {',
+          '          success: false,',
+          '          message: `Help center search is not available for "${query}"`,',
+          "          error: 'Help center search is disabled',",
+          '        };',
+          '      }',
+          '',
+        ].join('\n'),
+        optional: true,
+      },
+      {
+        from: "'https://twenty-help-search.com/search/twenty'",
+        to: "''",
+        optional: true,
+      },
       {
         from: '    try {\n      const httpClient = this.secureHttpClientService.getHttpClient({\n',
         to: [
@@ -538,8 +561,9 @@ const PATCHES = [
           '      const httpClient = this.secureHttpClientService.getHttpClient({',
           '',
         ].join('\n'),
+        optional: true,
       },
-      { from: "'https://docs.twenty.com/mcp'", to: "''" },
+      { from: "'https://docs.twenty.com/mcp'", to: "''", optional: true },
       { brandWord: true },
     ],
   },
