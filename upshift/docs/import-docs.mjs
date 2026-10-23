@@ -221,11 +221,18 @@ export const buildSite = (
       /TWENTY_CURRENT_VERSION = '(\d+\.\d+\.\d+)'/,
     ) ?? [];
 
+  // Twenty bumps this constant only for minor releases, so twenty/v2.50.1 still carries 2.50.0
+  const releaseMinorVersion = releaseVersion?.replace(/\.\d+$/, '.0');
+
   if (sourceVersion === undefined) {
     problems.push(
       `cannot read the release version from ${APP_RELEASE_VERSION}`,
     );
-  } else if (releaseVersion !== undefined && releaseVersion !== sourceVersion) {
+  } else if (
+    releaseVersion !== undefined &&
+    sourceVersion !== releaseVersion &&
+    sourceVersion !== releaseMinorVersion
+  ) {
     problems.push(
       `the docs are built for Upshift v${releaseVersion} but the sources carry ${sourceVersion}`,
     );
@@ -252,7 +259,7 @@ export const buildSite = (
   files.set('booking.js', readFileSync(path.join(DOCS_ROOT, 'booking.js')));
   files.set(
     'docs.json',
-    `${JSON.stringify(buildDocsConfig(twentyDocsConfig, publishedNavigation, redirects, sourceVersion), null, 2)}\n`,
+    `${JSON.stringify(buildDocsConfig(twentyDocsConfig, publishedNavigation, redirects, releaseVersion ?? sourceVersion), null, 2)}\n`,
   );
 
   problems.push(...auditSite(files, sitePages, privatePages));
