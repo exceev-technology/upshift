@@ -445,6 +445,20 @@ export const PHRASE_REPLACEMENTS = {
       from: `[open an issue](${TWENTY_ISSUE_LINK})`,
       to: `[contact the ${BRAND_NAME} team](${CONTACT_LINK})`,
       count: 2,
+      until: '2.51',
+    },
+    {
+      from: `[open an issue](${TWENTY_ISSUE_LINK})`,
+      to: `[contact the ${BRAND_NAME} team](${CONTACT_LINK})`,
+      count: 1,
+      since: '2.52',
+    },
+    // Twenty 2.52 wraps this link in sync-and-recovery.
+    {
+      from: `[open an\n  issue](${TWENTY_ISSUE_LINK})`,
+      to: `[contact the ${BRAND_NAME} team](${CONTACT_LINK})`,
+      count: 1,
+      since: '2.52',
     },
     // Twenty's agent skills are published from its own repository.
     {
@@ -471,6 +485,12 @@ export const PHRASE_REPLACEMENTS = {
     },
     // The scaffolded CI workflows call reusable actions from Twenty's
     // repository; the pages describe what they do without naming it.
+    {
+      from: ' through `twentyhq/twenty/.github/actions/spawn-twenty-app-dev-test@main`',
+      to: '',
+      count: 1,
+      since: '2.52',
+    },
     {
       from: ' using the `twentyhq/twenty/.github/actions/spawn-twenty-app-dev-test@main` composite action',
       to: '',
