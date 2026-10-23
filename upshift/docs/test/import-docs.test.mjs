@@ -10,7 +10,7 @@ import {
   mergeVersions,
   parseArguments,
 } from '../import-docs.mjs';
-import { BRAND_COLORS, DEMO_URL } from '../rules.mjs';
+import { BRAND_COLORS, DEMO_URL, PHRASE_REPLACEMENTS } from '../rules.mjs';
 
 describe('buildSite on packages/twenty-docs', () => {
   const { files, problems } = buildSite(TWENTY_DOCS_ROOT);
@@ -376,6 +376,54 @@ describe('buildSite on the sources of an Upshift patch release', () => {
     assert.deepEqual(problems, [
       'the docs are built for Upshift v9.8.0 but the sources carry 9.9.0',
     ]);
+  });
+});
+
+describe('buildSite of an older version', () => {
+  const appRoot = writeReleaseSources('9.8.0');
+  const staleRule = {
+    from: 'A sentence Twenty no longer writes.',
+    to: 'Anything.',
+    count: 1,
+  };
+  const withRule = (rule) => ({
+    ...PHRASE_REPLACEMENTS,
+    fr: [...PHRASE_REPLACEMENTS.fr, rule],
+  });
+
+  it('fails the latest version on a phrase rule that no longer matches', () => {
+    const { problems } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+      phraseReplacements: withRule(staleRule),
+    });
+
+    assert.equal(problems.length, 1);
+    assert.match(problems[0], /^fr: rules\.mjs expects 1 matches of "A sentence Twenty no longer writes\." .* found 0$/);
+  });
+
+  it('only warns about it on an older version, whose sources never change', () => {
+    const { problems, warnings } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+      historical: true,
+      phraseReplacements: withRule(staleRule),
+    });
+
+    assert.deepEqual(problems, []);
+    assert.equal(warnings.length, 1);
+    assert.match(warnings[0], /^fr: rules\.mjs expects 1 matches/);
+  });
+
+  it('skips a rule whose `until` minor is older than the version it builds', () => {
+    const { problems, warnings } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+      phraseReplacements: withRule({ ...staleRule, until: '9.7' }),
+    });
+
+    assert.deepEqual(problems, []);
+    assert.deepEqual(warnings, []);
   });
 });
 

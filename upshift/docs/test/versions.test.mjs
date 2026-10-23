@@ -1,13 +1,29 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { relocateVersion } from '../transform.mjs';
+import { auditSite, relocateVersion } from '../transform.mjs';
 import {
   MAX_DOCS_VERSIONS,
   OLDEST_DOCS_MINOR,
+  isRuleForVersion,
   selectDocsVersions,
   versionPath,
 } from '../versions.mjs';
+
+describe('isRuleForVersion', () => {
+  it('applies a rule without `until` to every version', () => {
+    assert.equal(isRuleForVersion({ from: 'a', to: 'b', count: 1 }, '9.9.0'), true);
+  });
+
+  it('applies a rule with `until` up to that minor only', () => {
+    const rule = { from: 'a', to: 'b', count: 1, until: '2.50' };
+
+    assert.equal(isRuleForVersion(rule, '2.49.0'), true);
+    assert.equal(isRuleForVersion(rule, '2.50.1'), true);
+    assert.equal(isRuleForVersion(rule, '2.51.0'), false);
+    assert.equal(isRuleForVersion(rule, '3.0.0'), false);
+  });
+});
 
 describe('selectDocsVersions', () => {
   it('keeps the latest patch of each minor, newest first', () => {
@@ -174,11 +190,71 @@ describe('relocateVersion', () => {
     assert.match(introduction, /src="\/v2\.49\/images\/only-old\.png"/);
   });
 
+  it('passes the site audit with the images it keeps under its folder', () => {
+    assert.deepEqual(
+      auditSite(
+        new Map([...latestFiles, ...relocated.files]),
+        relocated.sitePages,
+        new Set(relocated.privatePages),
+      ),
+      [],
+    );
+  });
+
   it('asks search engines to index only the latest version', () => {
     assert.match(introduction, /^---\nnoindex: true\ntitle: Page\npublic: true\n---\n/);
     assert.match(
       relocated.files.get('v2.49/en/getting-started/introduction.mdx').toString(),
       /^---\nnoindex: true\ntitle: Private\n---\n/,
+    );
+  });
+});
+
+describe('relocateVersion with a snippet whose dependencies changed', () => {
+  const chart = '<img src="/images/chart.png" />';
+  const wrapper = "import { Chart } from '/snippets/chart.mdx';\n\n<Chart />";
+  const latestFiles = new Map([
+    ['images/chart.png', Buffer.from('new chart')],
+    ['snippets/chart.mdx', chart],
+    ['snippets/wrapper.mdx', wrapper],
+  ]);
+  const relocated = relocateVersion(
+    {
+      files: new Map([
+        ['images/chart.png', Buffer.from('old chart')],
+        ['snippets/chart.mdx', chart],
+        ['snippets/wrapper.mdx', wrapper],
+        [
+          'page.mdx',
+          "---\ntitle: Page\n---\n\nimport { Wrapper } from '/snippets/wrapper.mdx';\n\n<Wrapper />\n",
+        ],
+      ]),
+      sitePages: ['page'],
+      privatePages: [],
+      tabsByLanguage: new Map(),
+    },
+    'v2.49',
+    latestFiles,
+  );
+
+  it('keeps its own copy of every snippet that leads to a changed asset', () => {
+    assert.deepEqual([...relocated.files.keys()].sort(), [
+      'snippets/v2.49/chart.mdx',
+      'snippets/v2.49/wrapper.mdx',
+      'v2.49/images/chart.png',
+      'v2.49/page.mdx',
+    ]);
+    assert.match(
+      relocated.files.get('snippets/v2.49/chart.mdx'),
+      /src="\/v2\.49\/images\/chart\.png"/,
+    );
+    assert.match(
+      relocated.files.get('snippets/v2.49/wrapper.mdx'),
+      /from '\/snippets\/v2\.49\/chart\.mdx'/,
+    );
+    assert.match(
+      relocated.files.get('v2.49/page.mdx'),
+      /from '\/snippets\/v2\.49\/wrapper\.mdx'/,
     );
   });
 });

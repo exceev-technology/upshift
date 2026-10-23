@@ -38,7 +38,7 @@ import {
   replaceTerms,
   sitePath,
 } from './transform.mjs';
-import { versionPath } from './versions.mjs';
+import { isRuleForVersion, versionPath } from './versions.mjs';
 
 const DOCS_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const LAYER_REPOSITORY_ROOT = path.resolve(DOCS_ROOT, '..', '..');
@@ -59,10 +59,23 @@ export const TWENTY_DOCS_ROOT = path.join(
 
 export const buildSite = (
   twentyDocsRoot,
-  { appRoot = LAYER_REPOSITORY_ROOT, releaseVersion, publicOnly = false } = {},
+  {
+    appRoot = LAYER_REPOSITORY_ROOT,
+    releaseVersion,
+    publicOnly = false,
+    historical = false,
+    phraseReplacements = PHRASE_REPLACEMENTS,
+  } = {},
 ) => {
   const readTwenty = (relativePath) =>
     readFileSync(path.join(twentyDocsRoot, relativePath));
+  const readApp = (relativePath) =>
+    readFileSync(path.join(appRoot, relativePath), 'utf8');
+  const [, sourceVersion] =
+    readApp(APP_RELEASE_VERSION).match(
+      /TWENTY_CURRENT_VERSION = '(\d+\.\d+\.\d+)'/,
+    ) ?? [];
+  const documentedVersion = releaseVersion ?? sourceVersion;
   const twentyDocsConfig = JSON.parse(readTwenty('docs.json').toString());
   const navigation = LANGUAGES.map((language) => ({
     language,
@@ -114,17 +127,27 @@ export const buildSite = (
   }
 
   const files = new Map();
-  const problems = findUnmatchedExclusions(excludedPages);
+  const problems = [];
+  const warnings = [];
+  // An older version's sources never change, so a rule that stopped matching
+  // them only warns; the site audit still fails on anything unsafe.
+  const ruleProblems = historical ? warnings : problems;
   const outputs = new Map();
+
+  ruleProblems.push(...findUnmatchedExclusions(excludedPages));
 
   for (const { language } of navigation) {
     const { outputs: languageOutputs, problems: phraseProblems } =
       applyPhraseReplacements(
         sources.get(language.language),
-        PHRASE_REPLACEMENTS[language.language],
+        phraseReplacements[language.language].filter(
+          (rule) =>
+            documentedVersion === undefined ||
+            isRuleForVersion(rule, documentedVersion),
+        ),
       );
 
-    problems.push(
+    ruleProblems.push(
       ...phraseProblems.map((problem) => `${language.language}: ${problem}`),
     );
     outputs.set(language.language, languageOutputs);
@@ -174,7 +197,7 @@ export const buildSite = (
     ]),
   );
 
-  problems.push(...applyOverrides(files, overrides, sitePages));
+  ruleProblems.push(...applyOverrides(files, overrides, sitePages));
 
   for (const page of sitePages) {
     if (!privatePages.has(page) && files.has(`${page}.mdx`)) {
@@ -204,8 +227,6 @@ export const buildSite = (
 
   const readBranding = (fileName) =>
     readFileSync(path.join(BRANDING_ROOT, fileName));
-  const readApp = (relativePath) =>
-    readFileSync(path.join(appRoot, relativePath), 'utf8');
   const appLanguages = [
     ...readApp(APP_DOCUMENTATION_LANGUAGES).matchAll(/'([a-z]{2})'/g),
   ].map(([, code]) => code);
@@ -217,11 +238,6 @@ export const buildSite = (
       `cannot read the app's documentation languages from ${APP_DOCUMENTATION_LANGUAGES}`,
     );
   }
-
-  const [, sourceVersion] =
-    readApp(APP_RELEASE_VERSION).match(
-      /TWENTY_CURRENT_VERSION = '(\d+\.\d+\.\d+)'/,
-    ) ?? [];
 
   // Twenty bumps this constant only for minor releases, so twenty/v2.50.1 still carries 2.50.0
   const releaseMinorVersion = releaseVersion?.replace(/\.\d+$/, '.0');
@@ -261,7 +277,7 @@ export const buildSite = (
   files.set('booking.js', readFileSync(path.join(DOCS_ROOT, 'booking.js')));
   files.set(
     'docs.json',
-    `${JSON.stringify(buildDocsConfig(twentyDocsConfig, publishedNavigation, redirects, releaseVersion ?? sourceVersion), null, 2)}\n`,
+    `${JSON.stringify(buildDocsConfig(twentyDocsConfig, publishedNavigation, redirects, documentedVersion), null, 2)}\n`,
   );
 
   problems.push(...auditSite(files, sitePages, privatePages));
@@ -269,6 +285,7 @@ export const buildSite = (
   return {
     files,
     problems,
+    warnings,
     sitePages,
     privatePages,
     summary: {
@@ -404,7 +421,7 @@ const exitOnProblems = (problems) => {
 const main = () => {
   const { twentyRoot, releaseVersion, check, publicOnly, older } =
     parseArguments(process.argv.slice(2));
-  const build = (root, version) => {
+  const build = (root, version, historical) => {
     const appRoot =
       root === undefined ? LAYER_REPOSITORY_ROOT : path.resolve(root);
 
@@ -412,13 +429,23 @@ const main = () => {
       appRoot,
       releaseVersion: version,
       publicOnly: publicOnly || !PUBLISH_PRIVATE_SECTIONS,
+      historical,
     });
   };
-  const latest = build(twentyRoot, releaseVersion);
+  const latest = build(twentyRoot, releaseVersion, false);
   const olderBuilds = older.map(({ version, twentyRoot: olderRoot }) => ({
     version,
-    ...build(olderRoot, version),
+    ...build(olderRoot, version, true),
   }));
+  const warnings = olderBuilds.flatMap(({ version, warnings: olderWarnings }) =>
+    olderWarnings.map((warning) => `v${version}: ${warning}`),
+  );
+
+  if (warnings.length > 0) {
+    console.warn(
+      `Rules that no longer match an older version (its pages are published without them):\n${warnings.map((warning) => `- ${warning}`).join('\n')}`,
+    );
+  }
 
   exitOnProblems([
     ...latest.problems,

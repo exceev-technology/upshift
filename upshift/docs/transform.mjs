@@ -39,6 +39,7 @@ const ID_ATTRIBUTE = /\bid="([^"]+)"/g;
 const MARKDOWN_ANCHOR_LINK = /\[([^\]]*)\]\(((?:\/[^)#\s]*)?)#([^)\s]+)\)/g;
 const HREF_ANCHOR = /\bhref="((?:\/[^"#\s]*)?)#([^"\s]+)"/g;
 const PUBLIC_FLAG = /^public: true$/m;
+const VERSION_FOLDER = /^v\d+\.\d+\//;
 
 export const renamePage = (page) => page.replaceAll('twenty', 'upshift');
 
@@ -500,6 +501,29 @@ export const relocateVersion = (
         !isSameContent(files.get(filePath), latestFiles.get(filePath)),
     ),
   );
+  const snippetDependencies = [...files.keys()]
+    .filter(isSnippet)
+    .map((snippet) => {
+      const { images, snippets } = collectAssets([files.get(snippet).toString()]);
+
+      return [snippet, [...images, ...snippets]];
+    });
+  let hasMovedMore = true;
+
+  // A shared snippet would show the latest copy of what it uses
+  while (hasMovedMore) {
+    hasMovedMore = false;
+
+    for (const [snippet, dependencies] of snippetDependencies) {
+      if (
+        !movedAssets.has(snippet) &&
+        dependencies.some((dependency) => movedAssets.has(dependency))
+      ) {
+        movedAssets.add(snippet);
+        hasMovedMore = true;
+      }
+    }
+  }
   const prefixTarget = (target) => {
     const [page, suffix] = splitTarget(target);
 
@@ -679,7 +703,9 @@ export const auditSite = (files, sitePages, privatePages = new Set()) => {
 
     for (const target of linkTargets(text)) {
       const [page] = splitTarget(target);
-      const isMissing = isAsset(page) ? !files.has(page) : !published.has(page);
+      const isMissing = isAsset(page.replace(VERSION_FOLDER, ''))
+        ? !files.has(page)
+        : !published.has(page);
 
       if (isMissing) {
         problems.push(`${filePath} links to ${target}, which is not published`);
