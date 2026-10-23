@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 import { relocateVersion } from '../transform.mjs';
 import {
   MAX_DOCS_VERSIONS,
+  OLDEST_DOCS_MINOR,
   selectDocsVersions,
   versionPath,
 } from '../versions.mjs';
@@ -15,17 +16,31 @@ describe('selectDocsVersions', () => {
         'upshift/v2.49.0',
         'upshift/v2.50.0',
         'upshift/v2.50.1',
-        'upshift/v2.45.6',
+        'upshift/v2.47.0',
         'upshift/v2.48.0',
       ]),
-      ['2.50.1', '2.49.0', '2.48.0', '2.45.6'],
+      ['2.50.1', '2.49.0', '2.48.0', '2.47.0'],
+    );
+  });
+
+  it(`leaves out the minors older than v${OLDEST_DOCS_MINOR}`, () => {
+    assert.equal(OLDEST_DOCS_MINOR, '2.47');
+    assert.deepEqual(
+      selectDocsVersions([
+        'upshift/v2.48.0',
+        'upshift/v2.47.0',
+        'upshift/v2.46.0',
+        'upshift/v2.45.6',
+        'upshift/v1.99.0',
+      ]),
+      ['2.48.0', '2.47.0'],
     );
   });
 
   it('compares versions as numbers and ignores tags that are not Upshift releases', () => {
     assert.deepEqual(
-      selectDocsVersions(['upshift/v2.9.3', 'upshift/v2.10.0', 'twenty/v2.11.0', 'v2.12.0']),
-      ['2.10.0', '2.9.3'],
+      selectDocsVersions(['upshift/v2.49.3', 'upshift/v2.100.0', 'twenty/v2.101.0', 'v2.102.0']),
+      ['2.100.0', '2.49.3'],
     );
   });
 
