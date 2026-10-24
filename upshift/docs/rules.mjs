@@ -566,7 +566,7 @@ export const TERM_REPLACEMENTS = {
     [/\ble CRM qui\b/g, 'la plateforme qui'],
   ],
   en: [
-    [/\bCRM (data|records?|objects|experience|work)\b/g, '$1'],
+    [/\bCRM (data|records?|objects|experience|work|task)\b/g, '$1'],
     [/\bdirectly into your CRM\b/g, 'directly into the platform'],
     [/\b(in|into|to|within|through) your CRM\b/g, `$1 ${BRAND_NAME}`],
     [/\bto the CRM\b/g, `to ${BRAND_NAME}`],
