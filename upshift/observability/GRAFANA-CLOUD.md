@@ -29,7 +29,7 @@ Keep `/otlp` when the supplied endpoint includes it. Do not append `/v1/logs`, `
 
 ## 2. Generate the Cloud deployment files
 
-Run these commands from the repository root in your deployment checkout with Node 22+ and Docker Compose available. They create two **new** files; neither contains client secrets. The shared privacy processors remain unchanged, while Cloud uses protobuf OTLP and Basic authentication.
+Both files are committed: `upshift/docker/alloy/config.grafana-cloud.alloy` and `upshift/docker/docker-compose.coolify-grafana-cloud.yml`. Run these commands only to regenerate them, from the repository root with Node 22+ and Docker Compose available; neither file contains client secrets. The shared privacy processors remain unchanged, while Cloud uses protobuf OTLP and Basic authentication.
 
 First refresh the base generated Compose:
 
@@ -101,7 +101,7 @@ docker compose -f upshift/docker/docker-compose.coolify-grafana-cloud.yml \
   config --no-interpolate --no-env-resolution --quiet
 ```
 
-Review and commit both generated files to the deployment branch Coolify reads. The recipe intentionally does not push anything. After changing the shared collector or application Compose sources, regenerate and review this variant again, reapplying any client-specific middleware names or disabled-collection settings.
+Review and commit both regenerated files to the deployment branch Coolify reads. The recipe intentionally does not push anything. After changing the shared collector or application Compose sources, regenerate and review this variant again, reapplying any client-specific middleware names or disabled-collection settings.
 
 ## 3. Deploy the client resource
 
