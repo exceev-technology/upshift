@@ -27,6 +27,8 @@ const CODE_SEGMENT = /(```[\s\S]*?```|`[^`\n]*`)/;
 const MARKDOWN_LINK = /\[([^\]]*)\]\((\/[^)\s]*)\)/g;
 const CARD_WITH_HREF =
   /<Card\b[^>]*?\bhref="(\/[^"]*)"[^>]*?(?:\/>|>[\s\S]*?<\/Card>)/g;
+const LANDING_BUTTON_WITH_HREF =
+  /<LandingButton\b[^>]*?\bhref="(\/[^"]*)"[^>]*>[\s\S]*?<\/LandingButton>/g;
 const EMPTY_CARD_GROUP = /<CardGroup\b[^>]*>\s*<\/CardGroup>\n?/g;
 const HREF_ATTRIBUTE = /\bhref="(\/[^"]*)"/g;
 const IMAGE_REFERENCE = /\/images\/[^\s)"'`]+/g;
@@ -108,7 +110,8 @@ const resolveLink = (target, publishedPages) => {
 const firstPage = (entry) =>
   typeof entry === 'string'
     ? entry
-    : (entry.groups ?? entry.pages)
+    : [entry.root, ...(entry.groups ?? entry.pages)]
+        .filter((child) => child !== undefined)
         .map(firstPage)
         .find((page) => page !== undefined);
 
@@ -140,11 +143,20 @@ export const filterNavigation = (
       return sitePath(language, page);
     }
 
+    // Twenty puts a section's overview page in its group's `root`
+    const { root, ...group } = entry;
+    const filteredRoot = root === undefined ? null : filterEntry(root);
     const children = entry.pages
       .map(filterEntry)
       .filter((child) => child !== null);
 
-    return children.length === 0 ? null : { ...entry, pages: children };
+    if (children.length === 0 && filteredRoot === null) {
+      return null;
+    }
+
+    return filteredRoot === null
+      ? { ...group, pages: children }
+      : { ...group, root: filteredRoot, pages: children };
   };
 
   const tabs = KEPT_SECTIONS.flatMap((section) => {
@@ -379,6 +391,10 @@ export const rebrandPage = (source, publishedPages, brandWord) => {
     resolveLink(target, publishedPages) === null ? '' : card,
   );
 
+  output = output.replace(LANDING_BUTTON_WITH_HREF, (button, target) =>
+    resolveLink(target, publishedPages) === null ? '' : button,
+  );
+
   output = output.replace(MARKDOWN_LINK, (link, text, target) => {
     const resolved = resolveLink(target, publishedPages);
 
@@ -510,7 +526,9 @@ const prefixNavigation = (entry, prefix) =>
           key,
           key === 'groups' || key === 'pages'
             ? value.map((child) => prefixNavigation(child, prefix))
-            : value,
+            : key === 'root'
+              ? prefixNavigation(value, prefix)
+              : value,
         ]),
       );
 

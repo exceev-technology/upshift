@@ -225,6 +225,13 @@ export const PHRASE_REPLACEMENTS = {
       from: 'description: Créez des applications, utilisez l\'API, auto-hébergez ou contribuez à la base de code.\n---\n\nimport { CardTitle } from "/snippets/card-title.mdx"\n\n<CardGroup cols={3}>',
       to: 'description: Créez des applications et utilisez l\'API.\n---\n\nimport { CardTitle } from "/snippets/card-title.mdx"\n\n<CardGroup cols={2}>',
       count: 1,
+      until: '2.51',
+    },
+    {
+      from: 'description: Créez des applications, utilisez l\'API, auto-hébergez ou contribuez à la base de code.\n---\n\nimport { CardTitle } from "/snippets/card-title.mdx"\n\n<CardGroup cols={3} className=',
+      to: 'description: Créez des applications et utilisez l\'API.\n---\n\nimport { CardTitle } from "/snippets/card-title.mdx"\n\n<CardGroup cols={2} className=',
+      count: 1,
+      since: '2.52',
     },
     {
       from: '| Cloud         | `https://api.twenty.com/` |\n',
@@ -327,6 +334,7 @@ export const PHRASE_REPLACEMENTS = {
       from: "Twenty is a full-featured CRM platform. Here's what you can build with it.",
       to: `${BRAND_NAME} brings your company's sales and operations processes together on one platform. Here's what you can build with it.`,
       count: 1,
+      until: '2.51',
     },
     {
       from: '- Join our [Discord](https://discord.gg/UfGNZJfAG6) to share feedback and feature requests',
@@ -380,6 +388,63 @@ export const PHRASE_REPLACEMENTS = {
       from: 'description: Build apps, use the API, self-host, or contribute to the codebase.\n---\n\nimport { CardTitle } from "/snippets/card-title.mdx"\n\n<CardGroup cols={3}>',
       to: 'description: Build apps and use the API.\n---\n\nimport { CardTitle } from "/snippets/card-title.mdx"\n\n<CardGroup cols={2}>',
       count: 1,
+      until: '2.51',
+    },
+    {
+      from: 'description: Build apps in TypeScript, connect your tools through APIs, and host Twenty yourself.\n',
+      to: 'description: Build apps in TypeScript and connect your tools through APIs.\n',
+      count: 1,
+      since: '2.52',
+    },
+    {
+      from: '  <LandingButton href="https://github.com/twentyhq/twenty" outlined>View on GitHub</LandingButton>\n',
+      to: '',
+      count: 1,
+      since: '2.52',
+    },
+    {
+      from: "- **The same SDK as Twenty's own apps.** Slack, Linear and Granola are apps built with the `twenty-sdk`, so you build with exactly what Twenty's team uses.",
+      to: '- **The same SDK as the built-in apps.** Slack, Linear and Granola are apps built with the `twenty-sdk`, so you build with exactly the same tools.',
+      count: 1,
+      since: '2.52',
+    },
+    {
+      from: '- **No ceiling.** The core is open source and self-hostable. When an extension point is missing, change Twenty itself or contribute it back.\n',
+      to: '',
+      count: 1,
+      since: '2.52',
+    },
+    {
+      from: 'Besides apps, the developer docs cover the API, self-hosting, contributing to Twenty and the UI library.',
+      to: 'Besides apps, the developer docs cover the API.',
+      count: 1,
+      since: '2.52',
+    },
+    {
+      from: [
+        '  <Card href="https://github.com/twentyhq/twenty" img="/images/user-guide/halftone/community-github.svg">',
+        '    <CardTitle>GitHub</CardTitle>',
+        '    Browse the source code, report issues and follow releases.',
+        '  </Card>',
+        '',
+        '',
+      ].join('\n'),
+      to: '',
+      count: 1,
+      since: '2.52',
+    },
+    // The developer and user guide landing pages end on a Discord card.
+    {
+      from: [
+        '  <Card href="https://discord.gg/cx5n4Jzs57" img="/images/user-guide/halftone/community-discord.svg">',
+        '    <CardTitle>Discord</CardTitle>',
+        '    Ask questions and share what you build with the Twenty community.',
+        '  </Card>',
+        '',
+      ].join('\n'),
+      to: '',
+      count: 2,
+      since: '2.52',
     },
     {
       from: '| Cloud | `https://api.twenty.com/` |\n',
@@ -582,7 +647,7 @@ export const TERM_REPLACEMENTS = {
 // Lines where "CRM" is fine because it means another product or the
 // prospecting step of Upshift; any other mention fails the import.
 export const CRM_ALLOWED_CONTEXTS = [
-  /\b(other|any|current|previous|old|traditional|most) CRMs?\b/i,
+  /\b(other|another|any|current|previous|old|traditional|most) CRMs?\b/i,
   /\bCRM Automations\b/,
   /\b(autres|n'importe quel|ancien|plupart des) CRM\b/i,
   /\bCRM (actuel|précédent|traditionnels)\b/i,

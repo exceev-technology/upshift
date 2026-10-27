@@ -639,7 +639,10 @@ const PATCHES = [
     ],
   },
   {
-    file: `${SERVER}/engine/core-modules/open-api/utils/base-schema.utils.ts`,
+    file: [
+      `${SERVER}/engine/core-modules/open-api/utils/base-schema.util.ts`,
+      `${SERVER}/engine/core-modules/open-api/utils/base-schema.utils.ts`,
+    ],
     replacements: [
       {
         from: "'https://github.com/twentyhq/twenty?tab=coc-ov-file#readme'",

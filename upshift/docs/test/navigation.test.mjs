@@ -153,6 +153,68 @@ describe('filterNavigation', () => {
       'developers/self-host/capabilities/docker-compose',
     ]);
   });
+
+  it('publishes the root page of a group, unless it is excluded', () => {
+    const withRoots = {
+      navigation: {
+        languages: [
+          {
+            language: 'en',
+            tabs: [
+              {
+                tab: 'Getting Started',
+                groups: [
+                  {
+                    group: 'Welcome',
+                    root: 'getting-started/introduction',
+                    pages: ['getting-started/key-features'],
+                  },
+                ],
+              },
+              {
+                tab: 'User Guide',
+                groups: [
+                  {
+                    group: 'Billing',
+                    root: 'user-guide/billing/overview',
+                    pages: ['user-guide/workflows/overview'],
+                  },
+                ],
+              },
+              {
+                tab: 'Developers',
+                groups: [{ group: 'Overview', root: 'developers/introduction', pages: [] }],
+              },
+            ],
+          },
+        ],
+      },
+    };
+    const { tabs, pages, excludedPages } = filterNavigation(withRoots, ENGLISH);
+
+    assert.deepEqual(
+      tabs.map(({ groups }) => groups),
+      [
+        [
+          {
+            group: 'Welcome',
+            root: 'en/getting-started/introduction',
+            pages: ['en/getting-started/key-features'],
+            public: true,
+          },
+        ],
+        [{ group: 'Billing', pages: ['en/user-guide/workflows/overview'], public: true }],
+        [{ group: 'Overview', root: 'en/developers/introduction', pages: [] }],
+      ],
+    );
+    assert.deepEqual(pages, [
+      'getting-started/introduction',
+      'getting-started/key-features',
+      'user-guide/workflows/overview',
+      'developers/introduction',
+    ]);
+    assert.deepEqual(excludedPages, ['user-guide/billing/overview']);
+  });
 });
 
 describe('publicTabs', () => {
