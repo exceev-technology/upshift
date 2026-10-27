@@ -44,6 +44,35 @@ describe('getChangedPersonHandles', () => {
     });
   });
 
+  it('sees a primary value swapped with an additional one', () => {
+    const withPhones = (primaryNumber: string, additionalNumber: string) => ({
+      phones: {
+        primaryPhoneNumber: primaryNumber,
+        primaryPhoneCallingCode: '+33',
+        primaryPhoneCountryCode: 'FR',
+        additionalPhones: [
+          { number: additionalNumber, callingCode: '+33', countryCode: 'FR' },
+        ],
+      },
+    });
+
+    expect(
+      getChangedPersonHandles({
+        personHandleField,
+        personChanges: [
+          {
+            personId: 'person-a',
+            before: withPhones('611111111', '622222222'),
+            after: withPhones('622222222', '611111111'),
+          },
+        ],
+      }),
+    ).toEqual({
+      handles: ['+33611111111', '+33622222222'],
+      changedPersonIds: ['person-a'],
+    });
+  });
+
   it('returns the values of a destroyed person', () => {
     expect(
       getChangedPersonHandles({

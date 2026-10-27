@@ -10,17 +10,25 @@ const getHandles = ({
 }: {
   personHandleField: PersonHandleField;
   person: object | null;
-}): string[] => {
+}): { primary: string[]; additional: string[] } => {
   if (!isDefined(person)) {
-    return [];
+    return { primary: [], additional: [] };
   }
 
-  const { primary, additional } = getCanonicalPersonHandles({
+  return getCanonicalPersonHandles({
     type: personHandleField.type,
     value: getPersonFieldValue({ person, fieldName: personHandleField.name }),
   });
+};
 
-  return [...primary, ...additional];
+const haveSameHandles = (handlesBefore: string[], handlesAfter: string[]) => {
+  const handleSetBefore = new Set(handlesBefore);
+  const handleSetAfter = new Set(handlesAfter);
+
+  return (
+    handleSetBefore.size === handleSetAfter.size &&
+    [...handleSetBefore].every((handle) => handleSetAfter.has(handle))
+  );
 };
 
 type PersonChange = {
@@ -40,15 +48,13 @@ export const getChangedPersonHandles = ({
   const changedPersonIds = new Set<string>();
 
   for (const { personId, before, after } of personChanges) {
-    const handlesBefore = new Set(
-      getHandles({ personHandleField, person: before }),
-    );
-    const handlesAfter = new Set(
-      getHandles({ personHandleField, person: after }),
-    );
+    const handlesBefore = getHandles({ personHandleField, person: before });
+    const handlesAfter = getHandles({ personHandleField, person: after });
+
+    // a primary value wins over an additional one when matching, so moving a value between them is a change
     const isUnchanged =
-      handlesBefore.size === handlesAfter.size &&
-      [...handlesBefore].every((handle) => handlesAfter.has(handle));
+      haveSameHandles(handlesBefore.primary, handlesAfter.primary) &&
+      haveSameHandles(handlesBefore.additional, handlesAfter.additional);
 
     if (isUnchanged) {
       continue;
@@ -56,7 +62,12 @@ export const getChangedPersonHandles = ({
 
     changedPersonIds.add(personId);
 
-    for (const handle of [...handlesBefore, ...handlesAfter]) {
+    for (const handle of [
+      ...handlesBefore.primary,
+      ...handlesBefore.additional,
+      ...handlesAfter.primary,
+      ...handlesAfter.additional,
+    ]) {
       handles.add(handle);
     }
   }
