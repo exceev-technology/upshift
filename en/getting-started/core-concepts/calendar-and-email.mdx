@@ -2,10 +2,10 @@
 public: true
 title: Calendar & Email
 description: Sync your email and calendar with Upshift.
-icon: "envelope"
 ---
 
-Upshift connects to your existing tools so your data stays up to date without manual data entry.
+import { PageBanner } from "/snippets/page-banner.mdx"
+import { CardTitle } from "/snippets/card-title.mdx"
 
 ## Email sync
 
@@ -37,11 +37,15 @@ Beyond email and calendar, Upshift connects to external tools through:
 
 Developers can build full-featured apps on top of Upshift — adding custom UI, server-side logic, and deep integrations. Apps can be published for the community or kept private.
 
-<CardGroup cols={2}>
-  <Card title="Calendar & Email guide" icon="envelope" href="/en/user-guide/calendar-emails/overview">
+<CardGroup cols={2} className="documentation-card-group">
+  <Card href="/en/user-guide/calendar-emails/overview" img="/images/documentation/banner-icons-v2/calendar-emails.svg">
+    <CardTitle>Calendar & Email guide</CardTitle>
     Set up email sync, calendar sync, and troubleshoot issues.
   </Card>
-  <Card title="API & Extensions" icon="plug" href="/en/developers/extend/api">
+  <Card href="/en/developers/extend/api" img="/images/documentation/banner-icons-v2/dev-api.svg">
+    <CardTitle>API & Extensions</CardTitle>
     Build custom integrations with the Upshift API.
   </Card>
 </CardGroup>
+
+<PageBanner illustration="getting-started-calendar-email" />
