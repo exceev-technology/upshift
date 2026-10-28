@@ -232,6 +232,13 @@ export const PHRASE_REPLACEMENTS = {
       to: 'description: Créez des applications et utilisez l\'API.\n---\n\nimport { CardTitle } from "/snippets/card-title.mdx"\n\n<CardGroup cols={2} className=',
       count: 1,
       since: '2.52',
+      until: '2.52',
+    },
+    {
+      from: 'description: Créez des applications, utilisez l\'API, auto-hébergez ou contribuez à la base de code.\n---\n\nimport { CardTitle } from "/snippets/card-title.mdx"\n\n<CardGroup cols={2} className=',
+      to: 'description: Créez des applications et utilisez l\'API.\n---\n\nimport { CardTitle } from "/snippets/card-title.mdx"\n\n<CardGroup cols={2} className=',
+      count: 1,
+      since: '2.53',
     },
     {
       from: '| Cloud         | `https://api.twenty.com/` |\n',
