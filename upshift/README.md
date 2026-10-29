@@ -246,7 +246,7 @@ Changing these sources does not update an existing registry image. After merging
 - Documentation links point to `docsUrl` (`https://docs.upshiftcloud.com`) with Twenty's paths kept, for example `/user-guide/workflows/...` and `/developers/extend/apps/getting-started`. The Upshift docs site serves or redirects those paths, the developer ones behind its login.
 - The Community settings page links to Exceev's LinkedIn and X (`linkedinUrl`, `xUrl`) and shows the beta Features toggles, so each workspace can turn a feature on or off, only when the server offers at least one. Twenty's contributor cover, partners and changelog are removed from it.
 - Hidden: the Organization tab of the admin panel (Twenty's enterprise licence and plans), the Legal / DPA pages (Twenty's own legal agreement) and the ChatGPT card that installs Twenty's ChatGPT app.
-- Moroccan dirham amounts, inputs and currency menus show `MAD` instead of Twenty's UAE dirham sign (`scripts/currency-patches.mjs`).
+- Moroccan dirham shows `MAD` instead of Twenty's UAE dirham sign in currency inputs and menus, and in amounts on Twenty releases that still draw a currency icon there (`scripts/currency-patches.mjs`).
 
 Still named Twenty on purpose, because they are real identifiers:
 

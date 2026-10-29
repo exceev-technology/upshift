@@ -52,11 +52,26 @@ test('every currency patch matches upstream exactly', () => {
 
 test('Moroccan dirham shows its MAD code instead of the UAE dirham sign', () => {
   const { MAD } = loadCurrencyCodeIcons();
-  const rendered = MAD({ color: 'gray', size: 16, stroke: 1.6 });
+  const rendered = MAD({
+    className: 'leading-icon',
+    style: { opacity: 0.5 },
+    color: 'gray',
+    size: 16,
+    stroke: 1.6,
+  });
 
   assert.equal(rendered.type, 'span');
   assert.deepEqual(rendered.children, ['MAD']);
+  assert.deepEqual(Object.keys(rendered.props).sort(), ['className', 'style']);
+  assert.equal(rendered.props.className, 'leading-icon');
+  assert.equal(rendered.props.style.opacity, 0.5);
   assert.equal(rendered.props.style.color, 'gray');
+});
+
+test('the MAD code keeps the caller style color when no color is passed', () => {
+  const { MAD } = loadCurrencyCodeIcons();
+
+  assert.equal(MAD({ style: { color: 'red' } }).props.style.color, 'red');
 });
 
 test('UAE dirham keeps the Tabler dirham icon', () => {
