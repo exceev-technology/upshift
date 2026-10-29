@@ -91,6 +91,8 @@ const libphonenumber = {
 
 const isDefined = (value) => value !== null && value !== undefined;
 
+const isNonEmptyString = (value) => typeof value === 'string' && value !== '';
+
 const loadSharedUtils = () => {
   const countryCodeUtils = loadModule(
     patchedSource('/isValidCountryCode.ts'),
@@ -118,7 +120,7 @@ const loadTransformPhonesValue = () =>
     RecordTransformerExceptionCode: new Proxy({}, { get: (_, code) => code }),
     msg: (strings, ...values) => String.raw({ raw: strings }, ...values),
     isArray: Array.isArray,
-    isNonEmptyString: (value) => typeof value === 'string' && value !== '',
+    isNonEmptyString,
     isEmpty: (value) => !isDefined(value) || value.length === 0,
     isDefined,
     parseJson: (value) => JSON.parse(value),
@@ -217,7 +219,29 @@ test('typing a 528 8x number in the app sends MA', () => {
   assert.equal(formatPhoneInput({ input: '+33612345678' }).countryCode, 'FR');
 });
 
-test('the front phone schema accepts 528 8x and 528 9x numbers', () => {
+test('editing a record that still stores EH sends MA back', () => {
+  const { createPhonesFromFieldValue } = loadModule(
+    patchedSource('/phonesUtils.ts'),
+    { ...loadSharedUtils(), isDefined, isNonEmptyString },
+  );
+
+  const phones = createPhonesFromFieldValue({
+    primaryPhoneNumber: '528812345',
+    primaryPhoneCountryCode: 'EH',
+    primaryPhoneCallingCode: '+212',
+    additionalPhones: [
+      { number: '528912345', callingCode: '+212', countryCode: 'EH' },
+      { number: '612345678', callingCode: '+33', countryCode: 'FR' },
+    ],
+  });
+
+  assert.deepEqual(
+    phones.map(({ countryCode }) => countryCode),
+    ['MA', 'MA', 'FR'],
+  );
+});
+
+test('the front phone schema does not reject numbers the library attributes to EH', () => {
   const { phoneSchema } = loadModule(
     sourceOf(
       'packages/twenty-front/src/modules/object-record/record-field/ui/validation-schemas/phoneSchema.ts',
@@ -235,6 +259,7 @@ test('the front phone schema accepts 528 8x and 528 9x numbers', () => {
   );
 
   for (const number of MOROCCAN_528_NUMBERS) {
+    assert.equal(parsePhoneNumber(number).country, 'EH', number);
     assert.equal(phoneSchema.safeParse(number).success, true, number);
   }
 });

@@ -77,7 +77,9 @@ export const PHONE_COUNTRY_PATCHES = [
       {
         from: 'const ALL_COUNTRIES_CODE_SET = new Set<string>(getCountries());',
         to: [
-          'export const normalizeCountryCode = <TCountryCode extends string | undefined>(',
+          'export const normalizeCountryCode = <',
+          '  TCountryCode extends string | null | undefined,',
+          '>(',
           '  countryCode: TCountryCode,',
           "): TCountryCode | 'MA' => (countryCode === 'EH' ? 'MA' : countryCode);",
           '',
@@ -215,6 +217,19 @@ export const PHONE_COUNTRY_PATCHES = [
       {
         from: "countryCode: phone.country ?? '',",
         to: "countryCode: normalizeCountryCode(phone.country) ?? '',",
+      },
+    ],
+  },
+  {
+    file: `${FRONT_MODULES}/object-record/record-field/ui/meta-types/input/utils/phonesUtils.ts`,
+    replacements: [
+      {
+        from: "import { isDefined } from 'twenty-shared/utils';",
+        to: "import { isDefined, normalizeCountryCode } from 'twenty-shared/utils';",
+      },
+      {
+        from: "countryCode: phone.countryCode ?? '',",
+        to: "countryCode: normalizeCountryCode(phone.countryCode) ?? '',",
       },
     ],
   },
