@@ -748,7 +748,10 @@ const PATCHES = [
     ],
   },
   ...[
-    'engine/core-modules/tool/tools/code-interpreter-tool/twenty-mcp-helper.const.ts',
+    [
+      'engine/core-modules/tool/tools/code-interpreter-tool/twenty-mcp-helper.constant.ts',
+      'engine/core-modules/tool/tools/code-interpreter-tool/twenty-mcp-helper.const.ts',
+    ],
     'engine/workspace-manager/twenty-standard-application/utils/skill-metadata/create-standard-flat-skill-metadata.util.ts',
     'engine/core-modules/tool/tools/search-help-center-tool/search-help-center-tool.schema.ts',
     'engine/core-modules/application/application-package/application-version-validation.service.ts',
@@ -763,7 +766,7 @@ const PATCHES = [
     'engine/workspace-manager/twenty-standard-application/utils/agent-metadata/create-standard-flat-agent-metadata.util.ts',
     'engine/metadata-modules/navigation-menu-item/tools/schemas/navigation-menu-item-scope.schema.ts',
   ].map((relativePath) => ({
-    file: `${SERVER}/${relativePath}`,
+    file: [relativePath].flat().map((path) => `${SERVER}/${path}`),
     replacements: [{ brandWord: true }],
   })),
   {
