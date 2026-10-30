@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 import { PLATFORM_WORDING_REPLACEMENTS } from './catalog-wording.mjs';
+import { CURRENCY_PATCHES } from './currency-patches.mjs';
 import { FRONTEND_PRIVACY_PATCHES } from './frontend-privacy-patches.mjs';
 import {
   OBSERVABILITY_PATCHES,
@@ -66,6 +67,7 @@ const PATCHES = [
   ...SERVER_PRIVACY_PATCHES,
   ...OBSERVABILITY_PATCHES,
   ...VERSION_PATCHES,
+  ...CURRENCY_PATCHES,
   {
     file: `${FRONT}/index.html`,
     replacements: [
