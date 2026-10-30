@@ -17,7 +17,7 @@ if (!generatedDirectory) {
   process.exit(1);
 }
 
-const { brandName, textReplacements } = JSON.parse(
+const { brandName, textReplacements, messageRewrites = [] } = JSON.parse(
   readFileSync(
     path.join(path.dirname(fileURLToPath(import.meta.url)), CONFIGURATION_FILE_NAME),
     'utf8',
@@ -97,6 +97,79 @@ const collectText = (message) => {
 
 const countToken = (text, token) => text.split(token).length - 1;
 
+const SENTENCE_END = /[.!?։](?=\s)|[。！？]/u;
+
+// Blanks the parts after the first sentence instead of dropping them, so the structure check below still applies
+const toFirstSentence = (message, describe) => {
+  const parts = typeof message === 'string' ? [message] : message;
+  let droppedText = '';
+  let isCut = false;
+
+  const keptParts = parts.map((part) => {
+    if (typeof part !== 'string') {
+      if (isCut) {
+        failures.push(`${describe}: a placeholder follows the first sentence`);
+      }
+
+      return part;
+    }
+
+    if (isCut) {
+      droppedText += part;
+
+      return '';
+    }
+
+    const sentenceEnd = SENTENCE_END.exec(part);
+
+    if (!sentenceEnd) {
+      return part;
+    }
+
+    isCut = true;
+    const cutIndex = sentenceEnd.index + sentenceEnd[0].length;
+    droppedText += part.slice(cutIndex);
+
+    return part.slice(0, cutIndex);
+  });
+
+  if (droppedText.trim() === '') {
+    failures.push(`${describe}: no second sentence to remove`);
+  }
+
+  return typeof message === 'string' ? keptParts[0] : keptParts;
+};
+
+let rewrittenMessageCount = 0;
+
+const rewriteMessages = (messages, fileName) => {
+  const rewrittenMessages = { ...messages };
+
+  for (const { id, message, keepFirstSentence, replaceWith } of messageRewrites) {
+    const describe = `${fileName} ${id} "${message}"`;
+
+    if (!(id in messages)) {
+      failures.push(
+        `${describe}: message not found, Twenty reworded or removed it; update upshift/scripts/license-message-wording.mjs`,
+      );
+      continue;
+    }
+
+    if (keepFirstSentence) {
+      rewrittenMessages[id] = toFirstSentence(messages[id], describe);
+    } else if (replaceWith in messages) {
+      rewrittenMessages[id] = messages[replaceWith];
+    } else {
+      failures.push(`${describe}: replacement message ${replaceWith} not found`);
+      continue;
+    }
+
+    rewrittenMessageCount += 1;
+  }
+
+  return rewrittenMessages;
+};
+
 const catalogFiles = readdirSync(generatedDirectory).filter((fileName) =>
   fileName.endsWith('.ts'),
 );
@@ -127,7 +200,7 @@ for (const fileName of catalogFiles) {
   // Lingui emits JavaScript escapes such as \xA0 that JSON.parse rejects
   const messages = JSON.parse(runInNewContext(literal));
   const rebrandedMessages = Object.fromEntries(
-    Object.entries(messages).map(([messageId, message]) => [
+    Object.entries(rewriteMessages(messages, fileName)).map(([messageId, message]) => [
       messageId,
       mapMessage(message, rebrandText),
     ]),
@@ -178,5 +251,5 @@ if (replacementCount === 0) {
 }
 
 console.log(
-  `Rebranded ${replacementCount} catalog strings across ${catalogFiles.length} locales in ${generatedDirectory}; ids, placeholders and SDK commands verified`,
+  `Rebranded ${replacementCount} catalog strings${rewrittenMessageCount > 0 ? ` and reworded ${rewrittenMessageCount} messages` : ''} across ${catalogFiles.length} locales in ${generatedDirectory}; ids, placeholders and SDK commands verified`,
 );
