@@ -15,6 +15,8 @@ import { parseArgs } from 'node:util';
 
 import { PLATFORM_WORDING_REPLACEMENTS } from './catalog-wording.mjs';
 import { FRONTEND_PRIVACY_PATCHES } from './frontend-privacy-patches.mjs';
+import { LICENSE_MESSAGE_REWRITES } from './license-message-wording.mjs';
+import { LICENSE_UI_CENSUS, LICENSE_UI_PATCHES } from './license-ui-patches.mjs';
 import {
   OBSERVABILITY_PATCHES,
   readObservabilityInstrumentation,
@@ -63,6 +65,7 @@ const CODE_OVERLAY_UPSTREAM_SHA256 = {
 
 const PATCHES = [
   ...FRONTEND_PRIVACY_PATCHES,
+  ...LICENSE_UI_PATCHES,
   ...SERVER_PRIVACY_PATCHES,
   ...OBSERVABILITY_PATCHES,
   ...VERSION_PATCHES,
@@ -860,6 +863,7 @@ const CATALOG_HOOKS = [
   {
     project: 'packages/twenty-server',
     generatedDirectory: 'src/engine/core-modules/i18n/locales/generated',
+    messageRewrites: LICENSE_MESSAGE_REWRITES,
   },
   { project: 'packages/twenty-emails', generatedDirectory: 'src/locales/generated' },
 ];
@@ -895,7 +899,7 @@ const UNREACHABLE_DPA = 'Twenty legal DPA, its routes are removed';
 const NEUTRALIZED = 'neutralized by a patch above';
 const BARREL_EXPORT = 'constant re-export only';
 
-// Every remaining reference to Twenty-owned hosts or links; anything new fails the build until reviewed
+// Every remaining reference to Twenty-owned hosts, links or removed UI; anything new fails the build until reviewed
 const REFERENCE_CENSUS = [
   {
     needle: 'TrackPageViewEffect',
@@ -980,6 +984,7 @@ const REFERENCE_CENSUS = [
     },
   },
   { needle: 'twentyhq.github.io', allowed: {} },
+  ...LICENSE_UI_CENSUS,
 ];
 
 const { values: options } = parseArgs({
@@ -1165,7 +1170,7 @@ const applyPatches = () => {
 };
 
 const installCatalogHooks = () => {
-  for (const { project, generatedDirectory } of CATALOG_HOOKS) {
+  for (const { project, generatedDirectory, messageRewrites } of CATALOG_HOOKS) {
     const projectJsonPath = path.join(twentyRoot, project, 'project.json');
     const compileCommand = '"command": "lingui compile --typescript"';
     const projectJson = readPlanned(projectJsonPath);
@@ -1188,6 +1193,7 @@ const installCatalogHooks = () => {
             from,
             fillTemplate(to),
           ]),
+          messageRewrites,
         },
         null,
         2,

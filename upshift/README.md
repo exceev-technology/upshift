@@ -33,7 +33,7 @@ upshift/
    - copies `branding/overlay/` over the checkout,
    - applies exact-match source patches (each patch expects a precise number of matches, so a moved string fails loudly instead of being skipped),
    - makes the image own its version: the build writes `APP_VERSION` to `/app/upshift-version` and the entrypoint exports it for the server and the worker, so an `APP_VERSION` left in a deployment's environment is ignored (and logged) instead of reporting an older release,
-   - installs a translation hook that runs right after `lingui compile` and replaces "Twenty" with the brand name in every language,
+   - installs a translation hook that runs right after `lingui compile` and replaces "Twenty" with the brand name in every language, and rewords the server errors that ask for an Organization key or plan (`scripts/license-message-wording.mjs`),
    - turns off Yarn telemetry,
    - runs a reference census: any shipped file that references a Twenty-owned host or link outside the reviewed list (`REFERENCE_CENSUS`, each entry says why it is allowed) fails the build.
 
@@ -202,7 +202,10 @@ Every failure names the file and what was expected.
 | `changed in Twenty (sha256 ...)` | Twenty edited a file Upshift replaces whole (the email footer) | Compare with the overlay, port anything relevant, add the new hash to `CODE_OVERLAY_UPSTREAM_SHA256` |
 | `has no Upshift version` | Twenty added a new app icon | `node upshift/scripts/generate-icons.mjs --root <checkout>` and commit |
 | `references <host or link>` | New code calls or links to a Twenty-owned host | Patch it; while the latest Twenty release does not have that code yet, mark the replacement `optional: true`. If it is unreachable or intentional, add the file to `REFERENCE_CENSUS` with the reason |
+| `references OrganizationAdornment`, `SettingsEnterpriseFeatureGateCard` or `SettingsPath.AdminPanelOrganization` | Twenty added a licence prompt to another screen | Add a patch to `scripts/license-ui-patches.mjs` that hides the section for workspaces without the entitlement |
 | `lingui compile command not found` / `catalogs changed shape` | Twenty changed its translation build | Update `installCatalogHooks` or `brand-catalogs.mjs` |
+| `message not found, Twenty reworded or removed it` | Twenty changed the English text of a licence error | Put the new text in `scripts/license-message-wording.mjs` |
+| `no second sentence to remove` / `a placeholder follows the first sentence` | A translation of a licence error no longer splits into a neutral first sentence and the licence sentence | Replace that message with `replaceWith` in `scripts/license-message-wording.mjs`, or reword it another way |
 
 ## What the layer disables
 
@@ -246,6 +249,7 @@ Changing these sources does not update an existing registry image. After merging
 - Documentation links point to `docsUrl` (`https://docs.upshiftcloud.com`) with Twenty's paths kept, for example `/user-guide/workflows/...` and `/developers/extend/apps/getting-started`. The Upshift docs site serves or redirects those paths, the developer ones behind its login.
 - The Community settings page links to Exceev's LinkedIn and X (`linkedinUrl`, `xUrl`) and shows the beta Features toggles, so each workspace can turn a feature on or off, only when the server offers at least one. Twenty's contributor cover, partners and changelog are removed from it.
 - Hidden: the Organization tab of the admin panel (Twenty's enterprise licence and plans), the Legal / DPA pages (Twenty's own legal agreement) and the ChatGPT card that installs Twenty's ChatGPT app.
+- No licence prompts: a workspace without the entitlement does not see the paid section at all (SSO, audit log types and retention, validation rules, record-level permissions, custom role creation, AI usage analytics, custom AI providers above 25 seats) instead of an Organization badge, upgrade card or locked tab. A workspace with a valid licence sees them as in Twenty. See `scripts/license-ui-patches.mjs`. Server errors that asked for an Organization key or plan keep only their neutral part in every language, for example "Workspace limit reached.", or say "This feature is not enabled." (`scripts/license-message-wording.mjs`).
 
 Still named Twenty on purpose, because they are real identifiers:
 
