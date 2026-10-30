@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 import { PLATFORM_WORDING_REPLACEMENTS } from './catalog-wording.mjs';
+import { CURRENCY_PATCHES } from './currency-patches.mjs';
 import { FRONTEND_PRIVACY_PATCHES } from './frontend-privacy-patches.mjs';
 import { LICENSE_MESSAGE_REWRITES } from './license-message-wording.mjs';
 import { LICENSE_UI_CENSUS, LICENSE_UI_PATCHES } from './license-ui-patches.mjs';
@@ -22,6 +23,7 @@ import {
   readObservabilityInstrumentation,
 } from './observability-patches.mjs';
 import { applyReplacements, countOccurrences } from './patch-replacements.mjs';
+import { PHONE_COUNTRY_PATCHES } from './phone-country-patches.mjs';
 import { SERVER_PRIVACY_PATCHES } from './server-privacy-patches.mjs';
 import { VERSION_PATCHES } from './version-patches.mjs';
 
@@ -66,9 +68,11 @@ const CODE_OVERLAY_UPSTREAM_SHA256 = {
 const PATCHES = [
   ...FRONTEND_PRIVACY_PATCHES,
   ...LICENSE_UI_PATCHES,
+  ...PHONE_COUNTRY_PATCHES,
   ...SERVER_PRIVACY_PATCHES,
   ...OBSERVABILITY_PATCHES,
   ...VERSION_PATCHES,
+  ...CURRENCY_PATCHES,
   {
     file: `${FRONT}/index.html`,
     replacements: [
