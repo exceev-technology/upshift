@@ -21,6 +21,7 @@ import {
   readObservabilityInstrumentation,
 } from './observability-patches.mjs';
 import { applyReplacements, countOccurrences } from './patch-replacements.mjs';
+import { PHONE_COUNTRY_PATCHES } from './phone-country-patches.mjs';
 import { SERVER_PRIVACY_PATCHES } from './server-privacy-patches.mjs';
 import { VERSION_PATCHES } from './version-patches.mjs';
 
@@ -64,6 +65,7 @@ const CODE_OVERLAY_UPSTREAM_SHA256 = {
 
 const PATCHES = [
   ...FRONTEND_PRIVACY_PATCHES,
+  ...PHONE_COUNTRY_PATCHES,
   ...SERVER_PRIVACY_PATCHES,
   ...OBSERVABILITY_PATCHES,
   ...VERSION_PATCHES,
