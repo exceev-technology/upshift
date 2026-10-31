@@ -23,6 +23,7 @@ import {
 } from './rules.mjs';
 
 const ASSET_PREFIXES = ['images/', 'snippets/'];
+const CSS_FONT_URL = /url\(\s*['"]?\/(fonts\/[^'")\s]+)/g;
 const CODE_SEGMENT = /(```[\s\S]*?```|`[^`\n]*`)/;
 const MARKDOWN_LINK = /\[([^\]]*)\]\((\/[^)\s]*)\)/g;
 const CARD_WITH_HREF =
@@ -247,6 +248,27 @@ export const buildLocaleRedirects = (appLanguages, appDefaultLanguage) =>
         destination: `/${language.sitePrefix}:slug*`,
       };
     });
+
+// The app links to Twenty's paths in its own language, including pages Twenty
+// has not translated yet.
+export const buildUntranslatedRedirects = (publishedPages) =>
+  LANGUAGES.flatMap((language) => {
+    const translated = publishedPages.get(language.language);
+    const untranslated = new Set(
+      LANGUAGES.flatMap((other) => [...publishedPages.get(other.language)]).filter(
+        (page) => !translated.has(page),
+      ),
+    );
+
+    return [...untranslated].flatMap((page) => {
+      const destination = resolveIn(language, page, '', publishedPages);
+
+      return [...new Set([page, renamePage(page)])].map((sourcePage) => ({
+        source: `/${language.sitePrefix}${sourcePage}`,
+        destination,
+      }));
+    });
+  });
 
 const uniqueBySource = (redirects) => [
   ...new Map(redirects.map((redirect) => [redirect.source, redirect])).values(),
@@ -513,6 +535,9 @@ export const collectAssets = (sources) => {
 
   return { images: [...images].sort(), snippets: [...snippets].sort() };
 };
+
+export const collectFonts = (css) =>
+  [...new Set([...css.matchAll(CSS_FONT_URL)].map(([, font]) => font))].sort();
 
 const isSameContent = (content, otherContent) =>
   otherContent !== undefined &&
