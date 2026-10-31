@@ -299,9 +299,12 @@ export const buildSite = (
 
   const customCss = `${adaptCustomCss(readTwenty('custom.css').toString())}\n${readFileSync(path.join(DOCS_ROOT, 'upshift.css'))}`;
 
-  const styleAssets = collectStyleAssets(customCss).filter(
-    (asset) => !UNPUBLISHED_STYLE_ASSETS.includes(asset),
-  );
+  // Older versions are published with the latest version's styles.
+  const styleAssets = historical
+    ? []
+    : collectStyleAssets(customCss).filter(
+        (asset) => !UNPUBLISHED_STYLE_ASSETS.includes(asset),
+      );
 
   for (const asset of styleAssets) {
     if (existsSync(path.join(twentyDocsRoot, asset))) {

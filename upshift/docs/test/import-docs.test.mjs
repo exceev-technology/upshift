@@ -507,6 +507,17 @@ describe('buildSite of an older version', () => {
     assert.match(problems[0], /^fr: rules\.mjs expects 1 matches of "A sentence Twenty no longer writes\." .* found 0$/);
   });
 
+  it('leaves the files the styles load to the latest version, whose styles the site uses', () => {
+    const { files, problems } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.0',
+      historical: true,
+    });
+
+    assert.deepEqual(problems, []);
+    assert.equal(files.has('fonts/azeret-mono-latin-variable.woff2'), false);
+  });
+
   it('only warns about it on an older version, whose sources never change', () => {
     const { problems, warnings } = buildSite(TWENTY_DOCS_ROOT, {
       appRoot,
