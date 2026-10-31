@@ -16,7 +16,36 @@ import {
   DEMO_URL,
   EXCLUDED_PAGE_PREFIXES,
   PHRASE_REPLACEMENTS,
+  UNPUBLISHED_STYLE_ASSETS,
 } from '../rules.mjs';
+import { collectStyleAssets } from '../transform.mjs';
+
+const splitSelectors = (selectors) => {
+  const parts = [''];
+  let depth = 0;
+
+  for (const character of selectors) {
+    depth += character === '(' ? 1 : character === ')' ? -1 : 0;
+
+    if (character === ',' && depth === 0) {
+      parts.push('');
+    } else {
+      parts[parts.length - 1] += character;
+    }
+  }
+
+  return parts.map((part) => part.trim().replace(/\s+/g, ' '));
+};
+
+// The values a property gets in the rules that list this exact selector.
+const declarationsOf = (css, selector, property) =>
+  [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter(([, selectors]) => splitSelectors(selectors).includes(selector))
+    .flatMap(([, , body]) =>
+      [...body.matchAll(new RegExp(`(?:^|;)\\s*${property}: ([^;]+);`, 'g'))].map(
+        ([, value]) => value.trim(),
+      ),
+    );
 
 describe('buildSite on packages/twenty-docs', () => {
   const { files, problems } = buildSite(TWENTY_DOCS_ROOT);
@@ -266,16 +295,18 @@ describe('buildSite on packages/twenty-docs', () => {
     assert.match(files.get('favicon.svg').toString(), /rx="16"/);
   });
 
-  it('publishes the fonts the styles load', () => {
-    const fonts = [
-      ...files.get('custom.css').toString().matchAll(/url\('\/(fonts\/[^']+)'\)/g),
-    ].map(([, font]) => font);
+  it('publishes the fonts and images the styles load, except Twenty\'s logo', () => {
+    const assets = collectStyleAssets(files.get('custom.css').toString());
 
-    assert.ok(fonts.length > 0);
+    assert.ok(assets.some((asset) => asset.startsWith('fonts/')));
+    assert.ok(assets.some((asset) => asset.startsWith('images/documentation/banners/')));
     assert.deepEqual(
-      fonts.filter((font) => !files.has(font)),
+      assets.filter(
+        (asset) => !files.has(asset) && !UNPUBLISHED_STYLE_ASSETS.includes(asset),
+      ),
       [],
     );
+    assert.equal(files.has('images/documentation/banners/meet-twenty.png'), false);
   });
 
   it('puts the four footer columns on one row below the logo', () => {
@@ -298,11 +329,54 @@ describe('buildSite on packages/twenty-docs', () => {
     );
   });
 
-  it('recolors the halftone illustrations to the Upshift accent in both themes', () => {
+  const DARK = ":is(.dark, [data-theme='dark'])";
+  const BANNER_LAYER = '#header > div:has(#page-title)::before';
+
+  it('recolors Twenty\'s illustrations to the Upshift accent in both themes', () => {
+    const css = files.get('custom.css').toString();
+    const illustrations = [
+      "img[src*='/images/user-guide/halftone/']",
+      ".documentation-card-group img[src*='/images/documentation/']",
+      `#content-area:has([data-page-banner]) ${BANNER_LAYER}`,
+    ];
+
+    for (const illustration of illustrations) {
+      assert.deepEqual(declarationsOf(css, illustration, 'filter'), [
+        'brightness(0.51) saturate(1.62) hue-rotate(-4deg)',
+      ]);
+      assert.deepEqual(declarationsOf(css, `${DARK} ${illustration}`, 'filter'), [
+        'saturate(0.24) brightness(2.09) hue-rotate(-5deg)',
+      ]);
+    }
+  });
+
+  it('gives the two banners drawn in a deeper blue filters of their own', () => {
+    const css = files.get('custom.css').toString();
+    const banners = `#content-area:has([data-page-banner='user-guide'], [data-page-banner='developers']) ${BANNER_LAYER}`;
+
+    assert.deepEqual(declarationsOf(css, banners, 'filter'), [
+      'brightness(1.82) saturate(0.66) hue-rotate(-3deg)',
+    ]);
+    assert.deepEqual(declarationsOf(css, `${DARK} ${banners}`, 'filter'), [
+      'saturate(0.08) brightness(5.48) hue-rotate(-1deg)',
+    ]);
+  });
+
+  it('keeps the filters off the card panels and banner patterns', () => {
     const css = files.get('custom.css').toString();
 
-    assert.match(css, /img\[src\*='\/images\/user-guide\/halftone\/'\] \{\n {2}filter:/);
-    assert.match(css, /\.dark, \[data-theme='dark'\]\) img\[src\*='\/images\/user-guide\/halftone\/'\]/);
+    assert.deepEqual(
+      declarationsOf(css, '.documentation-card-group .card img', 'background'),
+      ['none'],
+    );
+    assert.deepEqual(
+      declarationsOf(css, '.documentation-card-group .card::before', 'background-image'),
+      ['var(--card-pattern)'],
+    );
+    assert.deepEqual(
+      declarationsOf(css, `#content-area:has([data-page-banner]) ${BANNER_LAYER}`, 'background-image'),
+      ['var(--page-banner-illustration)'],
+    );
   });
 });
 

@@ -16,6 +16,7 @@ import {
   PHRASE_REPLACEMENTS,
   PUBLISH_PRIVATE_SECTIONS,
   TERM_REPLACEMENTS,
+  UNPUBLISHED_STYLE_ASSETS,
 } from './rules.mjs';
 import {
   adaptCustomCss,
@@ -26,7 +27,7 @@ import {
   buildLocaleRedirects,
   buildUntranslatedRedirects,
   collectAssets,
-  collectFonts,
+  collectStyleAssets,
   filterNavigation,
   filterRedirects,
   findUnmatchedExclusions,
@@ -298,11 +299,15 @@ export const buildSite = (
 
   const customCss = `${adaptCustomCss(readTwenty('custom.css').toString())}\n${readFileSync(path.join(DOCS_ROOT, 'upshift.css'))}`;
 
-  for (const font of collectFonts(customCss)) {
-    if (existsSync(path.join(twentyDocsRoot, font))) {
-      files.set(font, readTwenty(font));
+  const styleAssets = collectStyleAssets(customCss).filter(
+    (asset) => !UNPUBLISHED_STYLE_ASSETS.includes(asset),
+  );
+
+  for (const asset of styleAssets) {
+    if (existsSync(path.join(twentyDocsRoot, asset))) {
+      files.set(asset, readTwenty(asset));
     } else {
-      problems.push(`custom.css loads ${font}, which is missing from packages/twenty-docs`);
+      problems.push(`custom.css loads ${asset}, which is missing from packages/twenty-docs`);
     }
   }
 
