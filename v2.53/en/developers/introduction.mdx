@@ -1,0 +1,49 @@
+---
+noindex: true
+title: Build on Upshift
+sidebarTitle: Developers
+description: Build apps in TypeScript and connect your tools through APIs.
+hideFooterPagination: true
+---
+
+import { CardTitle } from "/snippets/card-title.mdx"
+import { LandingActions, LandingButton } from "/snippets/landing-actions.mdx"
+import { PageBanner } from "/snippets/page-banner.mdx"
+
+<LandingActions>
+  <LandingButton href="/v2.53/en/developers/extend/apps/getting-started/quick-start">Build your first app</LandingButton>
+</LandingActions>
+
+## Why build on Upshift
+
+Most CRMs give developers an API and a few places to plug in. Upshift gives you the platform itself. Declare objects, server-side functions, React components and AI agents in plain TypeScript with the `twenty-sdk`, see each change sync to a local server as you save, and ship with the CLI.
+
+- **Manage your workspace with code.** Objects, fields, views and page layouts live as TypeScript files in your repository, versioned and reviewed like any other change.
+- **The same SDK as the built-in apps.** Slack, Linear and Granola are apps built with the `twenty-sdk`, so you build with exactly the same tools.
+- **Plug into the core, not a sidebar.** Your objects get the same tables and permissions as People and Companies. Your apps can bring conversations into Upshift's messages, write to record timelines, and expose functions to workflows and AI agents.
+- **Safe to experiment.** Apps run sandboxed and only touch the data their role allows, whether your team or an AI agent wrote the code.
+
+## Explore the developer docs
+
+Besides apps, the developer docs cover the API.
+
+<CardGroup cols={2} className="documentation-card-group documentation-card-group--patterned">
+  <Card href="/v2.53/en/developers/extend/apps/getting-started/quick-start" img="/images/documentation/banner-icons-v2/dev-apps.svg">
+    <CardTitle>Apps</CardTitle>
+    Build objects, logic, interfaces and AI agents as TypeScript apps, from quick start to publishing.
+  </Card>
+
+  <Card href="/v2.53/en/developers/extend/api" img="/images/documentation/banner-icons-v2/dev-api.svg">
+    <CardTitle>API</CardTitle>
+    Read and write records over REST and GraphQL, get webhooks when records change, and connect apps with OAuth.
+  </Card>
+
+  
+
+  
+
+  
+
+</CardGroup>
+
+<PageBanner illustration="developers" />
