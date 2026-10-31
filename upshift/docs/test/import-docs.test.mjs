@@ -266,10 +266,28 @@ describe('buildSite on packages/twenty-docs', () => {
     assert.match(files.get('favicon.svg').toString(), /rx="16"/);
   });
 
-  it('keeps the four footer columns from overlapping at every window size', () => {
+  it('publishes the fonts the styles load', () => {
+    const fonts = [
+      ...files.get('custom.css').toString().matchAll(/url\('\/(fonts\/[^']+)'\)/g),
+    ].map(([, font]) => font);
+
+    assert.ok(fonts.length > 0);
+    assert.deepEqual(
+      fonts.filter((font) => !files.has(font)),
+      [],
+    );
+  });
+
+  it('puts the four footer columns on one row below the logo', () => {
+    const css = files.get('custom.css').toString();
+
     assert.match(
-      files.get('custom.css').toString(),
-      /\nfooter \.sm\\:grid \{\n {2}grid-template-columns: repeat\(2, minmax\(0, 1fr\)\) !important;/,
+      css,
+      /#footer \.sm\\:grid \{\n {4}grid-template-columns: repeat\(4, minmax\(0, 1fr\)\) !important;/,
+    );
+    assert.match(
+      css,
+      /#footer div:has\(> div > a > \.nav-logo\) \{\n {4}display: flex;\n {4}flex-direction: column;/,
     );
   });
 

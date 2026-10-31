@@ -8,10 +8,29 @@ img[src*='/images/user-guide/halftone/'] {
   filter: saturate(0.24) brightness(2.09) hue-rotate(-5deg);
 }
 
-/* Mintlify never wraps footer links, and Twenty's footer is only as wide as the
-   page content, so four columns of links overlap at every window size. */
-footer .sm\:grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+/* Twenty's footer is only as wide as the page content, too narrow for the logo
+   beside four columns of links, so the logo and socials go on a row above them. */
+@media (min-width: 48rem) {
+  #footer div:has(> div > a > .nav-logo) {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--twenty-space-8);
+  }
+
+  #footer div:has(> a > .nav-logo) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #footer .sm\:grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  #footer .sm\:grid > div {
+    align-items: flex-start;
+  }
 }
 
 /* Twenty centers the navbar tabs by growing the nav that holds its Log in link.

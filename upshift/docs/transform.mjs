@@ -23,6 +23,7 @@ import {
 } from './rules.mjs';
 
 const ASSET_PREFIXES = ['images/', 'snippets/'];
+const CSS_FONT_URL = /url\(\s*['"]?\/(fonts\/[^'")\s]+)/g;
 const CODE_SEGMENT = /(```[\s\S]*?```|`[^`\n]*`)/;
 const MARKDOWN_LINK = /\[([^\]]*)\]\((\/[^)\s]*)\)/g;
 const CARD_WITH_HREF =
@@ -534,6 +535,9 @@ export const collectAssets = (sources) => {
 
   return { images: [...images].sort(), snippets: [...snippets].sort() };
 };
+
+export const collectFonts = (css) =>
+  [...new Set([...css.matchAll(CSS_FONT_URL)].map(([, font]) => font))].sort();
 
 const isSameContent = (content, otherContent) =>
   otherContent !== undefined &&
