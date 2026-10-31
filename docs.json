@@ -8074,6 +8074,74 @@
       "destination": "/en/user-guide/workflows/how-tos/connect-to-other-tools/generate-pdf-from-upshift"
     },
     {
+      "source": "/user-guide/calendar-emails/capabilities/email-channels",
+      "destination": "/en/user-guide/calendar-emails/capabilities/email-channels"
+    },
+    {
+      "source": "/user-guide/calendar-emails/how-tos/forward-a-shared-inbox-from-microsoft-365",
+      "destination": "/en/user-guide/calendar-emails/how-tos/forward-a-shared-inbox-from-microsoft-365"
+    },
+    {
+      "source": "/user-guide/calendar-emails/how-tos/forward-a-shared-inbox-from-google-workspace",
+      "destination": "/en/user-guide/calendar-emails/how-tos/forward-a-shared-inbox-from-google-workspace"
+    },
+    {
+      "source": "/user-guide/calendar-emails/how-tos/forward-a-shared-inbox-from-any-mail-provider",
+      "destination": "/en/user-guide/calendar-emails/how-tos/forward-a-shared-inbox-from-any-mail-provider"
+    },
+    {
+      "source": "/user-guide/email-campaigns/overview",
+      "destination": "/en/user-guide/email-campaigns/overview"
+    },
+    {
+      "source": "/user-guide/email-campaigns/how-tos/set-up-a-sending-domain",
+      "destination": "/en/user-guide/email-campaigns/how-tos/set-up-a-sending-domain"
+    },
+    {
+      "source": "/user-guide/email-campaigns/how-tos/email-campaign-best-practices",
+      "destination": "/en/user-guide/email-campaigns/how-tos/email-campaign-best-practices"
+    },
+    {
+      "source": "/user-guide/email-campaigns/how-tos/send-your-first-campaign",
+      "destination": "/en/user-guide/email-campaigns/how-tos/send-your-first-campaign"
+    },
+    {
+      "source": "/user-guide/email-campaigns/how-tos/create-a-campaign-with-ai",
+      "destination": "/en/user-guide/email-campaigns/how-tos/create-a-campaign-with-ai"
+    },
+    {
+      "source": "/user-guide/email-campaigns/how-tos/manage-unsubscribes-and-topics",
+      "destination": "/en/user-guide/email-campaigns/how-tos/manage-unsubscribes-and-topics"
+    },
+    {
+      "source": "/developers/extend/apps/getting-started/good-practices",
+      "destination": "/en/developers/extend/apps/getting-started/good-practices"
+    },
+    {
+      "source": "/developers/extend/apps/logic/workflows",
+      "destination": "/en/developers/extend/apps/logic/workflows"
+    },
+    {
+      "source": "/developers/extend/apps/logic/messaging-channels",
+      "destination": "/en/developers/extend/apps/logic/messaging-channels"
+    },
+    {
+      "source": "/developers/extend/apps/logic/inbox",
+      "destination": "/en/developers/extend/apps/logic/inbox"
+    },
+    {
+      "source": "/developers/extend/apps/logic/credits",
+      "destination": "/en/developers/extend/apps/logic/credits"
+    },
+    {
+      "source": "/developers/extend/apps/operations/marketplace-review",
+      "destination": "/en/developers/extend/apps/operations/marketplace-review"
+    },
+    {
+      "source": "/developers/extend/apps/operations/monitoring",
+      "destination": "/en/developers/extend/apps/operations/monitoring"
+    },
+    {
       "source": "/fr/:slug*",
       "destination": "/:slug*"
     },
