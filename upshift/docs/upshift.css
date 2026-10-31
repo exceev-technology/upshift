@@ -8,11 +8,20 @@ img[src*='/images/user-guide/halftone/'] {
   filter: saturate(0.24) brightness(2.09) hue-rotate(-5deg);
 }
 
-/* Mintlify gives each footer column an equal share of the width and never wraps
-   its links, so four columns overlap until the window is about 1280px wide. */
-@media (min-width: 768px) and (max-width: 1279px) {
-  footer .sm\:grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+/* Mintlify never wraps footer links, and Twenty's footer is only as wide as the
+   page content, so four columns of links overlap at every window size. */
+footer .sm\:grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+/* Twenty centers the navbar tabs by growing the nav that holds its Log in link.
+   Upshift's nav only holds the Contact us button. */
+@media (min-width: 64rem) {
+  #navbar nav:has(> ul > #topbar-cta-button) {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: flex-end;
   }
 }
 

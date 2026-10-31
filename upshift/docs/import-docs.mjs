@@ -24,6 +24,7 @@ import {
   auditSite,
   buildDocsConfig,
   buildLocaleRedirects,
+  buildUntranslatedRedirects,
   collectAssets,
   filterNavigation,
   filterRedirects,
@@ -290,6 +291,7 @@ export const buildSite = (
     : navigation;
   const redirects = [
     ...filterRedirects(twentyDocsConfig.redirects, publishedPages),
+    ...buildUntranslatedRedirects(publishedPages),
     ...buildLocaleRedirects(appLanguages, appDefaultLanguage),
   ];
 
