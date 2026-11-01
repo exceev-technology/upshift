@@ -1,3 +1,9 @@
+import { STANDARD_OBJECTS } from 'twenty-shared/metadata';
+import {
+  buildPrivateRecordInsertSql,
+  type PrivateRecordInsertSql,
+} from 'src/engine/permissions/private-record/utils/build-private-record-insert-sql.util';
+import { isPrivateRecordEnabled } from 'src/engine/permissions/private-record/utils/is-private-record-enabled.util';
 import { AgentChatChannelGrantService } from 'src/engine/metadata-modules/ai/ai-chat/services/agent-chat-channel-grant.service';
 import { AuthException } from 'src/engine/core-modules/auth/auth.exception';
 import { randomUUID } from 'node:crypto';
@@ -18,14 +24,14 @@ import {
 import { isDefined, isNonEmptyArray } from 'twenty-shared/utils';
 
 import { type UserWorkspaceAuthContext } from 'src/engine/core-modules/auth/types/workspace-auth-context.type';
-import { buildRecordShareLockKey } from 'src/engine/core-modules/record-share/utils/build-record-share-lock-key.util';
-import { RecordShareException } from 'src/engine/core-modules/record-share/record-share.exception';
-import { RecordShareStorageService } from 'src/engine/core-modules/record-share/services/record-share-storage.service';
-import { RecordSharePrincipalService } from 'src/engine/core-modules/record-share/services/record-share-principal.service';
-import { RecordSharingService } from 'src/engine/core-modules/record-share/services/record-sharing.service';
-import { buildWorkspaceMemberRowAccessPolicySubject } from 'src/engine/core-modules/record-share/utils/build-workspace-member-row-access-policy-subject.util';
-import { resolveRecordIdsSharedWithPrincipals } from 'src/engine/core-modules/record-share/utils/resolve-record-ids-shared-with-principals.util';
-import { resolveRequiredRecordShareAccessLevels } from 'src/engine/core-modules/record-share/utils/resolve-required-record-share-access-levels.util';
+import { buildRecordShareLockKey } from 'src/engine/permissions/record-share/utils/build-record-share-lock-key.util';
+import { RecordShareException } from 'src/engine/permissions/record-share/record-share.exception';
+import { RecordShareStorageService } from 'src/engine/permissions/record-share/services/record-share-storage.service';
+import { RecordSharePrincipalService } from 'src/engine/permissions/record-share/services/record-share-principal.service';
+import { RecordSharingService } from 'src/engine/permissions/record-share/services/record-sharing.service';
+import { buildWorkspaceMemberRowAccessPolicySubject } from 'src/engine/permissions/principal/utils/build-workspace-member-row-access-policy-subject.util';
+import { resolveRecordIdsSharedWithPrincipals } from 'src/engine/permissions/record-share/utils/resolve-record-ids-shared-with-principals.util';
+import { resolveRequiredRecordShareAccessLevels } from 'src/engine/permissions/record-share/utils/resolve-required-record-share-access-levels.util';
 import { UserWorkspaceAuthContextService } from 'src/engine/core-modules/user-workspace/services/user-workspace-auth-context.service';
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { type AgentChatThreadAccessArgs } from 'src/engine/metadata-modules/ai/ai-chat/types/agent-chat-thread-access-args.type';
@@ -44,13 +50,13 @@ import {
 } from 'src/engine/metadata-modules/ai/ai.exception';
 import { findFlatEntityByIdInFlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/utils/find-flat-entity-by-id-in-flat-entity-maps.util';
 import { isPermissionFlagGrantedToFlatRole } from 'src/engine/metadata-modules/flat-role/utils/is-permission-flag-granted-to-flat-role.util';
-import { PermissionsService } from 'src/engine/metadata-modules/permissions/permissions.service';
-import { type OperationType } from 'src/engine/twenty-orm/repository/permissions.utils';
+import { PermissionsService } from 'src/engine/permissions/permissions.service';
+import { type OperationType } from 'src/engine/permissions/role/utils/validate-operation-is-permitted-or-throw.util';
 import { type WorkspaceRepository } from 'src/engine/twenty-orm/repository/workspace-repository';
 import {
   type RowAccessPolicy,
   type RowAccessPolicySubject,
-} from 'src/engine/twenty-orm/types/row-access-policy.type';
+} from 'src/engine/permissions/combine/types/row-access-policy.type';
 import { WorkspaceOrmManager } from 'src/engine/twenty-orm/workspace-orm.manager';
 import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
 import { type WorkspaceMemberWorkspaceEntity } from 'src/modules/workspace-member/standard-objects/workspace-member.workspace-entity';
@@ -95,7 +101,31 @@ export class AgentChatSharingService {
     return hasAgentChatThreadChannelField({ flatFieldMetadataMaps });
   }
 
+  // TODO(@bosiraphael): remove once 2.54 leaves the cross-upgrade window
+  async assertHasMentionResolutionOrThrow(workspaceId: string): Promise<void> {
+    const { flatFieldMetadataMaps } =
+      await this.workspaceCacheService.getOrRecompute(workspaceId, [
+        'flatFieldMetadataMaps',
+      ]);
+
+    if (
+      !isDefined(
+        flatFieldMetadataMaps.byUniversalIdentifier[
+          STANDARD_OBJECTS.agentChatThreadParticipant.fields.mentionsResolvedAt
+            .universalIdentifier
+        ],
+      )
+    ) {
+      throw new AiException(
+        'Chats are not available until this workspace finishes upgrading',
+        AiExceptionCode.CHAT_UPGRADE_IN_PROGRESS,
+      );
+    }
+  }
+
   async getParticipantObjectMetadataId(workspaceId: string): Promise<string> {
+    await this.assertHasMentionResolutionOrThrow(workspaceId);
+
     const { flatObjectMetadataMaps } =
       await this.workspaceCacheService.getOrRecompute(workspaceId, [
         'flatObjectMetadataMaps',
@@ -220,10 +250,7 @@ export class AgentChatSharingService {
     };
     const sharing = await this.recordSharingService.getSharing(recordTarget);
 
-    if (
-      sharing.canManageSharing &&
-      !EDIT_ACCESS_LEVELS.includes(sharing.generalAccessLevel)
-    ) {
+    if (sharing.canManageSharing) {
       for (const memberId of chatMemberIds) {
         const memberShare = sharing.shares.find(
           ({ principalId }) => principalId === memberId,
@@ -297,7 +324,6 @@ export class AgentChatSharingService {
       workspaceId,
       [
         'rolesPermissions',
-        'roleIdsWithAllRecordsAccess',
         'flatRowLevelPermissionPredicateMaps',
         'flatRowLevelPermissionPredicateGroupMaps',
         'flatFieldMetadataMaps',
@@ -350,6 +376,19 @@ export class AgentChatSharingService {
     }, authContext);
   }
 
+  async getPrivateRecordInsertSql(
+    workspaceId: string,
+  ): Promise<PrivateRecordInsertSql> {
+    const { featureFlagsMap } = await this.workspaceCacheService.getOrRecompute(
+      workspaceId,
+      ['featureFlagsMap'],
+    );
+
+    return buildPrivateRecordInsertSql({
+      isPrivateRecordEnabled: isPrivateRecordEnabled(featureFlagsMap),
+    });
+  }
+
   async createThread(args: {
     workspaceId: string;
     workspaceMemberId: string;
@@ -370,6 +409,8 @@ export class AgentChatSharingService {
       authContext,
       updatedColumns: isDefined(args.title) ? ['title'] : [],
     });
+    const { privateColumn, privateValue } =
+      await this.getPrivateRecordInsertSql(args.workspaceId);
 
     return this.threadRepository.query(
       args.workspaceId,
@@ -387,8 +428,8 @@ export class AgentChatSharingService {
           channelIds: [args.channelId],
         });
         const records = await manager.query<AgentChatThreadWorkspaceEntity[]>(
-          `INSERT INTO ${table('agentChatThread')} (id, title, "workspaceMemberId"${isDefined(args.channelId) ? ', "channelId"' : ''})
-           VALUES ($1, $2, $3${isDefined(args.channelId) ? ', $4' : ''}) RETURNING *`,
+          `INSERT INTO ${table('agentChatThread')} (id, title, "workspaceMemberId"${privateColumn}${isDefined(args.channelId) ? ', "channelId"' : ''})
+           VALUES ($1, $2, $3${privateValue}${isDefined(args.channelId) ? ', $4' : ''}) RETURNING *`,
           [
             args.id ?? randomUUID(),
             args.title ?? null,
@@ -470,6 +511,8 @@ export class AgentChatSharingService {
 
     const participantObjectMetadataId =
       await this.getParticipantObjectMetadataId(args.workspaceId);
+    const { privateColumn, privateValue } =
+      await this.getPrivateRecordInsertSql(args.workspaceId);
 
     return this.threadRepository.query(
       args.workspaceId,
@@ -512,8 +555,8 @@ export class AgentChatSharingService {
         }
         await manager.query(
           `WITH participant AS (
-             INSERT INTO ${getAgentChatThreadParticipantTable(args.workspaceId)} ("threadId", "workspaceMemberId", "lastReadAt", "isSubscribed")
-             VALUES ($1, $2, clock_timestamp(), false)
+             INSERT INTO ${getAgentChatThreadParticipantTable(args.workspaceId)} ("threadId", "workspaceMemberId"${privateColumn}, "lastReadAt", "isSubscribed")
+             VALUES ($1, $2${privateValue}, clock_timestamp(), false)
              ON CONFLICT ("threadId", "workspaceMemberId") DO NOTHING
              RETURNING id, "workspaceMemberId"
            ), owner_share AS (
@@ -556,6 +599,9 @@ export class AgentChatSharingService {
     isArchived?: boolean;
     isSubscribed?: boolean;
   }): Promise<AgentChatThreadWorkspaceEntity[]> {
+    const { privateColumn, privateValue } =
+      await this.getPrivateRecordInsertSql(workspaceId);
+
     return manager.query<AgentChatThreadWorkspaceEntity[]>(
       `WITH thread AS (
          UPDATE ${table('agentChatThread')}
@@ -563,8 +609,8 @@ export class AgentChatSharingService {
          WHERE id = ANY($1::uuid[]) AND "lastActivityAt" IS NULL
          RETURNING *
        ), participant AS (
-         INSERT INTO ${getAgentChatThreadParticipantTable(workspaceId)} ("threadId", "workspaceMemberId", "lastReadAt", "archivedAt", "isSubscribed")
-         SELECT thread.id, $2, thread."lastActivityAt", CASE WHEN $4::boolean THEN clock_timestamp() END, $5::boolean
+         INSERT INTO ${getAgentChatThreadParticipantTable(workspaceId)} ("threadId", "workspaceMemberId"${privateColumn}, "lastReadAt", "archivedAt", "isSubscribed")
+         SELECT thread.id, $2${privateValue}, thread."lastActivityAt", CASE WHEN $4::boolean THEN clock_timestamp() END, $5::boolean
          FROM thread
          ON CONFLICT ("threadId", "workspaceMemberId") DO NOTHING
          RETURNING id, "workspaceMemberId"

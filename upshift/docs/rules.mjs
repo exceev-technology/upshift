@@ -565,6 +565,13 @@ export const PHRASE_REPLACEMENTS = {
       to: '',
       count: 1,
       since: '2.52',
+      until: '2.54',
+    },
+    {
+      from: ' through\n`twentyhq/twenty/.github/actions/spawn-twenty-app-dev-test@main`',
+      to: '',
+      count: 1,
+      since: '2.55',
     },
     {
       from: ' using the `twentyhq/twenty/.github/actions/spawn-twenty-app-dev-test@main` composite action',
