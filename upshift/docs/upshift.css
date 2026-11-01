@@ -1,11 +1,92 @@
-/* Twenty's halftone illustrations are drawn in #4838F8. These filters map that
-   color to the upshiftcloud.com accent: #1A1BB5 in light mode, #9192F0 in dark. */
-img[src*='/images/user-guide/halftone/'] {
+/* Twenty's illustrations are drawn in #4838F8. These filters map that color to
+   the upshiftcloud.com accent: #1A1BB5 in light mode, #9192F0 in dark. */
+img[src*='/images/user-guide/halftone/'],
+.documentation-card-group img[src*='/images/documentation/'],
+#content-area:has([data-page-banner]) #header > div:has(#page-title)::before {
   filter: brightness(0.51) saturate(1.62) hue-rotate(-4deg);
 }
 
-:is(.dark, [data-theme='dark']) img[src*='/images/user-guide/halftone/'] {
+:is(.dark, [data-theme='dark']) img[src*='/images/user-guide/halftone/'],
+:is(.dark, [data-theme='dark']) .documentation-card-group img[src*='/images/documentation/'],
+:is(.dark, [data-theme='dark']) #content-area:has([data-page-banner]) #header > div:has(#page-title)::before {
   filter: saturate(0.24) brightness(2.09) hue-rotate(-5deg);
+}
+
+/* Twenty paints the card panel and pattern on the illustration itself, where
+   the filter would tint them; they move to the card. */
+.documentation-card-group .card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  box-sizing: border-box;
+  height: 160px;
+  border: 1px solid var(--twenty-line);
+  border-radius: inherit;
+  background-color: var(--twenty-panel);
+  background-image: var(--card-pattern);
+  background-position: center;
+  background-size: cover;
+  transition: background-color 150ms ease-out;
+}
+
+.documentation-card-group .card:is([href], [role='link']):is(:hover, :focus-within)::before {
+  background-color: var(--twenty-surface);
+}
+
+:is(.dark, [data-theme='dark']) .documentation-card-group .card::before {
+  background-blend-mode: color-burn;
+}
+
+.documentation-card-group .card img,
+.documentation-card-group .card:is([href], [role='link']):is(:hover, :focus-within) img {
+  position: relative;
+  border-color: transparent;
+  background: none;
+}
+
+/* Same for the page banner: its illustration gets a layer of its own. */
+#content-area:has([data-page-banner]) #header > div:has(#page-title) {
+  position: relative;
+}
+
+#content-area:has([data-page-banner]) #header > div:has(#page-title)::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  box-sizing: border-box;
+  height: 176px;
+  padding: var(--twenty-space-4) var(--twenty-space-6);
+  border: 1px solid transparent;
+  background-image: var(--page-banner-illustration);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 128px 128px;
+  background-origin: content-box;
+  pointer-events: none;
+}
+
+#content-area:has([data-page-banner]) #header > div:has(#page-title)::after {
+  background-image: var(--page-banner-pattern, url('/images/documentation/card-backgrounds-v2/developers-api.svg'));
+  background-size: cover;
+  background-origin: border-box;
+}
+
+:is(.dark, [data-theme='dark']) #content-area:has([data-page-banner]) #header > div:has(#page-title)::after {
+  background-blend-mode: color-burn;
+}
+
+/* These two banners are drawn in #110AE9, so they need their own filters. */
+#content-area:has([data-page-banner='user-guide'], [data-page-banner='developers']) #header > div:has(#page-title)::before {
+  box-sizing: content-box;
+  height: auto;
+  aspect-ratio: var(--page-banner-aspect-ratio, 1282 / 334);
+  padding: var(--twenty-space-8) 0;
+  background-size: cover;
+  filter: brightness(1.82) saturate(0.66) hue-rotate(-3deg);
+}
+
+:is(.dark, [data-theme='dark']) #content-area:has([data-page-banner='user-guide'], [data-page-banner='developers']) #header > div:has(#page-title)::before {
+  filter: saturate(0.08) brightness(5.48) hue-rotate(-1deg);
 }
 
 /* Twenty's footer is only as wide as the page content, too narrow for the logo

@@ -108,6 +108,9 @@ export const EXCLUDED_PAGE_PREFIXES = [
   'ui/',
 ];
 
+// Twenty's logo, on the banner of the introduction page Upshift replaces.
+export const UNPUBLISHED_STYLE_ASSETS = ['images/documentation/banners/meet-twenty.png'];
+
 // Code samples name the brand in comments, strings and diagrams too. The
 // webhook signature headers keep Twenty's name: they are part of the API.
 export const CODE_BRAND_WORD = /(?<!X-)\bTwenty\b/g;

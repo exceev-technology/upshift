@@ -8,7 +8,7 @@ import {
   auditSite,
   buildDocsConfig,
   collectAssets,
-  collectFonts,
+  collectStyleAssets,
 } from '../transform.mjs';
 
 const [FRENCH, ENGLISH] = LANGUAGES;
@@ -219,18 +219,20 @@ describe('buildDocsConfig', () => {
   });
 });
 
-describe('collectFonts', () => {
-  it('lists the local fonts a stylesheet loads, once each', () => {
+describe('collectStyleAssets', () => {
+  it('lists the local fonts and images a stylesheet loads, once each', () => {
     const css = [
       "@font-face { src: url('/fonts/aleo-latin-300.woff2') format('woff2'); }",
       '@font-face { src: url("/fonts/aleo-latin-300.woff2"); }',
       "@font-face { src: url(/fonts/azeret-mono.woff2); }",
       "#banner { background: url('/images/banner.png'), url('data:image/svg+xml,%3Csvg'); }",
+      "#remote { background: url('https://example.com/images/remote.png'); }",
     ].join('\n');
 
-    assert.deepEqual(collectFonts(css), [
+    assert.deepEqual(collectStyleAssets(css), [
       'fonts/aleo-latin-300.woff2',
       'fonts/azeret-mono.woff2',
+      'images/banner.png',
     ]);
   });
 });
