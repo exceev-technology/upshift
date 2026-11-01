@@ -33,7 +33,7 @@ upshift/
    - copies `branding/overlay/` over the checkout,
    - applies exact-match source patches (each patch expects a precise number of matches, so a moved string fails loudly instead of being skipped),
    - makes the image own its version: the build writes `APP_VERSION` to `/app/upshift-version` and the entrypoint exports it for the server and the worker, so an `APP_VERSION` left in a deployment's environment is ignored (and logged) instead of reporting an older release,
-   - installs a translation hook that runs right after `lingui compile` and replaces "Twenty" with the brand name in every language,
+   - installs a translation hook that runs right after `lingui compile` and replaces "Twenty" with the brand name in every language, and rewords the server errors that ask for an Organization key or plan (`scripts/license-message-wording.mjs`),
    - turns off Yarn telemetry,
    - runs a reference census: any shipped file that references a Twenty-owned host or link outside the reviewed list (`REFERENCE_CENSUS`, each entry says why it is allowed) fails the build.
 
@@ -202,7 +202,10 @@ Every failure names the file and what was expected.
 | `changed in Twenty (sha256 ...)` | Twenty edited a file Upshift replaces whole (the email footer) | Compare with the overlay, port anything relevant, add the new hash to `CODE_OVERLAY_UPSTREAM_SHA256` |
 | `has no Upshift version` | Twenty added a new app icon | `node upshift/scripts/generate-icons.mjs --root <checkout>` and commit |
 | `references <host or link>` | New code calls or links to a Twenty-owned host | Patch it; while the latest Twenty release does not have that code yet, mark the replacement `optional: true`. If it is unreachable or intentional, add the file to `REFERENCE_CENSUS` with the reason |
+| `references OrganizationAdornment`, `SettingsEnterpriseFeatureGateCard` or `SettingsPath.AdminPanelOrganization` | Twenty added a licence prompt to another screen | Add a patch to `scripts/license-ui-patches.mjs` that hides the section for workspaces without the entitlement |
 | `lingui compile command not found` / `catalogs changed shape` | Twenty changed its translation build | Update `installCatalogHooks` or `brand-catalogs.mjs` |
+| `message not found, Twenty reworded or removed it` | Twenty changed the English text of a licence error | Put the new text in `scripts/license-message-wording.mjs` |
+| `no second sentence to remove` / `a placeholder follows the first sentence` | A translation of a licence error no longer splits into a neutral first sentence and the licence sentence | Replace that message with `replaceWith` in `scripts/license-message-wording.mjs`, or reword it another way |
 
 ## What the layer disables
 
@@ -247,6 +250,7 @@ Changing these sources does not update an existing registry image. After merging
 - The Community settings page links to Exceev's LinkedIn and X (`linkedinUrl`, `xUrl`) and shows the beta Features toggles, so each workspace can turn a feature on or off, only when the server offers at least one. Twenty's contributor cover, partners and changelog are removed from it.
 - Western Sahara (EH) is folded into Morocco (`scripts/phone-country-patches.mjs`): every +212 number saves as MA, including the 528 8x and 528 9x fixed lines Twenty's phone library attributes to EH, no country picker lists Western Sahara, and the API refuses `EH`. Each time the server starts it moves phones stored as `EH` to `MA` in SQL, so the move does not change `updatedAt` or add timeline or webhook events; a phone that would then duplicate a unique number keeps `EH`, is logged as a warning, and is saved as `MA` the next time someone edits it in the app.
 - Hidden: the Organization tab of the admin panel (Twenty's enterprise licence and plans), the Legal / DPA pages (Twenty's own legal agreement) and the ChatGPT card that installs Twenty's ChatGPT app.
+- No licence prompts: a workspace without the entitlement does not see the paid section at all (SSO, audit log types and retention, validation rules, record-level permissions, custom role creation, AI usage analytics, custom AI providers above 25 seats) instead of an Organization badge, upgrade card or locked tab. A workspace with a valid licence sees them as in Twenty. See `scripts/license-ui-patches.mjs`. Server errors that asked for an Organization key or plan keep only their neutral part in every language, for example "Workspace limit reached.", or say "This feature is not enabled." (`scripts/license-message-wording.mjs`).
 - Moroccan dirham shows `MAD` instead of Twenty's UAE dirham sign in currency inputs and menus, and in amounts on Twenty releases that still draw a currency icon there (`scripts/currency-patches.mjs`).
 
 Still named Twenty on purpose, because they are real identifiers:
