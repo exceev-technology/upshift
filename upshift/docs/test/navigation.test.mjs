@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 import { LANGUAGES } from '../rules.mjs';
 import {
   buildLocaleRedirects,
+  buildUntranslatedRedirects,
   filterNavigation,
   filterRedirects,
   findUnmatchedExclusions,
@@ -325,6 +326,37 @@ describe('filterRedirects', () => {
         .map(({ source }) => source),
       ['/flows', '/en/flows'],
     );
+  });
+});
+
+describe('buildUntranslatedRedirects', () => {
+  it('sends the French address of a page Twenty has not translated to its English version', () => {
+    const publishedPages = new Map([
+      ['fr', new Set(['user-guide/calendar-emails/overview'])],
+      [
+        'en',
+        new Set([
+          'user-guide/calendar-emails/overview',
+          'user-guide/calendar-emails/capabilities/email-channels',
+          'user-guide/workflows/how-tos/generate-pdf-from-twenty',
+        ]),
+      ],
+    ]);
+
+    assert.deepEqual(buildUntranslatedRedirects(publishedPages), [
+      {
+        source: '/user-guide/calendar-emails/capabilities/email-channels',
+        destination: '/en/user-guide/calendar-emails/capabilities/email-channels',
+      },
+      {
+        source: '/user-guide/workflows/how-tos/generate-pdf-from-twenty',
+        destination: '/en/user-guide/workflows/how-tos/generate-pdf-from-upshift',
+      },
+      {
+        source: '/user-guide/workflows/how-tos/generate-pdf-from-upshift',
+        destination: '/en/user-guide/workflows/how-tos/generate-pdf-from-upshift',
+      },
+    ]);
   });
 });
 

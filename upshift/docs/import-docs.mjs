@@ -24,7 +24,9 @@ import {
   auditSite,
   buildDocsConfig,
   buildLocaleRedirects,
+  buildUntranslatedRedirects,
   collectAssets,
+  collectFonts,
   filterNavigation,
   filterRedirects,
   findUnmatchedExclusions,
@@ -290,13 +292,21 @@ export const buildSite = (
     : navigation;
   const redirects = [
     ...filterRedirects(twentyDocsConfig.redirects, publishedPages),
+    ...buildUntranslatedRedirects(publishedPages),
     ...buildLocaleRedirects(appLanguages, appDefaultLanguage),
   ];
 
-  files.set(
-    'custom.css',
-    `${adaptCustomCss(readTwenty('custom.css').toString())}\n${readFileSync(path.join(DOCS_ROOT, 'upshift.css'))}`,
-  );
+  const customCss = `${adaptCustomCss(readTwenty('custom.css').toString())}\n${readFileSync(path.join(DOCS_ROOT, 'upshift.css'))}`;
+
+  for (const font of collectFonts(customCss)) {
+    if (existsSync(path.join(twentyDocsRoot, font))) {
+      files.set(font, readTwenty(font));
+    } else {
+      problems.push(`custom.css loads ${font}, which is missing from packages/twenty-docs`);
+    }
+  }
+
+  files.set('custom.css', customCss);
   files.set('logo-light.svg', readBranding('wordmark.svg'));
   files.set('logo-dark.svg', readBranding('wordmark-dark.svg'));
   files.set('favicon.svg', readBranding('logo.svg'));
