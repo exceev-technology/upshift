@@ -20,10 +20,8 @@ import { type BillingSubscriptionService } from 'src/engine/core-modules/billing
 import { type AddWorkflowRunToChatThreadsCommand } from 'src/database/commands/upgrade-version-command/2-44/2-44-workspace-command-1790607161319-add-workflow-run-to-chat-threads.command';
 import { EnableCommonRecordSharingCommand } from 'src/database/commands/upgrade-version-command/2-43/2-43-workspace-command-1790312694997-enable-common-record-sharing.command';
 import { type AgentHistoryUpgradeStorageService } from 'src/database/commands/agent-history/agent-history-upgrade-storage.service';
-import { type WorkspaceMigrationValidateBuildAndRunService } from 'src/engine/workspace-manager/workspace-migration/services/workspace-migration-validate-build-and-run-service';
 import { randomUUID } from 'node:crypto';
 import { parse } from 'graphql';
-import { EVERYONE_PRINCIPAL_ID } from 'twenty-shared/constants';
 import { type ObjectRecordDestroyEvent } from 'twenty-shared/database-events';
 import {
   FeatureFlagKey,
@@ -536,9 +534,6 @@ describe('Conversation sharing through the authenticated API', () => {
       getAppProviderByClassName<AgentHistoryUpgradeStorageService>(
         'AgentHistoryUpgradeStorageService',
       ),
-      getAppProviderByClassName<WorkspaceMigrationValidateBuildAndRunService>(
-        'WorkspaceMigrationValidateBuildAndRunService',
-      ),
       getAppProviderByClassName<BillingSubscriptionService>(
         'BillingSubscriptionService',
       ),
@@ -986,16 +981,11 @@ describe('Conversations through the record API', () => {
     userWorkspaceId: string;
     workspaceMemberId: string;
   }) => {
-    const { userWorkspaceRoleMap, rolesPermissions } =
+    const { userWorkspaceRoleMap } =
       await getAppProviderByClassName<WorkspaceCacheService>(
         'WorkspaceCacheService',
-      ).getOrRecompute(SEED_APPLE_WORKSPACE_ID, [
-        'userWorkspaceRoleMap',
-        'rolesPermissions',
-      ]);
-    const roleId = userWorkspaceRoleMap[userWorkspaceId];
-
-    if (!isDefined(roleId)) {
+      ).getOrRecompute(SEED_APPLE_WORKSPACE_ID, ['userWorkspaceRoleMap']);
+    if (!isDefined(userWorkspaceRoleMap[userWorkspaceId])) {
       throw new Error(`Seeded role of ${userWorkspaceId} is missing`);
     }
 
@@ -1005,12 +995,9 @@ describe('Conversations through the record API', () => {
       )
         .buildEventRecordAccessGate(batch)
         .resolveAdmittedRecordIds({
-          isSystemContext: false,
-          objectsPermissions: rolesPermissions[roleId],
-          principalIds: [EVERYONE_PRINCIPAL_ID, workspaceMemberId, roleId],
-          workspaceMemberId,
-          isOwningApplication: () => false,
-          resolveRowLevelPermissionRecordFilter: () => null,
+          workspaceId: SEED_APPLE_WORKSPACE_ID,
+          mainPrincipal: { workspaceMemberId },
+          applicationPrincipal: { isCustomApp: true },
         });
 
     return admittedRecordIds.has(threadId);

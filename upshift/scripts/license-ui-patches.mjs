@@ -191,6 +191,50 @@ export const LICENSE_UI_PATCHES = [
           '',
         ),
       },
+      {
+        // Related record paths are newer than the latest release.
+        optional: true,
+        from: lines(
+          '      {isRelatedRecordPathsEnabled &&',
+          '        hasRolesPermission &&',
+          '        !objectMetadataItem.isRemote && (',
+          '          <Section.Root>',
+          '            <Section.Header',
+          '              title={t`Related records`}',
+          '              description={t`Records reached through these relations follow access to ${objectLabel}.`}',
+          '              actions={',
+          '                <OrganizationAdornment',
+          '                  tooltipContent={',
+          '                    hasRelatedRecordPathsEntitlement',
+          '                      ? undefined',
+          '                      : t`Upgrade to Organization to change related records`',
+          '                  }',
+          '                />',
+          '              }',
+          '            />',
+          '            <SettingsObjectRelatedRecordPathsSection',
+          '              objectMetadataItem={objectMetadataItem}',
+          '              isReadOnly={isDDLLocked || !hasRelatedRecordPathsEntitlement}',
+          '            />',
+          '',
+        ),
+        to: lines(
+          '      {isRelatedRecordPathsEnabled &&',
+          '        hasRolesPermission &&',
+          '        hasRelatedRecordPathsEntitlement &&',
+          '        !objectMetadataItem.isRemote && (',
+          '          <Section.Root>',
+          '            <Section.Header',
+          '              title={t`Related records`}',
+          '              description={t`Records reached through these relations follow access to ${objectLabel}.`}',
+          '            />',
+          '            <SettingsObjectRelatedRecordPathsSection',
+          '              objectMetadataItem={objectMetadataItem}',
+          '              isReadOnly={isDDLLocked}',
+          '            />',
+          '',
+        ),
+      },
     ],
   },
   {
@@ -446,6 +490,8 @@ export const LICENSE_UI_PATCHES = [
         ),
       },
       {
+        // Inline tab list in the latest release; newer Twenty builds it in getSettingsAiTabs.
+        optional: true,
         from: lines('  const tabs = [', ''),
         to: lines(
           '  const currentWorkspace = useAtomStateValue(currentWorkspaceState);',
@@ -459,6 +505,25 @@ export const LICENSE_UI_PATCHES = [
         ),
       },
       {
+        // Newer than the latest release, which keeps the inline list above.
+        optional: true,
+        from: lines('  const tabs = getSettingsAiTabs(isInboxEnabled);', ''),
+        to: lines(
+          '  const currentWorkspace = useAtomStateValue(currentWorkspaceState);',
+          '  const billing = useAtomStateValue(billingState);',
+          '  const hasEnterpriseAccess =',
+          '    billing?.isBillingEnabled === true ||',
+          '    currentWorkspace?.hasValidEnterpriseValidityToken === true;',
+          '  const tabs = getSettingsAiTabs(isInboxEnabled).filter(',
+          '    (tab) =>',
+          '      hasEnterpriseAccess || tab.id !== SETTINGS_AI_TABS.TABS_IDS.USAGE,',
+          '  );',
+          '',
+        ),
+      },
+      {
+        // Inline tab list in the latest release only.
+        optional: true,
         from: lines(
           '    {',
           '      id: SETTINGS_AI_TABS.TABS_IDS.USAGE,',
