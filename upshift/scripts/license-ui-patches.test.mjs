@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import path from 'node:path';
 import test from 'node:test';
@@ -69,9 +69,11 @@ test('inserted code only introduces the names listed here', () => {
       'billingState',
       'currentWorkspace',
       'currentWorkspaceState',
+      'filter',
       'hasEnterpriseAccess',
       'hasValidEnterpriseValidityToken',
       'isBillingEnabled',
+      'tab',
       'useAtomStateValue',
     ],
     'SettingsLogs.tsx': ['isTableAvailable', 'isTableAvailableOnEveryPlan', 'table'],
@@ -151,26 +153,49 @@ test('paid settings sections render only for entitled workspaces', () => {
   }
 });
 
+// Newer Twenty builds the tab list in getSettingsAiTabs, the latest release inlines it
+const settingsAiTabsUtil = () => {
+  const utilPath = path.join(
+    sourceRoot,
+    'packages/twenty-front/src/modules/settings/ai/utils/getSettingsAiTabs.ts',
+  );
+  if (!existsSync(utilPath)) return '';
+  return stripTypeScriptTypes(
+    readFileSync(utilPath, 'utf8')
+      .replace(/^import[\s\S]*?;\n/gm, '')
+      .replace(/^export /gm, ''),
+  );
+};
+
 test('the AI settings Usage tab only exists with enterprise access', () => {
+  const patched = patchedSource('/pages/settings/ai/SettingsAI.tsx');
   const tabsSource = between(
-    patchedSource('/pages/settings/ai/SettingsAI.tsx'),
+    patched,
     '  const currentWorkspace = useAtomStateValue(currentWorkspaceState);',
-    '  const resolvedTabId',
+    patched.includes('  const resolvedTabId') ? '  const resolvedTabId' : '  const activeTabId',
   );
   const tabIds = ({ isBillingEnabled, hasValidEnterpriseValidityToken }) =>
     Array.from(
-      vm.runInNewContext(`${tabsSource}\ntabs;`, {
+      vm.runInNewContext(`${settingsAiTabsUtil()}\nconst isInboxEnabled = false;\n${tabsSource}\ntabs;`, {
         currentWorkspaceState: 'workspace',
         billingState: 'billing',
         useAtomStateValue: (atom) =>
           atom === 'billing' ? { isBillingEnabled } : { hasValidEnterpriseValidityToken },
         SETTINGS_AI_TABS: {
-          TABS_IDS: { MCP: 'MCP', MODELS: 'MODELS', SKILLS: 'SKILLS', TOOLS: 'TOOLS', USAGE: 'USAGE' },
+          TABS_IDS: {
+            OVERVIEW: 'OVERVIEW',
+            MCP: 'MCP',
+            MODELS: 'MODELS',
+            SKILLS: 'SKILLS',
+            TOOLS: 'TOOLS',
+            USAGE: 'USAGE',
+          },
         },
         t: (strings) => strings.join(''),
         IconBook: 'IconBook',
         IconChartBar: 'IconChartBar',
         IconCpu: 'IconCpu',
+        IconLayoutDashboard: 'IconLayoutDashboard',
         IconSparkles: 'IconSparkles',
         IconTool: 'IconTool',
       }),
