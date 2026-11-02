@@ -152,6 +152,8 @@ export const LICENSE_UI_PATCHES = [
       REMOVE_GATE_CARD_IMPORT,
       REMOVE_ORGANIZATION_ADORNMENT_IMPORT,
       {
+        // Record creation form flag in the latest release only.
+        optional: true,
         from: lines(
           '      {isRecordCreationFormEnabled &&',
           '        !objectMetadataItem.isRemote &&',
@@ -165,6 +167,8 @@ export const LICENSE_UI_PATCHES = [
         ),
       },
       {
+        // Latest release nests the section under the record creation form flag.
+        optional: true,
         from: lines(
           '              actions={<OrganizationAdornment />}',
           '            />',
@@ -188,6 +192,47 @@ export const LICENSE_UI_PATCHES = [
           '              objectMetadataItem={objectMetadataItem}',
           '              isReadOnly={isReadOnly}',
           '            />',
+          '',
+        ),
+      },
+      {
+        // Newer than the latest release, which gates the section on the record creation form flag.
+        optional: true,
+        from: lines(
+          '      {!objectMetadataItem.isRemote && !objectMetadataItem.isSystem && (',
+          '        <Section.Root>',
+          '          <Section.Header',
+          '            title={t`Validation rules`}',
+          '            description={t`Block records that break your rules, like an opportunity marked Won with no amount. Checked on every save.`}',
+          '            actions={<OrganizationAdornment />}',
+          '          />',
+          '          {hasValidationRulesEntitlement ? (',
+          '            <SettingsObjectValidationRulesSection',
+          '              objectMetadataItem={objectMetadataItem}',
+          '              isReadOnly={isReadOnly}',
+          '            />',
+          '          ) : (',
+          '            <SettingsEnterpriseFeatureGateCard',
+          '              title={t`Organization feature`}',
+          '              description={t`Upgrade to Organization to set validation rules.`}',
+          '              buttonTitle={t`Activate`}',
+          '            />',
+          '          )}',
+          '',
+        ),
+        to: lines(
+          '      {hasValidationRulesEntitlement &&',
+          '        !objectMetadataItem.isRemote &&',
+          '        !objectMetadataItem.isSystem && (',
+          '        <Section.Root>',
+          '          <Section.Header',
+          '            title={t`Validation rules`}',
+          '            description={t`Block records that break your rules, like an opportunity marked Won with no amount. Checked on every save.`}',
+          '          />',
+          '          <SettingsObjectValidationRulesSection',
+          '            objectMetadataItem={objectMetadataItem}',
+          '            isReadOnly={isReadOnly}',
+          '          />',
           '',
         ),
       },
