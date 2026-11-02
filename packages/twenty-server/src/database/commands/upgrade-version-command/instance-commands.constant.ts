@@ -277,6 +277,9 @@ import { RenameWorkspaceAllowedIframeOriginsToAllowedEmbeddingOriginsFastInstanc
 import { AddRelatedRecordPathIsInherentFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-55/2-55-instance-command-fast-1793375358574-add-related-record-path-is-inherent';
 import { AddRelationFieldMetadataIdToRowLevelPermissionPredicateFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-55/2-55-instance-command-fast-1793381326752-add-relation-field-metadata-id-to-row-level-permission-predicate';
 import { IndexTemporaryFileExpirationSlowInstanceCommand } from 'src/database/commands/upgrade-version-command/2-55/2-55-instance-command-slow-1793462047826-index-temporary-file-expiration';
+import { EnableUserHealthCheckFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-55/2-55-instance-command-fast-1793473469981-enable-user-health-check';
+import { AddSettingsMenuItemSlugFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-55/2-55-instance-command-fast-1793618487873-add-settings-menu-item-slug';
+import { AddApplicationRoleTargetFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-55/2-55-instance-command-fast-1793627583457-add-application-role-target';
 
 export const INSTANCE_COMMANDS = [
   AddViewFieldGroupIdIndexOnViewFieldFastInstanceCommand,
@@ -556,4 +559,7 @@ export const INSTANCE_COMMANDS = [
   AddRelatedRecordPathIsInherentFastInstanceCommand,
   AddRelationFieldMetadataIdToRowLevelPermissionPredicateFastInstanceCommand,
   IndexTemporaryFileExpirationSlowInstanceCommand,
+  EnableUserHealthCheckFastInstanceCommand,
+  AddSettingsMenuItemSlugFastInstanceCommand,
+  AddApplicationRoleTargetFastInstanceCommand,
 ];

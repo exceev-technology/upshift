@@ -22,7 +22,6 @@ import { EnableCommonRecordSharingCommand } from 'src/database/commands/upgrade-
 import { type AgentHistoryUpgradeStorageService } from 'src/database/commands/agent-history/agent-history-upgrade-storage.service';
 import { randomUUID } from 'node:crypto';
 import { parse } from 'graphql';
-import { EVERYONE_PRINCIPAL_ID } from 'twenty-shared/constants';
 import { type ObjectRecordDestroyEvent } from 'twenty-shared/database-events';
 import {
   FeatureFlagKey,
@@ -982,16 +981,11 @@ describe('Conversations through the record API', () => {
     userWorkspaceId: string;
     workspaceMemberId: string;
   }) => {
-    const { userWorkspaceRoleMap, rolesPermissions } =
+    const { userWorkspaceRoleMap } =
       await getAppProviderByClassName<WorkspaceCacheService>(
         'WorkspaceCacheService',
-      ).getOrRecompute(SEED_APPLE_WORKSPACE_ID, [
-        'userWorkspaceRoleMap',
-        'rolesPermissions',
-      ]);
-    const roleId = userWorkspaceRoleMap[userWorkspaceId];
-
-    if (!isDefined(roleId)) {
+      ).getOrRecompute(SEED_APPLE_WORKSPACE_ID, ['userWorkspaceRoleMap']);
+    if (!isDefined(userWorkspaceRoleMap[userWorkspaceId])) {
       throw new Error(`Seeded role of ${userWorkspaceId} is missing`);
     }
 
@@ -1001,12 +995,9 @@ describe('Conversations through the record API', () => {
       )
         .buildEventRecordAccessGate(batch)
         .resolveAdmittedRecordIds({
-          isSystemContext: false,
-          objectsPermissions: rolesPermissions[roleId],
-          principalIds: [EVERYONE_PRINCIPAL_ID, workspaceMemberId, roleId],
-          workspaceMemberId,
-          isOwningApplication: () => false,
-          resolveRowLevelPermissionRecordFilter: () => null,
+          workspaceId: SEED_APPLE_WORKSPACE_ID,
+          mainPrincipal: { workspaceMemberId },
+          applicationPrincipal: { isCustomApp: true },
         });
 
     return admittedRecordIds.has(threadId);
