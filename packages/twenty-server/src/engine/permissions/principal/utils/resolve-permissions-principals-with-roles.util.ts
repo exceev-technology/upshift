@@ -3,12 +3,13 @@
 import { isDefined } from 'twenty-shared/utils';
 
 import { findFlatRoleTargetFromForeignKey } from 'src/engine/metadata-modules/flat-role-target/utils/find-flat-role-target-from-foreign-key.util';
+import { type PermissionsAuthContext } from 'src/engine/permissions/principal/types/permissions-auth-context.type';
 import {
   type PermissionsApplicationPrincipal,
   type PermissionsLimitingPrincipal,
   type PermissionsMainPrincipal,
-  type PermissionsPrincipalsContext,
-} from 'src/engine/permissions/principal/types/permissions-principals-context.type';
+} from 'src/engine/permissions/principal/types/permissions-principal.type';
+import { type AiRunPermissionScope } from 'src/engine/permissions/principal/types/ai-run-permission-scope.type';
 import {
   type PermissionsApplicationPrincipalWithRole,
   type PermissionsLimitingPrincipalWithRole,
@@ -22,9 +23,10 @@ import { type FlatWorkspaceMemberMaps } from 'src/engine/core-modules/user/types
 import { type FlatRoleTarget } from 'src/engine/metadata-modules/flat-role-target/types/flat-role-target.type';
 import { type AllFlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/types/all-flat-entity-maps.type';
 import { type UserWorkspaceRoleMap } from 'src/engine/metadata-modules/role-target/types/user-workspace-role-map.type';
+import { isPermissionMainPrincipalWorkspaceMember } from 'src/engine/permissions/principal/utils/is-permission-main-principal-workspace-member.util';
 
-type PermissionsPrincipalRoleMaps = {
-  flatWorkspaceMemberMaps: {
+export type PermissionsPrincipalsRoleMaps = {
+  flatWorkspaceMemberMaps?: {
     byId: Partial<Record<string, Pick<FlatWorkspaceMember, 'userId'>>>;
     userWorkspaceIdByUserId: FlatWorkspaceMemberMaps['userWorkspaceIdByUserId'];
   };
@@ -53,14 +55,14 @@ const findWorkspaceMemberRoleId = ({
 }: {
   workspaceMemberId: string;
   roleMaps: Pick<
-    PermissionsPrincipalRoleMaps,
+    PermissionsPrincipalsRoleMaps,
     'flatWorkspaceMemberMaps' | 'userWorkspaceRoleMap'
   >;
 }): string | undefined => {
   const userId =
-    roleMaps.flatWorkspaceMemberMaps.byId[workspaceMemberId]?.userId;
+    roleMaps.flatWorkspaceMemberMaps?.byId[workspaceMemberId]?.userId;
   const userWorkspaceId = isDefined(userId)
-    ? roleMaps.flatWorkspaceMemberMaps.userWorkspaceIdByUserId[userId]
+    ? roleMaps.flatWorkspaceMemberMaps?.userWorkspaceIdByUserId[userId]
     : undefined;
 
   return isDefined(userWorkspaceId)
@@ -73,10 +75,10 @@ const findMainPrincipalRoleId = ({
   roleMaps,
 }: {
   mainPrincipal: PermissionsMainPrincipal;
-  roleMaps: PermissionsPrincipalRoleMaps;
+  roleMaps: PermissionsPrincipalsRoleMaps;
 }): string | undefined => {
   switch (mainPrincipal.type) {
-    case 'deprecatedRoleOnly':
+    case 'role':
       return mainPrincipal.roleId;
     case 'workspaceMember':
       return findWorkspaceMemberRoleId({
@@ -107,21 +109,13 @@ const findMainPrincipalRoleId = ({
   }
 };
 
-// TODO(@charlesBochet): an agent or application always needs a role; until then one without counts as the custom app
 const resolveLimitingPrincipal = ({
   limitingPrincipal,
   roleMaps,
 }: {
-  limitingPrincipal: PermissionsLimitingPrincipal | undefined;
-  roleMaps: PermissionsPrincipalRoleMaps;
+  limitingPrincipal: PermissionsLimitingPrincipal;
+  roleMaps: PermissionsPrincipalsRoleMaps;
 }): PermissionsLimitingPrincipalWithRole | undefined => {
-  if (
-    !isDefined(limitingPrincipal) ||
-    limitingPrincipal.type === 'deprecatedRoleOnly'
-  ) {
-    return limitingPrincipal;
-  }
-
   const roleId =
     roleMaps.flatRoleTargetByAgentIdMaps[limitingPrincipal.agentId]?.roleId;
 
@@ -137,7 +131,7 @@ const resolveApplicationPrincipal = ({
 }: {
   applicationPrincipal: PermissionsApplicationPrincipal;
   mainPrincipal: PermissionsMainPrincipalWithRole;
-  roleMaps: PermissionsPrincipalRoleMaps;
+  roleMaps: PermissionsPrincipalsRoleMaps;
 }): PermissionsApplicationPrincipalWithRole | undefined => {
   if (applicationPrincipal.type !== 'application') {
     return applicationPrincipal;
@@ -150,12 +144,11 @@ const resolveApplicationPrincipal = ({
     return undefined;
   }
 
-  const { applicationRoleId } = resolveApplicationRoleId({
+  const applicationRoleId = resolveApplicationRoleId({
     application: flatApplication,
-    userRoleId:
-      mainPrincipal.type === 'workspaceMember'
-        ? mainPrincipal.roleId
-        : undefined,
+    userRoleId: isPermissionMainPrincipalWorkspaceMember(mainPrincipal)
+      ? mainPrincipal.roleId
+      : undefined,
   });
 
   return isDefined(applicationRoleId)
@@ -164,18 +157,89 @@ const resolveApplicationPrincipal = ({
         roleId: applicationRoleId,
         applicationId: applicationPrincipal.applicationId,
       }
+    : undefined;
+};
+
+type PermissionsIdentities = {
+  mainPrincipal: PermissionsMainPrincipal;
+  limitingPrincipal?: PermissionsLimitingPrincipal;
+  applicationPrincipal: PermissionsApplicationPrincipal;
+  aiRunScope?: AiRunPermissionScope;
+};
+
+const toApplicationPrincipal = (
+  applicationId: string | undefined,
+): PermissionsApplicationPrincipal =>
+  isDefined(applicationId)
+    ? { type: 'application', applicationId }
     : { type: 'customApplication' };
+
+const toLimitingPrincipal = (
+  agentId: string | undefined,
+): PermissionsLimitingPrincipal | undefined =>
+  isDefined(agentId) ? { type: 'agent', agentId } : undefined;
+
+const getPermissionsIdentitiesFromAuthContext = (
+  authContext: PermissionsAuthContext,
+): PermissionsIdentities | undefined => {
+  switch (authContext.type) {
+    case 'user':
+      return {
+        mainPrincipal: {
+          type: 'workspaceMember',
+          workspaceMemberId: authContext.workspaceMemberId,
+        },
+        limitingPrincipal: toLimitingPrincipal(authContext.agentId),
+        applicationPrincipal: toApplicationPrincipal(
+          authContext.application?.id,
+        ),
+        aiRunScope: authContext.aiRunScope,
+      };
+    case 'apiKey':
+      return {
+        mainPrincipal: { type: 'apiKey', apiKeyId: authContext.apiKey.id },
+        limitingPrincipal: toLimitingPrincipal(authContext.agentId),
+        applicationPrincipal: toApplicationPrincipal(
+          authContext.application?.id,
+        ),
+        aiRunScope: authContext.aiRunScope,
+      };
+    case 'application':
+      return {
+        mainPrincipal: isDefined(authContext.agentId)
+          ? { type: 'agent', agentId: authContext.agentId }
+          : { type: 'application', applicationId: authContext.application.id },
+        applicationPrincipal: toApplicationPrincipal(
+          authContext.application.id,
+        ),
+        aiRunScope: authContext.aiRunScope,
+      };
+    case 'webhook':
+      return {
+        mainPrincipal: { type: 'webhook', webhookId: authContext.webhook.id },
+        applicationPrincipal: { type: 'customApplication' },
+      };
+    case 'system':
+    case 'pendingActivationUser':
+      return undefined;
+  }
 };
 
 export const resolvePermissionsPrincipalsWithRoles = ({
-  principalsContext,
+  authContext,
   roleMaps,
 }: {
-  principalsContext: PermissionsPrincipalsContext;
-  roleMaps: PermissionsPrincipalRoleMaps;
+  authContext: PermissionsAuthContext;
+  roleMaps: PermissionsPrincipalsRoleMaps;
 }): PermissionsPrincipalsWithRolesContext | undefined => {
+  const identities = getPermissionsIdentitiesFromAuthContext(authContext);
+
+  if (!isDefined(identities)) {
+    return undefined;
+  }
+
   const mainRoleId = findMainPrincipalRoleId({
-    mainPrincipal: principalsContext.mainPrincipal,
+    mainPrincipal: identities.mainPrincipal,
     roleMaps,
   });
 
@@ -184,12 +248,12 @@ export const resolvePermissionsPrincipalsWithRoles = ({
   }
 
   const mainPrincipal: PermissionsMainPrincipalWithRole = {
-    ...principalsContext.mainPrincipal,
+    ...identities.mainPrincipal,
     roleId: mainRoleId,
   };
 
   const applicationPrincipal = resolveApplicationPrincipal({
-    applicationPrincipal: principalsContext.applicationPrincipal,
+    applicationPrincipal: identities.applicationPrincipal,
     mainPrincipal,
     roleMaps,
   });
@@ -198,13 +262,23 @@ export const resolvePermissionsPrincipalsWithRoles = ({
     return undefined;
   }
 
+  const { limitingPrincipal } = identities;
+  const limitingPrincipalWithRole = isDefined(limitingPrincipal)
+    ? resolveLimitingPrincipal({ limitingPrincipal, roleMaps })
+    : undefined;
+
+  // Dropping a limiting agent that lost its role would widen access, so deny instead
+  if (isDefined(limitingPrincipal) && !isDefined(limitingPrincipalWithRole)) {
+    return undefined;
+  }
+
   return {
-    workspaceId: principalsContext.workspaceId,
+    workspaceId: authContext.workspace.id,
     mainPrincipal,
-    limitingPrincipal: resolveLimitingPrincipal({
-      limitingPrincipal: principalsContext.limitingPrincipal,
-      roleMaps,
-    }),
+    limitingPrincipal: limitingPrincipalWithRole,
     applicationPrincipal,
+    ...(isDefined(identities.aiRunScope)
+      ? { aiRunScope: identities.aiRunScope }
+      : {}),
   };
 };
