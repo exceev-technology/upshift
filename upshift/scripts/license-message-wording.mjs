@@ -22,6 +22,7 @@ const LICENSE_MESSAGES = [
     replaceWith: NEUTRAL_MESSAGE,
   },
   { message: 'Validation rules require the Organization plan.', replaceWith: NEUTRAL_MESSAGE },
+  { message: 'Related record paths require the Organization plan.', replaceWith: NEUTRAL_MESSAGE },
   {
     message: 'Limits scoped below the workspace require the Organization plan.',
     replaceWith: NEUTRAL_MESSAGE,
