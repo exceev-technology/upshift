@@ -138,6 +138,10 @@ test('license messages are reworded in every server locale', () => {
     toText(english[idOf('Audit logs require an Organization subscription.')]),
     'This feature is not enabled.',
   );
+  assert.equal(
+    toText(english[idOf('Related record paths require the Organization plan.')]),
+    'This feature is not enabled.',
+  );
 });
 
 test('the hook fails the build when Twenty rewords a license message', () => {
