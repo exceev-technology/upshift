@@ -17,6 +17,7 @@ import { buildPermissionFlagDeniedException } from 'src/engine/guards/utils/buil
 import { classifyAuthPrincipal } from 'src/engine/guards/utils/classify-auth-principal.util';
 import { classifyWorkspaceAuthContext } from 'src/engine/guards/utils/classify-workspace-auth-context.util';
 import { isAuthPrincipalVariantAccepted } from 'src/engine/guards/utils/is-auth-principal-variant-accepted.util';
+import { withAgentsAdmitted } from 'src/engine/permissions/access-policy/utils/with-agents-admitted.util';
 import { PermissionsService } from 'src/engine/permissions/permissions.service';
 
 // A workspace being created has no roles to check settings permissions against yet
@@ -25,11 +26,6 @@ const WORKSPACE_ACTIVATION_STATUSES_WITHOUT_ROLES = [
   WorkspaceActivationStatus.ONGOING_CREATION,
 ];
 
-type SettingsPermissionRequest = Pick<
-  Request,
-  'workspace' | 'userWorkspaceId' | 'apiKey' | 'application' | 'agentId'
->;
-
 @Injectable()
 export class AccessPolicyService {
   constructor(
@@ -37,7 +33,6 @@ export class AccessPolicyService {
     private readonly featureFlagService: FeatureFlagService,
   ) {}
 
-  // Throws what AuthPrincipalGuard, FeatureFlagGuard and SettingsPermissionGuard throw
   async assertRequestAccessPolicySatisfiedOrThrow({
     accessPolicy,
     request,
@@ -93,7 +88,7 @@ export class AccessPolicyService {
   }): Promise<boolean> {
     if (
       !this.isAuthPrincipalAccepted({
-        authPrincipals: this.withAgentsAdmitted(accessPolicy.authPrincipals),
+        authPrincipals: withAgentsAdmitted(accessPolicy.authPrincipals),
         authPrincipalVariant: isDefined(authContext)
           ? classifyWorkspaceAuthContext(authContext)
           : undefined,
@@ -117,11 +112,11 @@ export class AccessPolicyService {
     return true;
   }
 
-  async isSettingsPermissionGranted({
+  private async isSettingsPermissionGranted({
     request,
     permissionFlag,
   }: {
-    request: SettingsPermissionRequest;
+    request: Request;
     permissionFlag: PermissionFlagType;
   }): Promise<boolean> {
     const { workspace } = request;
@@ -146,26 +141,6 @@ export class AccessPolicyService {
       applicationId: request.application?.id,
       agentId: request.agentId,
     });
-  }
-
-  // Temporary hack: tools admit agents wherever the policy admits the application, which
-  // `application: true` leaves out. Remove once AuthPrincipalGuardConfig makes withAgent explicit
-  private withAgentsAdmitted(
-    authPrincipals: AuthPrincipalGuardConfig,
-  ): AuthPrincipalGuardConfig {
-    const { application } = authPrincipals;
-
-    if (application === false) {
-      return authPrincipals;
-    }
-
-    return {
-      ...authPrincipals,
-      application:
-        application === true
-          ? { withUser: true, withoutUser: true, withAgent: true }
-          : { ...application, withAgent: true },
-    };
   }
 
   private isAuthPrincipalAccepted({
