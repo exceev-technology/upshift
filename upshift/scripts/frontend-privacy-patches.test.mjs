@@ -38,13 +38,16 @@ test('admin tabs omit Organization and leave no dangling references', () => {
     ['GENERAL', 'APPS', 'AI', 'CONFIG_VARIABLES', 'HEALTH_STATUS', 'ORGANIZATION']
       .map((tab) => [tab, tab]),
   );
+  const t = (strings, ...values) => String.raw({ raw: strings }, ...values);
   const useSettingsAdminTabs = vm.runInNewContext(
     stripTypeScriptTypes(`${source}\nuseSettingsAdminTabs;`),
     {
       SETTINGS_ADMIN_TABS: tabs,
       currentUserState: 'currentUser',
       useAtomStateValue: () => ({ canAccessFullAdminPanel: true, canImpersonate: false }),
-      t: (strings, ...values) => String.raw({ raw: strings }, ...values),
+      // Newer Twenty reads t from useLingui(); the release still imports the t macro.
+      t,
+      useLingui: () => ({ t }),
       IconApps: 'IconApps',
       IconHeart: 'IconHeart',
       IconSettings2: 'IconSettings2',
