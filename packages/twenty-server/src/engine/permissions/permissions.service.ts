@@ -2,6 +2,11 @@ import { Injectable } from '@nestjs/common';
 
 import { msg } from '@lingui/core/macro';
 import { PermissionFlagType } from 'twenty-shared/constants';
+import { type ObjectRecordEvent } from 'twenty-shared/database-events';
+import {
+  type ObjectRecordsOperationType,
+  type RecordShareAccessLevel,
+} from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 
 import { NO_ROLE_RECORDS_PERMISSIONS } from 'src/engine/permissions/role/constants/no-role-records-permissions.constant';
@@ -30,7 +35,41 @@ import { type WorkspaceAuthContext } from 'src/engine/core-modules/auth/types/wo
 import { getPermissionsPrincipalsRoleIds } from 'src/engine/permissions/principal/utils/get-permissions-principals-role-ids.util';
 import { PermissionsPrincipalsService } from 'src/engine/permissions/principal/services/permissions-principals.service';
 import { resolveApplicationRoleId } from 'src/engine/permissions/principal/utils/resolve-application-role-id.util';
+import { RecordAccessPolicyService } from 'src/engine/permissions/combine/services/record-access-policy.service';
+import { type PermissionsAuthContext } from 'src/engine/permissions/principal/types/permissions-auth-context.type';
+import { type PermissionsPrincipalsWithRolesContext } from 'src/engine/permissions/principal/types/permissions-principals-with-roles-context.type';
+import { buildRolePermissionsPrincipals } from 'src/engine/permissions/principal/utils/build-role-permissions-principals.util';
+import { type WorkspaceTransactionScope } from 'src/engine/twenty-orm/types/workspace-transaction-scope.type';
 import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
+import { type UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
+import { type FlatWorkspaceMember } from 'src/engine/core-modules/user/types/flat-workspace-member.type';
+import { type FlatObjectMetadata } from 'src/engine/metadata-modules/flat-object-metadata/types/flat-object-metadata.type';
+import { type RoleEntity } from 'src/engine/metadata-modules/role/role.entity';
+import { type RecordPermissionsDTO } from 'src/engine/permissions/record-permissions/dtos/record-permissions.dto';
+import { RecordPermissionsService } from 'src/engine/permissions/record-permissions/services/record-permissions.service';
+import { type RecordSharingDTO } from 'src/engine/permissions/record-share/dtos/record-sharing.dto';
+import {
+  RecordSharingReadService,
+  type ViewerRecordAccess,
+} from 'src/engine/permissions/record-share/services/record-sharing-read.service';
+import { type RecordSharingArgs } from 'src/engine/permissions/record-share/types/record-sharing-args.type';
+import { UserRoleReadService } from 'src/engine/permissions/role-assignment/user-role-read.service';
+import { type WorkspaceEventBatch } from 'src/engine/workspace-event-emitter/types/workspace-event-batch.type';
+
+type ObjectQuestion = {
+  principals: PermissionsPrincipalsWithRolesContext | undefined;
+  objectMetadataId: string;
+};
+
+type RecordsQuestion = ObjectQuestion & {
+  recordIds: string[];
+  hypotheticalRecordShareAccessLevel?: RecordShareAccessLevel;
+  transactionScope?: WorkspaceTransactionScope;
+};
+
+type FieldsQuestion = Omit<ObjectQuestion, 'principals'> & {
+  principals: PermissionsPrincipalsWithRolesContext;
+};
 
 @Injectable()
 export class PermissionsService {
@@ -38,7 +77,138 @@ export class PermissionsService {
     private readonly workspaceCacheService: WorkspaceCacheService,
     private readonly apiKeyRoleService: ApiKeyRoleService,
     private readonly permissionsPrincipalsService: PermissionsPrincipalsService,
+    private readonly recordAccessPolicyService: RecordAccessPolicyService,
+    private readonly recordPermissionsService: RecordPermissionsService,
+    private readonly recordSharingReadService: RecordSharingReadService,
+    private readonly userRoleReadService: UserRoleReadService,
   ) {}
+
+  public buildPermissionsPrincipals({
+    authContext,
+  }: {
+    authContext: PermissionsAuthContext;
+  }): Promise<PermissionsPrincipalsWithRolesContext | undefined> {
+    return this.permissionsPrincipalsService.findPrincipalsWithRoles(
+      authContext,
+    );
+  }
+
+  public async buildPermissionsPrincipalsOrThrow({
+    authContext,
+  }: {
+    authContext: PermissionsAuthContext;
+  }): Promise<PermissionsPrincipalsWithRolesContext> {
+    const principals = await this.buildPermissionsPrincipals({ authContext });
+
+    if (!isDefined(principals)) {
+      throw new PermissionsException(
+        PermissionsExceptionMessage.PERMISSION_DENIED,
+        PermissionsExceptionCode.PERMISSION_DENIED,
+      );
+    }
+
+    return principals;
+  }
+
+  public canReadSomeRecords({
+    principals,
+    objectMetadataId,
+  }: ObjectQuestion): Promise<boolean> {
+    return this.recordAccessPolicyService.hasAccessToSomeRecords({
+      principals,
+      objectMetadataId,
+      operationType: 'select',
+    });
+  }
+
+  public canCreateSomeRecords({
+    principals,
+    objectMetadataId,
+  }: ObjectQuestion): Promise<boolean> {
+    return this.recordAccessPolicyService.hasAccessToSomeRecords({
+      principals,
+      objectMetadataId,
+      operationType: 'insert',
+    });
+  }
+
+  public canUpdateSomeRecords({
+    principals,
+    objectMetadataId,
+  }: ObjectQuestion): Promise<boolean> {
+    return this.recordAccessPolicyService.hasAccessToSomeRecords({
+      principals,
+      objectMetadataId,
+      operationType: 'update',
+    });
+  }
+
+  public canSoftDeleteSomeRecords({
+    principals,
+    objectMetadataId,
+  }: ObjectQuestion): Promise<boolean> {
+    return this.recordAccessPolicyService.hasAccessToSomeRecords({
+      principals,
+      objectMetadataId,
+      operationType: 'soft-delete',
+    });
+  }
+
+  public canDestroySomeRecords({
+    principals,
+    objectMetadataId,
+  }: ObjectQuestion): Promise<boolean> {
+    return this.recordAccessPolicyService.hasAccessToSomeRecords({
+      principals,
+      objectMetadataId,
+      operationType: 'delete',
+    });
+  }
+
+  public canReadRecords(question: RecordsQuestion): Promise<boolean> {
+    return this.coversEveryRecord({ question, operationType: 'select' });
+  }
+
+  public canUpdateRecords(question: RecordsQuestion): Promise<boolean> {
+    return this.coversEveryRecord({ question, operationType: 'update' });
+  }
+
+  public findUnreadableFieldMetadataIdsOrThrow({
+    principals,
+    objectMetadataId,
+  }: FieldsQuestion): Promise<Set<string>> {
+    return this.recordAccessPolicyService.findDeniedFieldMetadataIdsOrThrow({
+      principals,
+      objectMetadataId,
+      fieldPermission: 'canRead',
+    });
+  }
+
+  public findNonUpdatableFieldMetadataIdsOrThrow({
+    principals,
+    objectMetadataId,
+  }: FieldsQuestion): Promise<Set<string>> {
+    return this.recordAccessPolicyService.findDeniedFieldMetadataIdsOrThrow({
+      principals,
+      objectMetadataId,
+      fieldPermission: 'canUpdate',
+    });
+  }
+
+  public findReadableEventRecordIds(question: {
+    authContext: PermissionsAuthContext;
+    eventBatch: WorkspaceEventBatch<ObjectRecordEvent>;
+  }): Promise<Set<string>> {
+    return this.recordAccessPolicyService.findReadableEventRecordIds(question);
+  }
+
+  public findReadableEvents<TEvent extends ObjectRecordEvent>(question: {
+    authContext: PermissionsAuthContext;
+    eventBatch: WorkspaceEventBatch<TEvent>;
+    events?: TEvent[];
+  }): Promise<TEvent[]> {
+    return this.recordAccessPolicyService.findReadableEvents(question);
+  }
 
   public async getUserWorkspacePermissions({
     userWorkspaceId,
@@ -85,10 +255,10 @@ export class PermissionsService {
     return {
       permissionFlags,
       recordsPermissions: computePrincipalsRecordsPermissions({
-        principals: {
-          mainPrincipal: { type: 'role', roleId: flatRole.id },
-          applicationPrincipal: { type: 'customApplication' },
-        },
+        principals: buildRolePermissionsPrincipals({
+          workspaceId,
+          roleId: flatRole.id,
+        }),
         rolesPermissions,
         flatObjectMetadataMaps,
         flatFieldMetadataMaps,
@@ -106,6 +276,112 @@ export class PermissionsService {
     ) as Record<PermissionFlagType, boolean>,
     recordsPermissions: NO_ROLE_RECORDS_PERMISSIONS,
   });
+
+  public findRoleIds({
+    authContext,
+  }: {
+    authContext: PermissionsAuthContext | undefined;
+  }): Promise<string[]> {
+    return this.findPrincipalRoleIds(authContext);
+  }
+
+  public async hasAnyRole({
+    authContext,
+  }: {
+    authContext: PermissionsAuthContext | undefined;
+  }): Promise<boolean> {
+    return (await this.findPrincipalRoleIds(authContext)).length > 0;
+  }
+
+  public findRecordsPermissions(question: {
+    authContext: WorkspaceAuthContext;
+    flatObjectMetadata: Pick<FlatObjectMetadata, 'nameSingular'>;
+    recordIds: string[];
+  }): Promise<Map<string, RecordPermissionsDTO>> {
+    return this.recordPermissionsService.getPermissionsForRecords(question);
+  }
+
+  public findRecordSharing(
+    question: RecordSharingArgs,
+  ): Promise<RecordSharingDTO> {
+    return this.recordSharingReadService.findRecordSharing(question);
+  }
+
+  public findRecordSharingAfterChange(
+    question: RecordSharingArgs,
+  ): Promise<RecordSharingDTO> {
+    return this.recordSharingReadService.findRecordSharingAfterChange(question);
+  }
+
+  public async canManageRecordSharing(
+    question: RecordSharingArgs,
+  ): Promise<boolean> {
+    const { canManageSharing } =
+      await this.recordSharingReadService.findRecordSharing(question);
+
+    return canManageSharing;
+  }
+
+  public findViewerRecordAccess(
+    question: RecordSharingArgs & {
+      transactionScope: WorkspaceTransactionScope;
+    },
+  ): Promise<ViewerRecordAccess> {
+    return this.recordSharingReadService.findViewerRecordAccess(question);
+  }
+
+  public canRoleUpdateSharedRecord(question: {
+    workspaceId: string;
+    objectMetadataId: string;
+    recordId: string;
+    roleId: string;
+  }): Promise<boolean> {
+    return this.recordSharingReadService.canRoleUpdateSharedRecord(question);
+  }
+
+  public isRecordSharedBeyondMember(question: {
+    workspaceId: string;
+    objectMetadataId: string;
+    recordId: string;
+    workspaceMemberId: string;
+  }): Promise<boolean> {
+    return this.recordSharingReadService.isRecordSharedBeyondMember(question);
+  }
+
+  public findWorkspaceMemberRoleIds(question: {
+    workspaceId: string;
+    workspaceMemberIds: string[];
+  }): Promise<(string | undefined)[]> {
+    return this.userRoleReadService.findWorkspaceMemberRoleIds(question);
+  }
+
+  public findUserWorkspaceRoleIdOrThrow(question: {
+    workspaceId: string;
+    userWorkspaceId: string;
+  }): Promise<string> {
+    return this.userRoleReadService.findUserWorkspaceRoleIdOrThrow(question);
+  }
+
+  public findRolesByUserWorkspaceIds(question: {
+    userWorkspaceIds: string[];
+    workspaceId: string;
+  }): Promise<Map<string, RoleEntity[]>> {
+    return this.userRoleReadService.findRolesByUserWorkspaceIds(question);
+  }
+
+  public findWorkspaceMembersWithRole(question: {
+    roleId: string;
+    workspaceId: string;
+  }): Promise<FlatWorkspaceMember[]> {
+    return this.userRoleReadService.findWorkspaceMembersWithRole(question);
+  }
+
+  public findSuccessorUserWorkspace(question: {
+    removedUserWorkspace: Pick<UserWorkspaceEntity, 'id' | 'workspaceId'>;
+    actingUserWorkspaceId?: string;
+  }): Promise<UserWorkspaceEntity | undefined> {
+    return this.userRoleReadService.findSuccessorUserWorkspace(question);
+  }
 
   public async userHasWorkspaceSettingPermission({
     userWorkspaceId,
@@ -201,10 +477,10 @@ export class PermissionsService {
   }
 
   // Empty for the system, which acts with no role
-  public async getRoleIds(
-    authContext: WorkspaceAuthContext | undefined,
+  private async findPrincipalRoleIds(
+    authContext: PermissionsAuthContext | undefined,
   ): Promise<string[]> {
-    if (!isDefined(authContext) || isSystemAuthContext(authContext)) {
+    if (!isDefined(authContext)) {
       return [];
     }
 
@@ -216,6 +492,49 @@ export class PermissionsService {
     return isDefined(principals)
       ? getPermissionsPrincipalsRoleIds(principals)
       : [];
+  }
+
+  private async coversEveryRecord({
+    question,
+    operationType,
+  }: {
+    question: RecordsQuestion;
+    operationType: ObjectRecordsOperationType;
+  }): Promise<boolean> {
+    const grantedRecordIds = await this.findGrantedRecordIds({
+      question,
+      operationType,
+    });
+
+    return (
+      question.recordIds.length > 0 &&
+      question.recordIds.every((recordId) =>
+        grantedRecordIds.has(recordId.toLowerCase()),
+      )
+    );
+  }
+
+  private findGrantedRecordIds({
+    question: {
+      principals,
+      objectMetadataId,
+      recordIds,
+      hypotheticalRecordShareAccessLevel,
+      transactionScope,
+    },
+    operationType,
+  }: {
+    question: RecordsQuestion;
+    operationType: ObjectRecordsOperationType;
+  }): Promise<Set<string>> {
+    return this.recordAccessPolicyService.findGrantedRecordIds({
+      principals,
+      objectMetadataId,
+      operationType,
+      recordIds,
+      hypotheticalRecordShareAccessLevel,
+      transactionScope,
+    });
   }
 
   // Like the ORM, a role missing from the cache grants nothing, and every role must grant the flag
