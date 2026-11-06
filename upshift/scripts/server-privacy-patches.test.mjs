@@ -122,6 +122,7 @@ test('client configuration disables reporting despite enabled environment or dat
       ENTERPRISE_INSTANCE_TYPE: { PRODUCTION: 'production' },
       PUBLIC_FEATURE_FLAGS: [],
       AI_MODEL_TIERS: [],
+      AI_DATA_POLICIES: [],
     },
   );
 
