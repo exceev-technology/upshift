@@ -180,6 +180,57 @@ const PATCHES = [
       },
     ],
   },
+  // The Privacy tab only exists after Twenty v2.56. Its cloud sections describe Twenty Cloud and link to the DPA route removed above
+  {
+    file: `${FRONT}/src/modules/settings/privacy/hooks/useIsTwentyCloud.ts`,
+    optional: true,
+    replacements: [
+      {
+        from: [
+          "import { billingState } from '@/client-config/states/billingState';",
+          "import { isMultiWorkspaceEnabledState } from '@/client-config/states/isMultiWorkspaceEnabledState';",
+          "import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';",
+          '',
+          "// self-hosters can enable multi-workspace mode, but not Twenty's billing, so both together mean Twenty Cloud",
+          'export const useIsTwentyCloud = () => {',
+          '  const isMultiWorkspaceEnabled = useAtomStateValue(',
+          '    isMultiWorkspaceEnabledState,',
+          '  );',
+          '  const billing = useAtomStateValue(billingState);',
+          '',
+          '  return isMultiWorkspaceEnabled && (billing?.isBillingEnabled ?? false);',
+          '};',
+        ].join('\n'),
+        to: 'export const useIsTwentyCloud = () => false;',
+      },
+    ],
+  },
+  {
+    file: `${FRONT}/src/modules/settings/privacy/constants/TwentyTrustCenterUrls.ts`,
+    optional: true,
+    replacements: [
+      { from: "home: 'https://trust.twenty.com',", to: "home: ''," },
+      {
+        from: "soc2: 'https://trust.twenty.com/?tab=securityControls&frameworks=soc2_v1',",
+        to: "soc2: '',",
+      },
+      {
+        from: "gdpr: 'https://trust.twenty.com/?tab=securityControls&frameworks=gdpr_v1',",
+        to: "gdpr: '',",
+      },
+      {
+        from: "subprocessors: 'https://trust.twenty.com/?tab=subprocessors',",
+        to: "subprocessors: '',",
+      },
+    ],
+  },
+  {
+    file: `${FRONT}/src/modules/settings/privacy/constants/TwentyRepositoryUrl.ts`,
+    optional: true,
+    replacements: [
+      { from: "'https://github.com/twentyhq/twenty'", to: "'{{repositoryUrl}}'" },
+    ],
+  },
   // The cover shows Twenty's contributors; the changelog stays hidden until Upshift publishes its own
   {
     file: `${FRONT}/src/pages/settings/community/SettingsCommunity.tsx`,
