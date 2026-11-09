@@ -1,7 +1,35 @@
 import { type ObjectRecordsOperationType } from '@/types/ObjectRecordsOperationType';
 import { type ObjectRecordsPermissions } from '@/types/ObjectRecordsPermissions';
 import { assertUnreachable } from '@/utils/assertUnreachable';
+import { canReachAllRecords } from '@/utils/canReachAllRecords';
 import { isDefined } from '@/utils/validation/isDefined';
+
+const canReachRowLevelRecords = ({
+  rowLevelRecordsPermissions,
+  operationType,
+}: {
+  rowLevelRecordsPermissions: ObjectRecordsPermissions['rowLevelRecordsPermissions'];
+  operationType: ObjectRecordsOperationType;
+}): boolean => {
+  if (!isDefined(rowLevelRecordsPermissions)) {
+    return false;
+  }
+
+  switch (operationType) {
+    case 'read':
+      return rowLevelRecordsPermissions.canReadRecords;
+    case 'create':
+      return rowLevelRecordsPermissions.canCreateRecords;
+    case 'update':
+      return rowLevelRecordsPermissions.canUpdateRecords;
+    case 'destroy':
+      return rowLevelRecordsPermissions.canDestroyRecords;
+    case 'softDelete':
+      return rowLevelRecordsPermissions.canSoftDeleteRecords;
+    default:
+      return assertUnreachable(operationType);
+  }
+};
 
 export const canReachSomeRecords = ({
   objectRecordsPermissions,
@@ -9,38 +37,11 @@ export const canReachSomeRecords = ({
 }: {
   objectRecordsPermissions: ObjectRecordsPermissions | undefined;
   operationType: ObjectRecordsOperationType;
-}): boolean => {
-  if (!isDefined(objectRecordsPermissions)) {
-    return false;
-  }
-
-  const rowLevelRecordsPermissions =
-    objectRecordsPermissions.rowLevelRecordsPermissions;
-
-  switch (operationType) {
-    case 'select':
-      return (
-        objectRecordsPermissions.canReadAllRecords ||
-        (rowLevelRecordsPermissions?.canReadRecords ?? false)
-      );
-    case 'insert':
-    case 'update':
-      return (
-        objectRecordsPermissions.canUpdateAllRecords ||
-        (rowLevelRecordsPermissions?.canUpdateRecords ?? false)
-      );
-    case 'delete':
-      return (
-        objectRecordsPermissions.canDestroyAllRecords ||
-        (rowLevelRecordsPermissions?.canDestroyRecords ?? false)
-      );
-    case 'restore':
-    case 'soft-delete':
-      return (
-        objectRecordsPermissions.canSoftDeleteAllRecords ||
-        (rowLevelRecordsPermissions?.canSoftDeleteRecords ?? false)
-      );
-    default:
-      return assertUnreachable(operationType);
-  }
-};
+}): boolean =>
+  isDefined(objectRecordsPermissions) &&
+  (canReachAllRecords({ objectRecordsPermissions, operationType }) ||
+    canReachRowLevelRecords({
+      rowLevelRecordsPermissions:
+        objectRecordsPermissions.rowLevelRecordsPermissions,
+      operationType,
+    }));
