@@ -39,7 +39,7 @@ export const MessageThreadWidget = ({
 
   useSubscribeToMessageThreadMessages({
     messageThreadId: targetRecord.id,
-    loadedMessageCount: messages.length,
+    loadedMessageIds: messages.map(({ id }) => id),
     refetchMessages,
   });
 
@@ -100,6 +100,7 @@ export const MessageThreadWidget = ({
       lastMessage={lastMessage}
       loading={threadLoading}
       onFetchMoreMessages={fetchMoreMessages}
+      messageChannelId={lastMessageChannelId}
     />
   );
 };
