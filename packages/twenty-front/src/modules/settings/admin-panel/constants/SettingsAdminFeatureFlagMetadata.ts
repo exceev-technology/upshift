@@ -76,4 +76,12 @@ export const SETTINGS_ADMIN_FEATURE_FLAG_METADATA: Record<
     label: msg`AI data policy and Privacy tab`,
     description: msg`Show the Privacy tab and enforce its AI data policy and data sharing settings. Turning this off lifts any stored policy. Enable after the instance upgrade completes.`,
   },
+  [FeatureFlagKey.IS_RECORD_GROUP_TABS_ENABLED]: {
+    label: msg`Group tabs`,
+    description: msg`Let grouped table and list views show their groups as tabs, one group at a time. Enable after the instance upgrade completes.`,
+  },
+  [FeatureFlagKey.IS_HTTP_EGRESS_LAMBDA_ENABLED]: {
+    label: msg`HTTP requests in the logic function runtime`,
+    description: msg`Send workflow HTTP requests, test requests and the AI agent HTTP tool through the logic function driver, which runs them in an isolated Lambda when logic functions run in Lambda.`,
+  },
 };

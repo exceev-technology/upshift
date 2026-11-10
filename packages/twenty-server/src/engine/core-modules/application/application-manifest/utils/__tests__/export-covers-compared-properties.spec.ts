@@ -393,6 +393,7 @@ const exportWorkflowManifestOrThrow = (manifest: WorkflowManifest) => {
       ...universalFlatWorkflow,
       workspaceId: 'workspace-id',
       applicationId: 'application-id',
+      navigationMenuItemIds: [],
     },
     flatWorkflowVersion: {
       ...flatUniversalWorkflowVersion,
@@ -414,6 +415,8 @@ const AGENT_MANIFEST: AgentManifest = {
   name: 'lead-scorer',
   label: 'Lead Scorer',
   icon: 'IconRobot',
+  avatarColor: 'pink',
+  avatarShape: 'pill',
   description: 'Scores new leads',
   prompt: 'Score the lead.',
   modelId: 'gpt-4o',
@@ -888,6 +891,8 @@ const EXPORTED_KINDS: ExportedKind[] = [
     workspaceLocalProperties: ['visibility'],
     knownGaps: {
       isSystem: 'system workflows are reported as excluded',
+      jobConfig:
+        'no manifest slot yet, every application workflow gets the default',
       lastPublishedVersionId:
         'legacy workspace version pointer, kept while the active version matches the definition',
       lastPublishedCoreWorkflowVersionId:

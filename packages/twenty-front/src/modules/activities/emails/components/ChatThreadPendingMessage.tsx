@@ -1,17 +1,21 @@
 import { styled } from '@linaria/react';
 import { useLingui } from '@lingui/react/macro';
 
-import { StyledChatMessageBubble } from '@/activities/emails/components/StyledChatMessageBubble';
 import { type PendingChatMessage } from '@/activities/emails/types/PendingChatMessage';
+import { ChatMessageReceipt } from '@/chat/components/ChatMessageReceipt';
+import { StyledChatMessageBubble } from '@/chat/components/StyledChatMessageBubble';
+import { StyledChatMessageBubbleContent } from '@/chat/components/StyledChatMessageBubbleContent';
+import { StyledChatMessageMeta } from '@/chat/components/StyledChatMessageMeta';
+import { StyledChatMessageRow } from '@/chat/components/StyledChatMessageRow';
 import { LightIconButton } from 'twenty-ui/components/input';
 import { IconRefresh, IconTrash } from 'twenty-ui/icon';
 import { themeCssVariables } from 'twenty-ui/theme';
 
-const StyledContainer = styled.div`
-  align-items: flex-end;
-  display: flex;
-  flex-direction: column;
-  gap: ${themeCssVariables.spacing[1]};
+const StyledPendingBubble = styled(StyledChatMessageBubble)<{
+  isDimmed: boolean;
+}>`
+  opacity: ${({ isDimmed }) => (isDimmed ? 0.6 : 1)};
+  white-space: pre-line;
 `;
 
 const StyledFailedRow = styled.div`
@@ -20,6 +24,7 @@ const StyledFailedRow = styled.div`
   display: flex;
   font-size: ${themeCssVariables.font.size.sm};
   gap: ${themeCssVariables.spacing[1]};
+  margin-top: ${themeCssVariables.spacing[1]};
 `;
 
 type ChatThreadPendingMessageProps = {
@@ -36,13 +41,20 @@ export const ChatThreadPendingMessage = ({
   const { t } = useLingui();
 
   return (
-    <StyledContainer>
-      <StyledChatMessageBubble
-        isOutgoing
+    <StyledChatMessageRow isRightAligned>
+      <StyledPendingBubble
+        isUser
         isDimmed={pendingMessage.status === 'sending'}
       >
-        {pendingMessage.text}
-      </StyledChatMessageBubble>
+        <StyledChatMessageBubbleContent>
+          {pendingMessage.text}
+          {pendingMessage.status !== 'failed' && (
+            <StyledChatMessageMeta>
+              <ChatMessageReceipt status={pendingMessage.status} />
+            </StyledChatMessageMeta>
+          )}
+        </StyledChatMessageBubbleContent>
+      </StyledPendingBubble>
       {pendingMessage.status === 'failed' && (
         <StyledFailedRow>
           {t`Sending failed`}
@@ -60,6 +72,6 @@ export const ChatThreadPendingMessage = ({
           </LightIconButton>
         </StyledFailedRow>
       )}
-    </StyledContainer>
+    </StyledChatMessageRow>
   );
 };

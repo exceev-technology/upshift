@@ -209,7 +209,6 @@ const PATCHES = [
     file: `${FRONT}/src/modules/settings/privacy/constants/TwentyTrustCenterUrls.ts`,
     optional: true,
     replacements: [
-      { from: "home: 'https://trust.twenty.com',", to: "home: ''," },
       {
         from: "soc2: 'https://trust.twenty.com/?tab=securityControls&frameworks=soc2_v1',",
         to: "soc2: '',",
