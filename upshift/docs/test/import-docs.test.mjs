@@ -482,6 +482,31 @@ describe('buildSite on the sources of an Upshift patch release', () => {
       'the docs are built for Upshift v9.8.0 but the sources carry 9.9.0',
     ]);
   });
+
+  it('labels the docs with a patch release tagged after Twenty bumped to the next minor', () => {
+    const { files, problems } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.8.2',
+    });
+    const docsConfig = JSON.parse(files.get('docs.json'));
+
+    assert.deepEqual(problems, []);
+    assert.equal(
+      docsConfig.navigation.languages[0].versions[0].version,
+      'v9.8.2',
+    );
+  });
+
+  it('refuses a patch release whose sources are two minors ahead', () => {
+    const { problems } = buildSite(TWENTY_DOCS_ROOT, {
+      appRoot,
+      releaseVersion: '9.7.1',
+    });
+
+    assert.deepEqual(problems, [
+      'the docs are built for Upshift v9.7.1 but the sources carry 9.9.0',
+    ]);
+  });
 });
 
 describe('buildSite of an older version', () => {
