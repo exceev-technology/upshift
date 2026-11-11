@@ -78,6 +78,7 @@ test('inserted code only introduces the names listed here', () => {
     ],
     'SettingsLogs.tsx': ['isTableAvailable', 'isTableAvailableOnEveryPlan', 'table'],
     'EventLogTableSelector.tsx': ['filter', 'isTableAvailable'],
+    'ApplicationMonitoringPeriodSelect.tsx': ['filter'],
   };
   for (const { file, replacements } of LICENSE_UI_PATCHES) {
     const anchored = identifiers(replacements.map(({ from }) => from).join('\n'));
@@ -112,6 +113,8 @@ test('patched screens no longer render a license prompt', () => {
     'Organization subscription',
     'Organization key',
     'Upgrade to',
+    'Your plan shows',
+    'Audit logs entitlement',
   ];
   for (const { file } of LICENSE_UI_PATCHES) {
     const source = patchedSource(file);
@@ -290,4 +293,29 @@ test('settings logs open on, and only offer, the log types the workspace can rea
     Object.keys(EVENT_LOG_TABLES),
   );
   assert.deepEqual(offeredTables({}), Object.keys(EVENT_LOG_TABLES));
+});
+
+test('app monitoring only offers the periods the workspace can read', () => {
+  const periodSelect = patchedSource('/ApplicationMonitoringPeriodSelect.tsx');
+  const options = between(periodSelect, 'APPLICATION_MONITORING_PERIODS.filter(', '}))}') + '}))';
+  const offeredPeriods = (lookbackInHours) =>
+    Array.from(
+      vm.runInNewContext(options, {
+        lookbackInHours,
+        i18n: { _: (label) => label },
+        APPLICATION_MONITORING_PERIODS: [
+          { value: '2h', hours: 2, label: '2h' },
+          { value: '24h', hours: 24, label: '24h' },
+          { value: '90d', hours: 90 * 24, label: '90d' },
+        ],
+      }),
+      (option) => {
+        assert.equal(option.disabled, undefined);
+        return option.value;
+      },
+    );
+
+  assert.deepEqual(offeredPeriods(2), ['2h']);
+  assert.deepEqual(offeredPeriods(90 * 24), ['2h', '24h', '90d']);
+  assert.ok(!patchedSource('/ApplicationMonitoring.tsx').includes('StyledRetentionNotice'));
 });

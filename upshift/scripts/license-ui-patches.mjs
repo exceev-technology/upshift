@@ -754,6 +754,72 @@ export const LICENSE_UI_PATCHES = [
       },
     ],
   },
+  {
+    file: `${FRONT_MODULES}/settings/application-monitoring/components/ApplicationMonitoring.tsx`,
+    replacements: [
+      {
+        from: "import { APPLICATION_MONITORING_RETENTION_IN_DAYS } from 'twenty-shared/constants';\n",
+        to: '',
+      },
+      {
+        from: lines(
+          'const StyledRetentionNotice = styled.div`',
+          '  color: ${themeCssVariables.font.color.tertiary};',
+          '  font-size: ${themeCssVariables.font.size.sm};',
+          '`;',
+          '',
+          '',
+        ),
+        to: '',
+      },
+      {
+        from: lines(
+          '  const fullRetentionInHours = APPLICATION_MONITORING_RETENTION_IN_DAYS * 24;',
+          '  const lookbackInHours = monitoring.lookbackInHours;',
+          '  const lookbackInHoursLabel = lookbackInHours.toString();',
+          '  const fullRetentionInDaysLabel =',
+          '    APPLICATION_MONITORING_RETENTION_IN_DAYS.toString();',
+          '',
+        ),
+        to: lines('  const lookbackInHours = monitoring.lookbackInHours;', ''),
+      },
+      {
+        from: lines(
+          '          {lookbackInHours < fullRetentionInHours && (',
+          '            <StyledRetentionNotice>',
+          '              {t`Your plan shows the last ${lookbackInHoursLabel} hours. The last ${fullRetentionInDaysLabel} days are kept and visible with the Audit logs entitlement.`}',
+          '            </StyledRetentionNotice>',
+          '          )}',
+          '',
+        ),
+        to: '',
+      },
+    ],
+  },
+  {
+    file: `${FRONT_MODULES}/settings/application-monitoring/components/ApplicationMonitoringPeriodSelect.tsx`,
+    replacements: [
+      {
+        from: lines(
+          '      options={APPLICATION_MONITORING_PERIODS.map((period) => ({',
+          '        value: period.value,',
+          '        label: i18n._(period.label),',
+          '        disabled: period.hours > lookbackInHours,',
+          '      }))}',
+          '',
+        ),
+        to: lines(
+          '      options={APPLICATION_MONITORING_PERIODS.filter(',
+          '        (period) => period.hours <= lookbackInHours,',
+          '      ).map((period) => ({',
+          '        value: period.value,',
+          '        label: i18n._(period.label),',
+          '      }))}',
+          '',
+        ),
+      },
+    ],
+  },
 ];
 
 const REMOVED_LICENSE_UI = 'license prompt with every caller patched out; any new caller must be reviewed';
