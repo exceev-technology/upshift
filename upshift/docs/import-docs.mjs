@@ -268,8 +268,15 @@ export const buildSite = (
     );
   }
 
-  // Twenty bumps this constant only for minor releases, so twenty/v2.50.1 still carries 2.50.0
-  const releaseMinorVersion = releaseVersion?.replace(/\.\d+$/, '.0');
+  // Twenty bumps this constant per minor and tags patches from main, so twenty/v2.50.1
+  // carries 2.50.0 while twenty/v2.57.1, tagged after the bump, carries 2.58.0
+  const [releaseMajor, releaseMinor, releasePatch] =
+    releaseVersion?.split('.').map(Number) ?? [];
+  const acceptedSourceVersions = [
+    releaseVersion,
+    `${releaseMajor}.${releaseMinor}.0`,
+    ...(releasePatch > 0 ? [`${releaseMajor}.${releaseMinor + 1}.0`] : []),
+  ];
 
   if (sourceVersion === undefined) {
     problems.push(
@@ -277,8 +284,7 @@ export const buildSite = (
     );
   } else if (
     releaseVersion !== undefined &&
-    sourceVersion !== releaseVersion &&
-    sourceVersion !== releaseMinorVersion
+    !acceptedSourceVersions.includes(sourceVersion)
   ) {
     problems.push(
       `the docs are built for Upshift v${releaseVersion} but the sources carry ${sourceVersion}`,
