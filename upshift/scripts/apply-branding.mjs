@@ -695,6 +695,18 @@ const PATCHES = [
       },
     ],
   },
+  // OAuth client metadata shown by third-party authorization servers; only exists after Twenty v2.58
+  {
+    file: `${SERVER}/engine/core-modules/application/connection-provider/oauth-discovery/utils/build-oauth-discovery-client-metadata.util.ts`,
+    optional: true,
+    replacements: [
+      {
+        from: "const TWENTY_WEBSITE_URL = 'https://twenty.com';",
+        to: "const TWENTY_WEBSITE_URL = '{{websiteUrl}}';",
+      },
+      { from: "client_name: 'Twenty',", to: "client_name: '{{name}}'," },
+    ],
+  },
   {
     file: [
       `${SERVER}/engine/core-modules/open-api/utils/base-schema.util.ts`,
