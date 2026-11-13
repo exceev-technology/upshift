@@ -707,6 +707,42 @@ const PATCHES = [
       { from: "client_name: 'Twenty',", to: "client_name: '{{name}}'," },
     ],
   },
+  // Built-in marketplace apps only exist after Twenty v2.58. The ChatGPT entry opens Twenty's own ChatGPT app,
+  // removed like the ChatGPT card of the MCP setup
+  {
+    file: `${SERVER}/engine/core-modules/application/application-marketplace/constants/marketplace-built-in-applications.constant.ts`,
+    optional: true,
+    replacements: [
+      {
+        from: [
+          '    {',
+          '      universalIdentifier:',
+          '        MARKETPLACE_BUILT_IN_APPLICATION_UNIVERSAL_IDENTIFIERS.CHATGPT,',
+          "      name: 'ChatGPT',",
+          '      description:',
+          "        'Search, create and update your Twenty records from a ChatGPT conversation.',",
+          '      aboutDescription:',
+          "        'Connect ChatGPT to Twenty to work with your records from a conversation. Each member connects their own ChatGPT account, and ChatGPT acts with that member’s permissions.',",
+          "      author: 'OpenAI',",
+          "      category: 'Productivity',",
+          "      logoPath: '/images/oauth-clients/chatgpt.webp',",
+          "      coverImagePath: '/images/oauth-clients/covers/chatgpt.webp',",
+          "      websiteUrl: 'https://chatgpt.com',",
+          '      connectUrl:',
+          "        'https://chatgpt.com/apps/twenty/asdk_app_6a0ac8d7e28c8191a58ea65bb0ca3d5c',",
+          '    },',
+          '',
+        ].join('\n'),
+        to: '',
+      },
+      {
+        from: "'https://docs.twenty.com/developers/extend/apps/getting-started/quick-start'",
+        to: "'{{docsUrl}}/developers/extend/apps/getting-started/quick-start'",
+        count: 2,
+      },
+      { brandWord: true, minimum: 6 },
+    ],
+  },
   {
     file: [
       `${SERVER}/engine/core-modules/open-api/utils/base-schema.util.ts`,
