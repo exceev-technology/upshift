@@ -26,6 +26,7 @@ import { applyReplacements, countOccurrences } from './patch-replacements.mjs';
 import { PHONE_COUNTRY_PATCHES } from './phone-country-patches.mjs';
 import { SERVER_PRIVACY_PATCHES } from './server-privacy-patches.mjs';
 import { VERSION_PATCHES } from './version-patches.mjs';
+import { VIEW_FIELD_SCOPE_PATCHES } from './view-field-scope-patches.mjs';
 
 const UPSHIFT_DIRECTORY = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -73,6 +74,7 @@ const PATCHES = [
   ...OBSERVABILITY_PATCHES,
   ...VERSION_PATCHES,
   ...CURRENCY_PATCHES,
+  ...VIEW_FIELD_SCOPE_PATCHES,
   {
     file: `${FRONT}/index.html`,
     replacements: [
