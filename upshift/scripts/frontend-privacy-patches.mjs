@@ -85,7 +85,15 @@ export const FRONTEND_PRIVACY_PATCHES = [
         to: '',
       },
       {
+        // Latest release only; newer Twenty uses `?? false` below.
+        optional: true,
         from: '  const canAccessAdminPanel = currentUser?.canAccessFullAdminPanel === true;\n',
+        to: '',
+      },
+      {
+        // Newer than the latest release, which compares to `true` above.
+        optional: true,
+        from: '  const canAccessAdminPanel = currentUser?.canAccessFullAdminPanel ?? false;\n',
         to: '',
       },
       {
