@@ -114,7 +114,7 @@
         },
         "versions": [
           {
-            "version": "v2.59.1",
+            "version": "v2.59.3",
             "default": true,
             "tabs": [
               {
@@ -4355,7 +4355,7 @@
         },
         "versions": [
           {
-            "version": "v2.59.1",
+            "version": "v2.59.3",
             "default": true,
             "tabs": [
               {
