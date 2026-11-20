@@ -517,6 +517,12 @@ export const PHRASE_REPLACEMENTS = {
       count: 1,
     },
     {
+      from: 'Otherwise, reach out on the [community Discord](https://discord.gg/cx5n4Jzs57) or contact support.',
+      to: `Otherwise, [contact the ${BRAND_NAME} team](${CONTACT_LINK}).`,
+      count: 1,
+      since: '2.61',
+    },
+    {
       from: `[open an issue](${TWENTY_ISSUE_LINK})`,
       to: `[contact the ${BRAND_NAME} team](${CONTACT_LINK})`,
       count: 2,

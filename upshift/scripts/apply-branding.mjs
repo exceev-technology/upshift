@@ -539,6 +539,14 @@ const PATCHES = [
       { from: '`https://twenty-icons.com/${sanitizedDomain}`', to: 'undefined' },
     ],
   },
+  // Bundled MCP server apps are newer than the latest release
+  {
+    file: `${SERVER}/engine/core-modules/application/application-bundled/mcp-servers/bundled-mcp-servers.json`,
+    optional: true,
+    replacements: [
+      { pattern: /"https:\/\/twenty-icons\.com\/[^"]*"/g, to: 'null' },
+    ],
+  },
   {
     file: `${SERVER}/engine/core-modules/twenty-config/config-variables.ts`,
     replacements: [
@@ -745,6 +753,41 @@ const PATCHES = [
       { brandWord: true, minimum: 6 },
     ],
   },
+  // Newer Twenty renames the built-in applications to connect listings, one indent level up
+  {
+    file: `${SERVER}/engine/core-modules/application/application-marketplace/constants/marketplace-connect-listings.constant.ts`,
+    optional: true,
+    replacements: [
+      {
+        from: [
+          '  {',
+          '    universalIdentifier:',
+          '      MARKETPLACE_CONNECT_LISTING_UNIVERSAL_IDENTIFIERS.CHATGPT,',
+          "    name: 'ChatGPT',",
+          '    description:',
+          "      'Search, create and update your Twenty records from a ChatGPT conversation.',",
+          '    aboutDescription:',
+          "      'Connect ChatGPT to Twenty to work with your records from a conversation. Each member connects their own ChatGPT account, and ChatGPT acts with that member’s permissions.',",
+          "    author: 'OpenAI',",
+          "    category: 'Productivity',",
+          "    logoPath: '/images/oauth-clients/chatgpt.webp',",
+          "    coverImagePath: '/images/oauth-clients/covers/chatgpt.webp',",
+          "    websiteUrl: 'https://chatgpt.com',",
+          '    connectUrl:',
+          "      'https://chatgpt.com/apps/twenty/asdk_app_6a0ac8d7e28c8191a58ea65bb0ca3d5c',",
+          '  },',
+          '',
+        ].join('\n'),
+        to: '',
+      },
+      {
+        from: "'https://docs.twenty.com/developers/extend/apps/getting-started/quick-start'",
+        to: "'{{docsUrl}}/developers/extend/apps/getting-started/quick-start'",
+        count: 2,
+      },
+      { brandWord: true, minimum: 6 },
+    ],
+  },
   {
     file: [
       `${SERVER}/engine/core-modules/open-api/utils/base-schema.util.ts`,
@@ -854,6 +897,17 @@ const PATCHES = [
       { from: 'learn how to use Twenty CRM', to: 'learn how to use Twenty' },
     ],
   },
+  {
+    file: `${SERVER}/engine/core-modules/application/application-registration/application-registration.service.ts`,
+    replacements: [
+      {
+        // Newer Twenty no longer creates a CLI registration here.
+        optional: true,
+        from: "'Failed to create the Twenty CLI application registration'",
+        to: "'Failed to create the {{name}} CLI application registration'",
+      },
+    ],
+  },
   ...[
     [
       'engine/core-modules/tool/tools/code-interpreter-tool/twenty-mcp-helper.constant.ts',
@@ -863,7 +917,6 @@ const PATCHES = [
     'engine/core-modules/tool/tools/search-help-center-tool/search-help-center-tool.schema.ts',
     'engine/core-modules/application/application-package/application-version-validation.service.ts',
     'engine/core-modules/auth/controllers/oauth-propagator.controller.ts',
-    'engine/core-modules/application/application-registration/application-registration.service.ts',
     'engine/workspace-manager/twenty-standard-application/constants/twenty-cli-application-registration.constant.ts',
     'engine/workspace-manager/workspace-migration/services/workspace-migration-flat-entity-maps.service.ts',
     'engine/metadata-modules/ai/ai-chat/constants/chat-system-prompts.const.ts',
