@@ -216,7 +216,7 @@ Every failure names the file and what was expected.
 | Sentry errors, traces, profiles, AI inputs/outputs and browser session replay | Off unless configured | Server initialization and browser component disabled; exception logging uses the console |
 | OpenTelemetry metric exports | Off unless configured | Remote exporter disabled; local console and Prometheus metrics remain available |
 | Enterprise licence validation, seat reports, checkout, portal, status and release calls to Twenty | Conditional on licence configuration or admin actions | Requests rejected before collecting instance metadata or contacting Twenty |
-| Company logos from twenty-icons.com (browser and server) | On | URL builder returns nothing, workspace logo inference removed |
+| Company logos from twenty-icons.com (browser and server) | On | URL builder returns nothing, workspace logo inference removed, bundled MCP server logos cleared |
 | Company enrichment from twenty-companies.com during email and calendar sync | On | Removed, falls back to the name derived from the domain |
 | AI help-center search through Twenty's documentation server (docs.twenty.com/mcp, twenty-help-search.com before v2.50) | On | Disabled, the tool answers without sending the query (before v2.50, your own Mintlify key re-enables it) |
 | Email logo and default workspace logo hosted by Twenty | On | Served from this repository |

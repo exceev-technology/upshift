@@ -539,6 +539,14 @@ const PATCHES = [
       { from: '`https://twenty-icons.com/${sanitizedDomain}`', to: 'undefined' },
     ],
   },
+  // Bundled MCP server apps are newer than the latest release
+  {
+    file: `${SERVER}/engine/core-modules/application/application-bundled/mcp-servers/bundled-mcp-servers.json`,
+    optional: true,
+    replacements: [
+      { pattern: /"https:\/\/twenty-icons\.com\/[^"]*"/g, to: 'null' },
+    ],
+  },
   {
     file: `${SERVER}/engine/core-modules/twenty-config/config-variables.ts`,
     replacements: [
@@ -733,6 +741,41 @@ const PATCHES = [
           '      connectUrl:',
           "        'https://chatgpt.com/apps/twenty/asdk_app_6a0ac8d7e28c8191a58ea65bb0ca3d5c',",
           '    },',
+          '',
+        ].join('\n'),
+        to: '',
+      },
+      {
+        from: "'https://docs.twenty.com/developers/extend/apps/getting-started/quick-start'",
+        to: "'{{docsUrl}}/developers/extend/apps/getting-started/quick-start'",
+        count: 2,
+      },
+      { brandWord: true, minimum: 6 },
+    ],
+  },
+  // Newer Twenty renames the built-in applications to connect listings, one indent level up
+  {
+    file: `${SERVER}/engine/core-modules/application/application-marketplace/constants/marketplace-connect-listings.constant.ts`,
+    optional: true,
+    replacements: [
+      {
+        from: [
+          '  {',
+          '    universalIdentifier:',
+          '      MARKETPLACE_CONNECT_LISTING_UNIVERSAL_IDENTIFIERS.CHATGPT,',
+          "    name: 'ChatGPT',",
+          '    description:',
+          "      'Search, create and update your Twenty records from a ChatGPT conversation.',",
+          '    aboutDescription:',
+          "      'Connect ChatGPT to Twenty to work with your records from a conversation. Each member connects their own ChatGPT account, and ChatGPT acts with that member’s permissions.',",
+          "    author: 'OpenAI',",
+          "    category: 'Productivity',",
+          "    logoPath: '/images/oauth-clients/chatgpt.webp',",
+          "    coverImagePath: '/images/oauth-clients/covers/chatgpt.webp',",
+          "    websiteUrl: 'https://chatgpt.com',",
+          '    connectUrl:',
+          "      'https://chatgpt.com/apps/twenty/asdk_app_6a0ac8d7e28c8191a58ea65bb0ca3d5c',",
+          '  },',
           '',
         ].join('\n'),
         to: '',
