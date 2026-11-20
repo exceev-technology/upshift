@@ -16,6 +16,45 @@ const REMOVE_ORGANIZATION_ADORNMENT_IMPORT = {
 
 const lines = (...content) => content.join('\n');
 
+const organizationPlanUpgradeSection = (...headerLines) =>
+  lines(
+    '  if (!hasOrganizationPlan) {',
+    '    return (',
+    '      <Section.Root>',
+    '        <Section.Header',
+    ...headerLines,
+    '          actions={<OrganizationAdornment />}',
+    '        />',
+    '        <StyledCardContainer>',
+    '          <Card.Root>',
+    '            <SettingsOptionCardContentButton',
+    '              Icon={IconLock}',
+    '              title={t`Upgrade to access`}',
+    '              description={t`This feature is part of the Organization plan`}',
+    '              Button={',
+    '                <Button',
+    '                  size="sm"',
+    '                  startIcon={<IconArrowUp />}',
+    '                  onClick={() =>',
+    '                    navigateSettings(',
+    '                      isBillingEnabled',
+    '                        ? SettingsPath.BillingPlans',
+    '                        : SettingsPath.AdminPanelOrganization,',
+    '                    )',
+    '                  }',
+    '                  variant="solid"',
+    '                  color="accent"',
+    '                >{t`Upgrade`}</Button>',
+    '              }',
+    '            />',
+    '          </Card.Root>',
+    '        </StyledCardContainer>',
+    '      </Section.Root>',
+    '    );',
+    '  }',
+    '',
+  );
+
 // Pins upstream code that inserted lines depend on, so a rename fails the layer check instead of the page
 const requireUnchanged = (text) => ({ from: text, to: text });
 
@@ -283,47 +322,27 @@ export const LICENSE_UI_PATCHES = [
     ],
   },
   {
-    file: `${FRONT_MODULES}/settings/roles/role-permissions/object-level-permissions/record-level-permissions/components/SettingsRolePermissionsObjectLevelRecordLevelSection.tsx`,
+    file: [
+      `${FRONT_MODULES}/settings/roles/role-permissions/rule-conditions/components/SettingsRoleRuleConditionsSection.tsx`,
+      `${FRONT_MODULES}/settings/roles/role-permissions/object-level-permissions/record-level-permissions/components/SettingsRolePermissionsObjectLevelRecordLevelSection.tsx`,
+    ],
     replacements: [
       REMOVE_ORGANIZATION_ADORNMENT_IMPORT,
       {
-        from: lines(
-          '  if (!hasOrganizationPlan) {',
-          '    return (',
-          '      <Section.Root>',
-          '        <Section.Header',
+        // Newer than the latest release, which names the section Record-level.
+        optional: true,
+        from: organizationPlanUpgradeSection(
+          '          title={t`Condition`}',
+          '          description={t`Which ${objectLabelPlural} this rule applies to. Me is the person viewing.`}',
+        ),
+        to: lines('  if (!hasOrganizationPlan) {', '    return null;', '  }', ''),
+      },
+      {
+        // Record-level section in the latest release only.
+        optional: true,
+        from: organizationPlanUpgradeSection(
           '          title={t`Record-level`}',
           '          description={t`Ability to filter the records a user can interact with`}',
-          '          actions={<OrganizationAdornment />}',
-          '        />',
-          '        <StyledCardContainer>',
-          '          <Card.Root>',
-          '            <SettingsOptionCardContentButton',
-          '              Icon={IconLock}',
-          '              title={t`Upgrade to access`}',
-          '              description={t`This feature is part of the Organization plan`}',
-          '              Button={',
-          '                <Button',
-          '                  size="sm"',
-          '                  startIcon={<IconArrowUp />}',
-          '                  onClick={() =>',
-          '                    navigateSettings(',
-          '                      isBillingEnabled',
-          '                        ? SettingsPath.BillingPlans',
-          '                        : SettingsPath.AdminPanelOrganization,',
-          '                    )',
-          '                  }',
-          '                  variant="solid"',
-          '                  color="accent"',
-          '                >{t`Upgrade`}</Button>',
-          '              }',
-          '            />',
-          '          </Card.Root>',
-          '        </StyledCardContainer>',
-          '      </Section.Root>',
-          '    );',
-          '  }',
-          '',
         ),
         to: lines('  if (!hasOrganizationPlan) {', '    return null;', '  }', ''),
       },

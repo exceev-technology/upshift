@@ -13,11 +13,23 @@ const sourceRoot =
   process.env.UPSHIFT_PRIVACY_SOURCE_ROOT ??
   path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
+const candidateFiles = (file) => [file].flat();
+
+const sourcePath = (file) => {
+  const existing = candidateFiles(file).find((candidate) =>
+    existsSync(path.join(sourceRoot, candidate)),
+  );
+  assert.ok(existing, `${candidateFiles(file).join(' or ')} no longer exists`);
+  return path.join(sourceRoot, existing);
+};
+
 const patchedSource = (suffix) => {
-  const patch = LICENSE_UI_PATCHES.find(({ file }) => file.endsWith(suffix));
-  const source = readFileSync(path.join(sourceRoot, patch.file), 'utf8');
+  const patch = LICENSE_UI_PATCHES.find(({ file }) =>
+    candidateFiles(file).some((candidate) => candidate.endsWith(suffix)),
+  );
+  const source = readFileSync(sourcePath(patch.file), 'utf8');
   const result = applyReplacements(source, patch.replacements);
-  assert.deepEqual(result.failures, [], patch.file);
+  assert.deepEqual(result.failures, [], String(patch.file));
   return result.content;
 };
 
@@ -44,15 +56,15 @@ const identifiers = (code) =>
   );
 
 test('every license UI patch matches upstream exactly', () => {
-  for (const { file } of LICENSE_UI_PATCHES) patchedSource(file);
+  for (const { file } of LICENSE_UI_PATCHES) patchedSource(candidateFiles(file)[0]);
 });
 
 test('patches keep brackets balanced', () => {
   const netBalance = (source, open, close) =>
     source.split(open).length - source.split(close).length;
   for (const { file } of LICENSE_UI_PATCHES) {
-    const original = readFileSync(path.join(sourceRoot, file), 'utf8');
-    const patched = patchedSource(file);
+    const original = readFileSync(sourcePath(file), 'utf8');
+    const patched = patchedSource(candidateFiles(file)[0]);
     for (const [open, close] of [['{', '}'], ['(', ')'], ['[', ']']]) {
       assert.equal(netBalance(patched, open, close), netBalance(original, open, close), `${file} ${open}${close}`);
     }
@@ -85,13 +97,13 @@ test('inserted code only introduces the names listed here', () => {
     const introduced = [...identifiers(replacements.map(({ to }) => to).join('\n'))]
       .filter((word) => !anchored.has(word))
       .sort();
-    assert.deepEqual(introduced, introducedByPatch[path.basename(file)] ?? [], file);
+    assert.deepEqual(introduced, introducedByPatch[path.basename(candidateFiles(file)[0])] ?? [], file);
   }
 });
 
 test('injected imports appear once in the patched file', () => {
   for (const { file, replacements } of LICENSE_UI_PATCHES) {
-    const patched = patchedSource(file);
+    const patched = patchedSource(candidateFiles(file)[0]);
     const injectedImports = replacements
       .flatMap(({ to }) => to.split('\n'))
       .filter((line) => line.startsWith('import '));
@@ -117,7 +129,7 @@ test('patched screens no longer render a license prompt', () => {
     'Audit logs entitlement',
   ];
   for (const { file } of LICENSE_UI_PATCHES) {
-    const source = patchedSource(file);
+    const source = patchedSource(candidateFiles(file)[0]);
     for (const prompt of licensePrompts) {
       assert.ok(!source.includes(prompt), `${file} still contains ${prompt}`);
     }
@@ -145,7 +157,7 @@ test('paid settings sections render only for entitled workspaces', () => {
     assert.ok(source.indexOf(section) > guardIndex, `${file}: ${section} is not guarded`);
   }
   for (const [file, guard] of [
-    ['/SettingsRolePermissionsObjectLevelRecordLevelSection.tsx', 'if (!hasOrganizationPlan) {'],
+    ['/SettingsRoleRuleConditionsSection.tsx', 'if (!hasOrganizationPlan) {'],
     ['/SettingsAiUsageTab.tsx', 'if (!hasEnterpriseAccess) {'],
   ]) {
     assert.match(

@@ -854,6 +854,17 @@ const PATCHES = [
       { from: 'learn how to use Twenty CRM', to: 'learn how to use Twenty' },
     ],
   },
+  {
+    file: `${SERVER}/engine/core-modules/application/application-registration/application-registration.service.ts`,
+    replacements: [
+      {
+        // Newer Twenty no longer creates a CLI registration here.
+        optional: true,
+        from: "'Failed to create the Twenty CLI application registration'",
+        to: "'Failed to create the {{name}} CLI application registration'",
+      },
+    ],
+  },
   ...[
     [
       'engine/core-modules/tool/tools/code-interpreter-tool/twenty-mcp-helper.constant.ts',
@@ -863,7 +874,6 @@ const PATCHES = [
     'engine/core-modules/tool/tools/search-help-center-tool/search-help-center-tool.schema.ts',
     'engine/core-modules/application/application-package/application-version-validation.service.ts',
     'engine/core-modules/auth/controllers/oauth-propagator.controller.ts',
-    'engine/core-modules/application/application-registration/application-registration.service.ts',
     'engine/workspace-manager/twenty-standard-application/constants/twenty-cli-application-registration.constant.ts',
     'engine/workspace-manager/workspace-migration/services/workspace-migration-flat-entity-maps.service.ts',
     'engine/metadata-modules/ai/ai-chat/constants/chat-system-prompts.const.ts',

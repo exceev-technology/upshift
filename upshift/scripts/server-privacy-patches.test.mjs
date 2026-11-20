@@ -116,6 +116,7 @@ test('client configuration disables reporting despite enabled environment or dat
         typeof value === 'string' && value.length > 0,
       readBookCallStepMinEmployeeCount: () => undefined,
       readIsCompanyEnrichmentEnabled: () => false,
+      deriveWebPushVapidKeyPair: () => ({ publicKey: undefined }),
       EmailingDomainDriver: { LOG: 'LOG' },
       SupportDriver: { NONE: 'NONE' },
       NodeEnvironment: { DEVELOPMENT: 'development' },
