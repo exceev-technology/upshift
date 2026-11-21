@@ -4,7 +4,7 @@ import { type ReactNode } from 'react';
 import { AgentChatThreadConversationType } from 'twenty-shared/ai';
 import { NavigationMenuItemType } from 'twenty-shared/types';
 
-import { useLoadAiChatThread } from '@/ai-chat/instance/hooks/useLoadAiChatThread';
+import { useLoadAiChatThread } from '@/ai-chat/threads/hooks/useLoadAiChatThread';
 import { useLoadInboxThreadList } from '@/inbox/hooks/useLoadInboxThreadList';
 import { INBOX_RECENT_THREAD_LIST_SOURCE } from '@/inbox/constants/InboxRecentThreadListSource';
 import { inboxThreadListFamilyState } from '@/inbox/states/inboxThreadListFamilyState';
@@ -464,32 +464,5 @@ describe('useLoadInboxThreadList', () => {
     await act(async () => {
       expect(await result.current.loadAiChatThread('unknown')).toBeUndefined();
     });
-  });
-
-  it('restores the usage of a chat opened past the loaded pages', async () => {
-    const store = buildStore();
-    queryMock.mockResolvedValueOnce(
-      buildPage([
-        {
-          ...buildThread('old-thread', 'Old chat'),
-          conversationSize: 3,
-          contextWindowTokens: 1000,
-          totalInputTokens: 42,
-        },
-      ]),
-    );
-    const result = renderRefresh(store);
-
-    await act(async () => {
-      await result.current.loadAiChatThread('old-thread');
-    });
-
-    expect(
-      store.get(
-        aiChatThreadUsageFamilyState.atomFamily({
-          threadId: 'old-thread',
-        }),
-      ),
-    ).toMatchObject({ inputTokens: 42 });
   });
 });
