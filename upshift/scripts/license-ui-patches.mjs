@@ -349,6 +349,53 @@ export const LICENSE_UI_PATCHES = [
     ],
   },
   {
+    // Newer than the latest release; its New rule button opens the rule page whose condition is hidden above.
+    file: `${FRONT_MODULES}/settings/roles/role-permissions/object-overrides/components/SettingsRolePermissionsObjectOverridePanel.tsx`,
+    optional: true,
+    replacements: [
+      {
+        from: "import { useAtomFamilyStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomFamilyStateValue';\n",
+        to: lines(
+          "import { useAtomFamilyStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomFamilyStateValue';",
+          "import { currentWorkspaceState } from '@/auth/states/currentWorkspaceState';",
+          "import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';",
+          "import { checkIfBillingEntitlementIsEnabledOnWorkspace } from '@/workspace/utils/checkIfBillingEntitlementIsEnabledOnWorkspace';",
+          "import { BillingEntitlementKey } from '~/generated-metadata/graphql';",
+          '',
+        ),
+      },
+      {
+        from: lines('  const theme = useTheme();', ''),
+        to: lines(
+          '  const theme = useTheme();',
+          '  const currentWorkspace = useAtomStateValue(currentWorkspaceState);',
+          '  const hasRowLevelPermissionEntitlement =',
+          '    checkIfBillingEntitlementIsEnabledOnWorkspace(',
+          '      BillingEntitlementKey.RLS,',
+          '      currentWorkspace,',
+          '    );',
+          '',
+        ),
+      },
+      {
+        from: lines('      {isEditable && (', '        <StyledFooter>', ''),
+        to: lines(
+          '      {isEditable && hasRowLevelPermissionEntitlement && (',
+          '        <StyledFooter>',
+          '',
+        ),
+      },
+      requireUnchanged(
+        lines(
+          '            onClick={() => openRulePage(createRule(objectMetadataItem.id))}',
+          '          >',
+          '            {t`New rule`}',
+          '',
+        ),
+      ),
+    ],
+  },
+  {
     file: `${FRONT_MODULES}/settings/roles/components/SettingsRolesList.tsx`,
     replacements: [
       REMOVE_ORGANIZATION_ADORNMENT_IMPORT,
