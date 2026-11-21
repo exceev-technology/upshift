@@ -15,6 +15,14 @@ const sourceRoot =
 
 const candidateFiles = (file) => [file].flat();
 
+const isPresent = (file) =>
+  candidateFiles(file).some((candidate) => existsSync(path.join(sourceRoot, candidate)));
+
+// Optional patches target files newer than the latest release
+const presentPatches = LICENSE_UI_PATCHES.filter(
+  ({ file, optional }) => !optional || isPresent(file),
+);
+
 const sourcePath = (file) => {
   const existing = candidateFiles(file).find((candidate) =>
     existsSync(path.join(sourceRoot, candidate)),
@@ -56,13 +64,13 @@ const identifiers = (code) =>
   );
 
 test('every license UI patch matches upstream exactly', () => {
-  for (const { file } of LICENSE_UI_PATCHES) patchedSource(candidateFiles(file)[0]);
+  for (const { file } of presentPatches) patchedSource(candidateFiles(file)[0]);
 });
 
 test('patches keep brackets balanced', () => {
   const netBalance = (source, open, close) =>
     source.split(open).length - source.split(close).length;
-  for (const { file } of LICENSE_UI_PATCHES) {
+  for (const { file } of presentPatches) {
     const original = readFileSync(sourcePath(file), 'utf8');
     const patched = patchedSource(candidateFiles(file)[0]);
     for (const [open, close] of [['{', '}'], ['(', ')'], ['[', ']']]) {
@@ -89,10 +97,19 @@ test('inserted code only introduces the names listed here', () => {
       'useAtomStateValue',
     ],
     'SettingsLogs.tsx': ['isTableAvailable', 'isTableAvailableOnEveryPlan', 'table'],
+    'SettingsRolePermissionsObjectOverridePanel.tsx': [
+      'BillingEntitlementKey',
+      'RLS',
+      'checkIfBillingEntitlementIsEnabledOnWorkspace',
+      'currentWorkspace',
+      'currentWorkspaceState',
+      'hasRowLevelPermissionEntitlement',
+      'useAtomStateValue',
+    ],
     'EventLogTableSelector.tsx': ['filter', 'isTableAvailable'],
     'ApplicationMonitoringPeriodSelect.tsx': ['filter'],
   };
-  for (const { file, replacements } of LICENSE_UI_PATCHES) {
+  for (const { file, replacements } of presentPatches) {
     const anchored = identifiers(replacements.map(({ from }) => from).join('\n'));
     const introduced = [...identifiers(replacements.map(({ to }) => to).join('\n'))]
       .filter((word) => !anchored.has(word))
@@ -102,7 +119,7 @@ test('inserted code only introduces the names listed here', () => {
 });
 
 test('injected imports appear once in the patched file', () => {
-  for (const { file, replacements } of LICENSE_UI_PATCHES) {
+  for (const { file, replacements } of presentPatches) {
     const patched = patchedSource(candidateFiles(file)[0]);
     const injectedImports = replacements
       .flatMap(({ to }) => to.split('\n'))
@@ -128,13 +145,19 @@ test('patched screens no longer render a license prompt', () => {
     'Your plan shows',
     'Audit logs entitlement',
   ];
-  for (const { file } of LICENSE_UI_PATCHES) {
+  for (const { file } of presentPatches) {
     const source = patchedSource(candidateFiles(file)[0]);
     for (const prompt of licensePrompts) {
       assert.ok(!source.includes(prompt), `${file} still contains ${prompt}`);
     }
   }
 });
+
+const OBJECT_OVERRIDE_PANEL_FILE = LICENSE_UI_PATCHES.find(({ file }) =>
+  candidateFiles(file).some((candidate) =>
+    candidate.endsWith('/SettingsRolePermissionsObjectOverridePanel.tsx'),
+  ),
+).file;
 
 test('paid settings sections render only for entitled workspaces', () => {
   const sectionGuards = [
@@ -149,6 +172,9 @@ test('paid settings sections render only for entitled workspaces', () => {
       'title={t`Custom Providers`}',
     ],
     ['/SettingsAdminAiProviderDetail.tsx', 'hasCustomAiProviderAccess && newModelPath', '{t`Add Model`}'],
+    ...(isPresent(OBJECT_OVERRIDE_PANEL_FILE)
+      ? [['/SettingsRolePermissionsObjectOverridePanel.tsx', 'hasRowLevelPermissionEntitlement && (', '{t`New rule`}']]
+      : []),
   ];
   for (const [file, guard, section] of sectionGuards) {
     const source = patchedSource(file);
