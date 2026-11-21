@@ -893,6 +893,8 @@ const PATCHES = [
   },
   {
     file: `${SERVER}/engine/workspace-manager/twenty-standard-application/utils/agent-metadata/create-standard-flat-agent-metadata.util.ts`,
+    // Newer Twenty removed the standard Helper agent
+    optional: true,
     replacements: [
       { from: 'learn how to use Twenty CRM', to: 'learn how to use Twenty' },
     ],
@@ -923,7 +925,6 @@ const PATCHES = [
     'engine/metadata-modules/ai/ai-chat/constants/workspace-setup-system-prompt.constant.ts',
     'engine/metadata-modules/ai/ai-agent/constants/agent-run-base-system-prompt.const.ts',
     'engine/api/mcp/utils/build-mcp-server-instructions.util.ts',
-    'engine/workspace-manager/twenty-standard-application/utils/agent-metadata/create-standard-flat-agent-metadata.util.ts',
     'engine/metadata-modules/navigation-menu-item/tools/schemas/navigation-menu-item-scope.schema.ts',
   ].map((relativePath) => ({
     file: [relativePath].flat().map((path) => `${SERVER}/${path}`),
@@ -946,6 +947,12 @@ const PATCHES = [
     optional: true,
     replacements: [{ brandWord: true }],
   })),
+  // Newer Twenty removed the standard Helper agent
+  {
+    file: `${SERVER}/engine/workspace-manager/twenty-standard-application/utils/agent-metadata/create-standard-flat-agent-metadata.util.ts`,
+    optional: true,
+    replacements: [{ brandWord: true }],
+  },
   {
     file: `${SERVER}/engine/core-modules/tool/tools/email-tool/email-tool.schema.ts`,
     replacements: [
